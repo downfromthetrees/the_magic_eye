@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/downfromthetrees/the_magic_eye/issues"
   },
-  "homepage": "https://github.com/downfromthetrees/the_magic_eye#readme"
+  "homepage": "https://github.com/downfromthetrees/the_magic_eye#readme",
+  "dependencies": {
+    "express": "^4.16.3"
+  }
 }
