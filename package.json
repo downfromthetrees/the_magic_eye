@@ -1,0 +1,19 @@
+{
+  "name": "the_magic_eye",
+  "version": "1.0.0",
+  "description": "Magic eye is a bot for detecting image reposts in subreddits, as well as managing moderator tasks around reposted images.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/downfromthetrees/the_magic_eye.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/downfromthetrees/the_magic_eye/issues"
+  },
+  "homepage": "https://github.com/downfromthetrees/the_magic_eye#readme"
+}
