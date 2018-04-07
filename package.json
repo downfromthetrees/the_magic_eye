@@ -4,7 +4,7 @@
   "description": "Magic eye is a bot for detecting image reposts in subreddits, as well as managing moderator tasks around reposted images.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.ts"
   },
   "repository": {
     "type": "git",
@@ -17,6 +17,9 @@
   },
   "homepage": "https://github.com/downfromthetrees/the_magic_eye#readme",
   "dependencies": {
-    "express": "^4.16.3"
+    "@types/express": "^4.11.1",
+    "@types/node": "^9.6.2",
+    "express": "^4.16.3",
+    "typescript": "^2.8.1"
   }
 }
