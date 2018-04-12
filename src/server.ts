@@ -18,6 +18,7 @@ const path = require('path');
 
 app.use(favicon('./src/img/favicon.ico'));
 
+
 async function databaseTest(request, response) {
 };
 

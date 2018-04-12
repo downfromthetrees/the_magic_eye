@@ -4,16 +4,15 @@ var HtmlWebpackPlugin = require('html-webpack-plugin');
 var LiveReloadPlugin =  require('webpack-livereload-plugin');
 
 module.exports = {
-    entry: path.resolve(__dirname, './src/client/index.jsx'),
+    entry: path.resolve(__dirname, './src/client/index.tsx'),
     output: {
-        path: path.resolve(__dirname, 'build'),
-        filename: 'bundle.js',
-        publicPath: path.resolve(__dirname, 'build')
+        path: '/',
+        filename: 'bundle.js'
     },
     module: {
         rules: [
             {
-              test: /\.jsx?$/,
+              test: /\.tsx?$/,
               
               use: [
                 {
@@ -22,9 +21,9 @@ module.exports = {
                     presets: ['es2015']
                   }                  
                 },
-                // {
-                //   loader: 'ts-loader',
-                // },                
+                {
+                  loader: 'ts-loader',
+                },                
               ],
               exclude: /node_modules/,
             }
@@ -33,12 +32,11 @@ module.exports = {
     plugins: [
       new HtmlWebpackPlugin(
        {
-         filename: path.resolve(__dirname, './src/client/index.html'),
          template: path.resolve(__dirname, './src/client/index.html'),
          title: 'The Magic Eye'
         }
-      )
-      //,new LiveReloadPlugin()
+      ),
+      new LiveReloadPlugin()
     ],
     stats: {
         colors: true

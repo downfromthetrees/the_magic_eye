@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom';
 import './style.css';
 
 const App = () => {
-  return <div>Hello World</div>
+  return <div>The Magic Eye... watches</div>
 }
 ReactDOM.render(
   <App />,
