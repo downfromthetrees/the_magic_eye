@@ -1,6 +1,7 @@
-var React = require('react');
-var ReactDOM = require('react-dom');
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
 import './style.css';
+
 const App = () => {
   return <div>Hello World</div>
 }

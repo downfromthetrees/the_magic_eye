@@ -1,26 +1,20 @@
-// react
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-import './style.css';
-
-// webpack
-import * as webpack from 'webpack';
-import * as webpackMiddleware from 'webpack-dev-middleware';
-import webpackConfig from '../webpack.config.js';
-
 // express/server
 const express = require('express');
-var favicon = require('serve-favicon');
-var snoowrap = require('snoowrap');
-require('dotenv').config();
 const app = express();
+
+// webpack middleware to serve react files
+const webpack = require('webpack');
+const webpackMiddleware = require('webpack-dev-middleware');
+const webpackConfig = require('../webpack.config.js');
+app.use(webpackMiddleware(webpack(webpackConfig), {noInfo: true, publicPath: '/'}));
+
+const favicon = require('serve-favicon');
+const snoowrap = require('snoowrap');
+require('dotenv').config();
 const request = require('request');
-import PostgresData from './postgres_data';
-import RedisData from './redis_data';
-
-
-app.use(webpackMiddleware(webpack(webpackConfig)));
-
+const PostgresData = require('./postgres_data.ts');
+const RedisData = require('./redis_data.ts');
+const path = require('path');
 
 app.use(favicon('./src/img/favicon.ico'));
 
@@ -57,8 +51,11 @@ async function serverTest(request, response) {
         'Submissions output:' + submissionsTitles //JSON.stringify(submissions)
     );
 }
-app.get('/', serverTest);
+//app.get('/', serverTest);
 
+// app.get('/', function(req, res) {
+//     res.sendFile(path.join(__dirname + '/client/index.html'));
+// });
 
 function main() {
     console.log('Starting check');

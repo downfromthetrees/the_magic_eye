@@ -1,40 +1,47 @@
-import webpack from 'webpack';
-import HtmlWebpackPlugin from 'html-webpack-plugin';
-import LiveReloadPlugin from 'webpack-livereload-plugin'
+var path = require('path');
+var webpack = require('webpack');
+var HtmlWebpackPlugin = require('html-webpack-plugin');
+var LiveReloadPlugin =  require('webpack-livereload-plugin');
 
-export default  {
-  entry: './client/index.js',
-  output: {
-    path: '/',
-    filename: 'bundle.js'
-  },
-  module: {
-    rules: [... ]
-  },
-  plugins: [..]
+module.exports = {
+    entry: path.resolve(__dirname, './src/client/index.jsx'),
+    output: {
+        path: path.resolve(__dirname, 'build'),
+        filename: 'bundle.js',
+        publicPath: path.resolve(__dirname, 'build')
+    },
+    module: {
+        rules: [
+            {
+              test: /\.jsx?$/,
+              
+              use: [
+                {
+                  loader: 'babel-loader',
+                  query: {
+                    presets: ['es2015']
+                  }                  
+                },
+                // {
+                //   loader: 'ts-loader',
+                // },                
+              ],
+              exclude: /node_modules/,
+            }
+        ]
+    },
+    plugins: [
+      new HtmlWebpackPlugin(
+       {
+         filename: path.resolve(__dirname, './src/client/index.html'),
+         template: path.resolve(__dirname, './src/client/index.html'),
+         title: 'The Magic Eye'
+        }
+      )
+      //,new LiveReloadPlugin()
+    ],
+    stats: {
+        colors: true
+    },
+    devtool: 'source-map'
 };
-
-// var path = require("path");
-// var config = {
-//   entry: ["./app.tsx"],
-//   output: {
-//     path: path.resolve(__dirname, "build"),
-//     filename: "bundle.js"
-//   },
-//   resolve: {
-//     extensions: [".tsx", ".js"]
-//     //".ts", 
-//   },
-
-//   module: {
-//     loaders: [
-//       {
-//         test: /\.tsx?$/,
-//         loader: "ts-loader",
-//         exclude: /node_modules/
-//       }
-//     ]
-//   }
-// };
-
-// module.exports = config;

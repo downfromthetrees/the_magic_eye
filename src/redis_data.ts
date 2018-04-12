@@ -13,8 +13,6 @@ export interface ExistingLink {
 
 export default class RedisData {
     
-    DB_CONFIG = parseDbUrl(process.env.REDIS_URL);
-
     async readLink(hash: string): Promise<ExistingLink> {
         // TODO
         return ;
