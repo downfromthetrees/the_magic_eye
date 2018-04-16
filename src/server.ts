@@ -1,6 +1,10 @@
-// express/server
+// express/server modules
 const express = require('express');
 const app = express();
+const favicon = require('serve-favicon');
+require('dotenv').config();
+const request = require('request');
+const path = require('path');
 
 // webpack middleware to serve react files
 const webpack = require('webpack');
@@ -8,35 +12,33 @@ const webpackMiddleware = require('webpack-dev-middleware');
 const webpackConfig = require('../webpack.config.js');
 app.use(webpackMiddleware(webpack(webpackConfig), {noInfo: true, publicPath: '/'}));
 
-const favicon = require('serve-favicon');
+// reddit modules
 const snoowrap = require('snoowrap');
-require('dotenv').config();
-const request = require('request');
-const PostgresData = require('./postgres_data.ts');
-const RedisData = require('./redis_data.ts');
-const path = require('path');
 
+// magic eye modules
+const postgresData = require('./postgres_data.ts');
+const redisData = require('./redis_data.ts');
+const imageComparator = require('./image_comparator.ts');
+
+
+//========================
+
+
+// test code
+async function hashTest(request, response) {
+    const imagePath = 'C:\\Users\\daemonpainter\\Desktop\\pic\\good.png';
+    await imageComparator.findDuplicate(imagePath, 'log url');
+};
+app.get('/runtest', hashTest);
+
+// server
 app.use(favicon('./src/img/favicon.ico'));
 
-
-async function databaseTest(request, response) {
-};
-
-app.get('/getdatabase', databaseTest);
-
-// request('https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY', { json: true }, (err, res, body) => {
-//   if (err) { return console.log(err); }
-//   console.log(body.url);
-//   console.log(body.explanation);
-// });
-
 console.log('Starting Magic Eye...');
-
 app.listen(3000, () => console.log('Magic Eye listening on port 3000'));
 
 
-// Create a new snoowrap requester with OAuth credentials.
-// For more information on getting credentials, see here: https://github.com/not-an-aardvark/reddit-oauth-helper
+// Create a new snoowrap requester with OAuth credentials, see here: https://github.com/not-an-aardvark/reddit-oauth-helper
 const reddit = new snoowrap({
     userAgent: 'THE_MAGIC_EYE:v1.0.0',
     clientId: process.env.CLIENT_ID,
@@ -45,21 +47,15 @@ const reddit = new snoowrap({
   });
 
 
-async function serverTest(request, response) {
-    const submissions = reddit.getSubreddit('hmmm').getNew();
-    const submissionsTitles = await submissions.map(post => post.title);
-    response.send(
-        'Submissions output:' + submissionsTitles //JSON.stringify(submissions)
-    );
-}
-//app.get('/', serverTest);
-
-// app.get('/', function(req, res) {
-//     res.sendFile(path.join(__dirname + '/client/index.html'));
-// });
+// async function redditTest(request, response) {
+//     const submissions = reddit.getSubreddit('hmmm').getNew();
+//     const submissionsTitles = await submissions.map(post => post.title);
+//     response.send(
+//         'Submissions output:' + submissionsTitles //JSON.stringify(submissions)
+//     );
+// }
 
 function main() {
-    console.log('Starting check');
     // check for all new posts since the last time we checked (dealing with errors for if reddit is down)
     // update "currently checking" flag
     // variable with current time    

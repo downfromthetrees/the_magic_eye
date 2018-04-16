@@ -1,30 +1,30 @@
 const postgres = require('pg');
 var parseDbUrl = require("parse-database-url");
 
-export default class PostgresData {
+export default function PostgresData() {
     
-    async readProperty(propertyKey: string): Promise<string> {
-        const pool = new postgres.Pool(parseDbUrl(process.env.DATABASE_URL));
+    const pool = new postgres.Pool(parseDbUrl(process.env.DATABASE_URL));
+
+    async function readProperty(propertyKey: string): Promise<string> {
         const result = await pool.query('SELECT FROM magic_properties where property_key = ' + propertyKey);
         await pool.end();
         return result.rows[0].property_value;
     }
 
-    async setProperty(propertyKey: string, propertyValue: string) {
-        const pool = new postgres.Pool(parseDbUrl(process.env.DATABASE_URL));
+    async function setProperty(propertyKey: string, propertyValue: string) {
         const result = await pool.query('UPDATE magic_properties SET property_value = `true` where property_key = ' + propertyKey);
         await pool.end();
     }
 
-    async isRunning(): Promise<boolean> {
+    async function isRunning(): Promise<boolean> {
         return (await this.readProperty('running')) === 'true';
     }
 
-    async startRunning() {
+    async function startRunning() {
         return this.setProperty('running', 'true');
     }
 
-    async stopRunning() {
+    async function stopRunning() {
         return this.setProperty('running', 'false');
     }
 
