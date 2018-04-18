@@ -1,51 +1,90 @@
+Submission { is_crosspostable: true,
+  subreddit_id: 't5_2qq6z',
+  approved_at_utc: null,
+  mod_reason_by: null,
+  banned_by: null,
+  num_reports: null,
+  author_flair_type: 'text',
+  removal_reason: null,
+  subreddit: Subreddit { display_name: 'hmmm' },
+  selftext_html: null,
+  selftext: '',
+  likes: null,
+  suggested_sort: null,
+  user_reports: [],
+  secure_media: null,
+  is_reddit_media_domain: true,
+  saved: false,
+  id: '8d3qk3',
+  banned_at_utc: null,
+  category: null,
+  gilded: 0,
+  archived: false,
+  clicked: false,
+  no_follow: false,
+  author: RedditUser { name: 'Nokenheimer' },
+  num_crossposts: 0,
+  link_flair_text: null,
+  mod_reason_title: null,
+  mod_reports: [],
+  can_mod_post: false,
+  link_flair_richtext: [],
+  send_replies: true,
+  pinned: false,
+  score: 2,
+  approved_by: null,
+  over_18: false,
+  report_reasons: null,
+  domain: 'i.redd.it',
+  hidden: false,
+  author_flair_text_color: null,
+  thumbnail: '',
+  hide_score: true,
+  edited: false,
+  link_flair_css_class: null,
+  author_flair_richtext: [],
+  author_flair_css_class: null,
+  contest_mode: false,
+  view_count: null,
+  locked: false,
+  downs: 0,
+  brand_safe: true,
+  subreddit_subscribers: 651893,
+  secure_media_embed: {},
+  media_embed: {},
+  author_flair_text: null,
+  visited: false,
+  can_gild: true,
+  is_self: false,
+  parent_whitelist_status: 'all_ads',
+  name: 't3_8d3qk3',
+  spoiler: false,
+  permalink: '/r/hmmm/comments/8d3qk3/hmmm/',
+  subreddit_type: 'public',
+  whitelist_status: 'all_ads',
+  stickied: false,
+  created: 1524064041,
+  url: 'https://i.redd.it/z1cvkn4p9ms01.jpg',
+  link_flair_type: 'text',
+  quarantine: false,
+  rte_mode: 'markdown',
+  created_utc: 1524035241,
+  subreddit_name_prefixed: 'r/hmmm',
+  ups: 2,
+  media: null,
+  link_flair_text_color: 'dark',
+  is_original_content: false,
+  author_flair_background_color: null,
+  num_comments: 0,
+  title: 'hmmm',
+  mod_note: null,
+  is_video: false,
+  distinguished: null,
+  comments: Listing [] }
+
+
 f Dhash.hamming(hash1, hash2) < 10
   puts "Images are very similar"
 else
   puts "No match"
 end
-
-
-
-good2 - watermark
-==============Begin tests==============
-hamming same image:  0
-hamming diff dhash:  4
-hamming diff phash:  null
-phash lib eq same:  true
-phash lib eq diff:  true
-phash lib compare same:  0
-phash lib compare diff:  1.1170000000000
-
-
-bad2 - complete difference
-==============Begin tests==============
-hamming same image:  0
-hamming diff dhash:  13
-hamming diff phash:  null
-phash lib eq same:  true
-phash lib eq diff:  false
-phash lib compare same:  0
-phash lib compare diff:  217.06359999999995
-==============End tests==============
-
-bad - lots of whitespace difference
-==============Begin tests==============
-hamming same image:  0
-hamming diff dhash:  6
-hamming diff phash:  null
-phash lib eq same:  true
-phash lib eq diff:  false
-phash lib compare same:  0
-phash lib compare diff:  39.10759999999999
-==============End tests==============
-
-bad3 - less whitespace difference
-==============Begin tests==============
-hamming same image:  0
-hamming diff dhash:  6
-hamming diff phash:  null
-phash lib eq same:  true
-phash lib eq diff:  true
-phash lib compare same:  0
-phash lib compare diff:  9.606400000000004
-==============End tests==============

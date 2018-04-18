@@ -3,7 +3,8 @@
 
 workflow problems:
 - mod removes image, shops it then allows it to be reposted
-- 
+    - I suppose bot needs to check state of past image first, to make sure it's not deleted or a removed
+    - Can't do clever check for users resubmitting as that's the same case as this... unless check for mod comment is the answer
 
 todo:
 * crop pictures before comparing
@@ -15,11 +16,10 @@ todo:
 * automod should allow direct links only so we can check for suffixes
 * test mode where it removes it's own comments, and doesn't act on posts (maybe reports instead)
 * error handling - need to run with forever
-
-#Hamming algorithms
-
-* Distance of 0 = it's the same image
-* 
+    * test it while blocking reddit.com in windows settings
+* automatically remove images that are too small
+* Single album images 
+* https://stackoverflow.com/questions/22675725/find-unused-npm-packages-in-package-json
 
 #Random thoughts
 * Could use postgres if it was 10k rolling images, updating a last accessed and grooming them when needed
@@ -27,29 +27,11 @@ todo:
 #Usage notes
 * mods shouldn't mod anything within a minute of it being posted
 
-#Image comparison
-
-https://github.com/korbendallas-reddit/RepostSentinel
-
-https://www.npmjs.com/package/dhash
-https://www.npmjs.com/package/phash
-https://www.npmjs.com/package/phash-imagemagick
-
-https://github.com/mgmtio/dhash-image
-
----
-https://www.npmjs.com/package/rembrandt
-https://www.npmjs.com/package/pixelmatch
-https://www.npmjs.com/package/resemblejs
-https://www.npmjs.com/package/blink-diff
-https://github.com/HumbleSoftware/js-imagediff
-
-https://www.npmjs.com/package/dhash-image
-
 
 # tech usage
 
 postgres:
+* psql is cli - localhost/postgres/(username) postgres/(password) admin
 * use databse: \connect the_magic_eye
 * execute script: psql -h host -p port -d dbname -U username -f datafile.sql
 
@@ -63,17 +45,3 @@ wake up
 get all watching posts in a certain time period (ignore all old ones)
 if they've been fixed, we made a mistake
 take the hash of that image and make a new entry so there's a closer match (??)
-
-
-#Schemas
-LINK SCHEMA 
-link
-direct link to image
-hash
-watching
-last posted
-removal reason (null if not removed)
-duplicate | id of duplicate
-
-SERVER
-Currently checking
