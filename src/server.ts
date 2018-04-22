@@ -1,31 +1,29 @@
 // standard server modules
+const babel = require("babel-core/register");
 const express = require('express');
 const app = express();
 const favicon = require('serve-favicon');
+const chalk = require('chalk');
 require('dotenv').config();
-const request = require('request');
-const path = require('path');
-const fs = require('fs-extra');
 
 // webpack middleware to serve react files
 const webpack = require('webpack');
 const webpackMiddleware = require('webpack-dev-middleware');
 const webpackConfig = require('../webpack.config.js');
 app.use(webpackMiddleware(webpack(webpackConfig), {noInfo: true, publicPath: '/'}));
+app.use(favicon('./src/img/favicon.ico'));
 
 // reddit modules
 const snoowrap = require('snoowrap');
+import { Submission, ModAction} from 'snoowrap';
 
 // magic eye modules
-const { generateDHash, generatePHash, downloadImage } = require('./image_utils.ts');
-const { MagicSubmission, getMagicSubmission, saveMagicSubmission, getLastChecked, setLastCheckedNow } = require('./redis_data.ts');
-//import {  } from './redis_data';
+const { getLastChecked, setLastCheckedNow, initDb } = require('./mongodb_data.ts');
+const { processSubmission } = require('./submission_processor.ts');
+const { processModAction } = require('./mod_action_processor.ts');
 
 //========================
 
-// server
-app.use(favicon('./src/img/favicon.ico'));
-app.listen(3000, () => console.log('Magic Eye listening on port 3000'));
 
 // Create a new snoowrap requester with OAuth credentials
 // See here: https://github.com/not-an-aardvark/reddit-oauth-helper
@@ -36,100 +34,57 @@ const reddit = new snoowrap({
     refreshToken: process.env.REFRESH_TOKEN
   });
 
+
+const SUBREDDIT = 'the_magic_eye';
+
 async function main() {
     try {
-        let lastChecked = await getLastChecked();
-        // check for all new posts since the last time we checked (dealing with errors for if reddit is down)
-        const submissions = await reddit.getSubreddit('hmmm').getNew();
+        // get everything up from to attempt to match checked time
+        const lastChecked = await getLastChecked();
+        const submissions = await reddit.getSubreddit(process.env.SUBREDDIT).getNew();
+        const modActions = await reddit.getSubreddit(process.env.SUBREDDIT).getModmail();
         await setLastCheckedNow();
 
-        let processedCount = 0;
-        for (const submission of submissions) {
-            const submissionDate = submission.created_utc * 1000; // reddit dates are in seconds
-            //if (submissionDate > lastChecked)
-            if (processedCount < 10)
-            {
-            processSubmission(submission);
-            processedCount++;
-            }
-        }
+        await processNewSubmissions(submissions, lastChecked);
+        //await processNewModActions(modActions, lastChecked);
 
-        console.log('Magic check processed ', processedCount, ' images... running again soon.');    
         //setTimeout(main, 30 * 1000); // run again in 30 seconds
     } catch (e) {
         console.error(e);
     }
 }
 
-async function processSubmission(submission) {
-
-    console.log('Processing submission by: ', submission.author.name, ', submitted: ', new Date(submission.created_utc * 1000));
-
-    if (!submission.url.endsWith('.jpg') && !submission.url.endsWith('.png'))
-        {
-        // could be mod doing a text post
-        console.log("Image was not a jpg/png - ignoring submission: https://www.reddit.com", submission.permalink);
-        return null;
+async function processNewSubmissions(submissions: Array<Submission>, lastChecked: number) {
+    let processedCount = 0;
+    for (const submission of submissions) {
+        const submissionDate = submission.created_utc * 1000; // reddit dates are in seconds
+        console.log('lastchecked: ', lastChecked);
+        console.log('submissionDate: ', submissionDate);
+        if (submissionDate > lastChecked)
+            {
+            await processSubmission(submission);
+            processedCount++;
+            }
         }
 
-    console.log('here: ');
-    const imagePath = downloadImage(submission);
-    console.log('imagePath: ' + imagePath);
-    const imageDHash = generateDHash(imagePath, submission.url);
-    console.log('imageDHash: ' + imageDHash);
-
-    if (imageDHash == '00BAAC8CE8E8D8A0')
-        {
-        // It's the special image used when a user deletes their reddit post
-        console.log('Detected special deleted image, ignoring: ', submission.permalink);
-        // TODO: Remove post and post a comment
-        return;
-        }
-
-    const existingMagicSubmission = await getMagicSubmission(imageDHash);
-        if (existingMagicSubmission)
-        {
-            console.log('Submission exists for dhash: ', existingMagicSubmission);
-        }
-
-    // if (!existingMagicSubmission)
-    //     {
-    //     // new submission
-    //     const magicSubmission = new MagicSubmission(imageDHash, generatePHash(imagePath), submission);
-    //     saveMagicSubmission(magicSubmission)
-    //     return;
-    //     }
-    // else {
-        
-    // }
-
-    // was it as a rule breaking image?
-        // put in a new hash to increase chance, use "duplicate" and "removed" columns
-        // remove again
-    // check how much time has elapsed
-        // if lots of time, let it through and update the last posted time
-        // if not much time, remove it
-
-    // the image is good
-        // create new hash, include the last successful post 
+    console.log('Magic check processed', processedCount, 'submissions... running again soon.');    
 }
 
 
+async function processNewModActions(modActions: Array<ModAction>, lastChecked: number) {
+    let processedCount = 0;
+    for (const modAction of modActions) {
+        const actionDate = modAction.created_utc * 1000; // reddit dates are in seconds
+        if (actionDate > lastChecked)
+            {
+            await processModAction(modAction);
+            processedCount++;
+            }
+        }
 
-
-
-
-//==========
-
-function markRuleBreakers() {
-    // watch modlog
-    // open posts removed by human mods
-    // if it's still removed, and there's a comment from a mod
-        // indentify the rule 
-        // check if it's been removed before 
-        // if not, insert new removal row
+    console.log('Magic check processed', processedCount, 'mod logs... running again soon.');
 }
-setInterval(markRuleBreakers, 10 * 60 * 1000); // 10 minute loop
+
 
 //==========
 
@@ -152,3 +107,9 @@ setInterval(readReplies, 10 * 60 * 1000); // 10 minute loop
 // start main loop
 async function runStart(request, response) { await main(); response.send('The Magic Eye has started.'); }
 app.get('/start', runStart);
+
+// server
+function startServer() {
+    app.listen(3000, () => console.log(chalk.bgGreenBright('Magic Eye listening on port 3000')));
+}
+initDb(startServer); // requires callback
