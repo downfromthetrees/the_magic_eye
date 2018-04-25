@@ -23,16 +23,7 @@ async function setMagicProperty(propertyKey: string, propertyValue: any) {
     result.catch(err => console.log(err.stack));
 }
 
-// export async function getLastChecked(): Promise<Date> {
-//     return readMagicProperty('last_checked');
-// }
-
-// export async function setLastChecked(date: Date) {
-//     return setMagicProperty('last_checked', date);
-// }
 
 module.exports = {
-    // getLastChecked: getLastChecked,
-    // setLastChecked: setLastChecked,
 };    
 

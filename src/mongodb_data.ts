@@ -17,16 +17,14 @@ class MagicProperty {
 }
 
 class MagicSubmission {
-    _id: string; // dhash
-    reddit_id: string; // the last reddit id for the submission
-    blacklist_reason: string; // breaks a rule, value contains removal text
+    _id: string; // dhash of the original
+    reddit_id: string; // the last reddit id that matched the dhash (dhash within hamming distance)
     count: number; // includes removed and approved posts
     approved: boolean;
 
-    constructor(dhash: string, phash: string, redditSubmission: Submission) {
+    constructor(dhash: string, redditSubmission: Submission) {
         this._id = dhash;
         this.reddit_id = redditSubmission.id;
-        this.blacklist_reason = null;
         this.count = 0;
         this.approved = false;
     }
@@ -87,6 +85,11 @@ async function getMagicSubmissionById(submission_id: string): Promise<MagicSubmi
     return await collection.findOne({id : submission_id});
 }
 
+async function deleteMagicSubmission(submission: MagicSubmission) {
+    const collection = await getMagicCollection();
+    await collection.remove({_id: submission._id});
+}
+
 export async function getLastChecked(): Promise<number> {
     const collection = await getPropertiesCollection();
     return (await collection.findOne({_id: 'last_checked'})).value;
@@ -101,6 +104,7 @@ module.exports = {
     MagicSubmission,
     getMagicSubmission: getMagicSubmission,
     saveMagicSubmission: saveMagicSubmission,
+    deleteMagicSubmission: deleteMagicSubmission,
     getLastChecked: getLastChecked,
     setLastCheckedNow: setLastCheckedNow,
     getMagicSubmissionById: getMagicSubmissionById,

@@ -1,0 +1,87 @@
+
+
+# problems
+
+
+#TODO
+* Photoshops should include a [](#repost_only_by_user_) flag, when it's submitted again we check that it's the same user or deleted (else repost)  
+    * Last posted date could be updated (I don't think wiping is needed)
+* We need a [](#magic_ignore) and a [](#repost_only_by_user) - probably just handy
+* Have a backup for blacklist removals where it's just like "this one removed, check that it doesn't break any rules"
+* If the last_post is removed as a repost we don't know what the original is. So just set a small amount of time.
+
+* sort in reverse order so we go through them correctly - sort all collections if needed
+* If the previous post was deleted, then let it pass as a repost
+* rather than approved, have a watching table that gets updated when they're approved/removed
+* mods should be able to login, enter a url, see the info and fix it
+* we will need a total reset for individual rules
+* error handling - need to run with forever
+    * test it while blocking reddit.com in windows settings
+* https://stackoverflow.com/questions/22675725/find-unused-npm-packages-in-package-json
+* Thank notan ardvark
+* Logging - winston
+* restart service button (for node envs)
+* add [](#magic_ignore) to sub, + repost removal message
+* calculate how much we can store, do TTL expiry: https://www.ekito.fr/people/auto-expire-documents-mongodb-collections/
+* could read wiki page for latest removal reasons to keep them up to date
+* could archive images in background task, or perhaps explain that the original might be deleted IF it's a rule breaker - https://www.npmjs.com/package/archive.is (could do async edit)
+
+# Scrap tech notes
+* There's a hamming distance of 1 between doll4/5. Very small so essentially the same image.
+
+#Usage notes
+* mods shouldn't mod anything within a minute of it being posted
+* mods can reply with "clear" (no quotes) to clear the database for that image
+* It reads the approve/remove links in the modlog, so if you do either of those actions it'll reprocess the submission automatically
+* If a post is removed but there's no removal message, it'll just ignore the whole submission
+
+# tech usage notes
+postgres:
+* psql is cli - localhost/postgres/(username) postgres/(password) admin
+* use databse: \connect the_magic_eye
+* execute script: psql -h host -p port -d dbname -U username -f datafile.sql
+* REMOVAL_REASONS=['repost', 'porn_gore', 'not_hmmm', 'special_case', 'low_quality', 'meme_stock_comic', 'needs_crop', 'custom_reason']      
+
+# Future ideas
+
+* detect uncropped pictures, crop them and upload to imgur for reposting (also take off like 10px for the black edge)
+* store all dhashes in memory for hamming comparison, don't store duplicates just update the lastposted but not the dhash
+    * downside is if we are wrong, we'd need an exception for that dhash - perhaps a "no-hamming" entry
+
+
+
+
+
+
+
+
+
+
+
+
+Solved problems
+------
+* mod removes image, shops it then allows it to be reposted
+    * bot detects it's the same:
+        * Same user repost:
+            * 2. Must do something <30s so can't read modlog
+            * 1. WE ONLY ALLOW ONE REPOST BY THAT ONE USER. [repost_only_by_user] (+ wipe last accessed date)  <------
+        * Diff user repost:
+            * Immediate repost of initial image - SUCCESS (who cares)
+            * Future repost of initial image - SUCCESS - (they get the right removal message with the shop included)
+
+    * bot thinks it's different: (all successes because it's blacklisted and there's a path out)
+        * Same user repost - SUCCESS
+        * Diff user repost:
+            * Immediate repost of initial image - SUCCESS (who cares)
+            * Future repost of initial image - SUCCESS - (they get the right removal message with the shop included)
+
+* User deletes and user reposts
+    * User is the same: Bot will remove which is good. User has to explain.
+    * User is different - fairly rare so mod can fix the situation - but put username in removal message to dissuade group 1
+
+- mod removes an image as a repost beause bot missed it 
+    - bot has already marked the post as ok
+    - next time it gets posted user gets directed to a deleted post
+    - deal with it by small timefram
+

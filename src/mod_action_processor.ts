@@ -5,26 +5,43 @@ const outdent = require('outdent');
 
 // reddit modules
 import { Submission, ModAction } from 'snoowrap';
-import { unstable_renderSubtreeIntoContainer } from 'react-dom';
 
 // magic eye modules
 const { MagicSubmission, getMagicSubmission, saveMagicSubmission, getMagicSubmissionById } = require('./mongodb_data.ts');
+const { getModComment, extractRemovalReasonText } = require('./comment_utils.ts');
+
+async function processNewModActions(modActions: Array<ModAction>, lastChecked: number, reddit: any) {
+    let processedCount = 0;
+    for (const modAction of modActions) {
+        const actionDate = modAction.created_utc * 1000; // reddit dates are in seconds
+        if (actionDate > lastChecked)
+            {
+            await processModAction(modAction, reddit);
+            processedCount++;
+            }
+        }
+
+    console.log('Magic check processed', processedCount, 'mod logs... running again soon.');
+}
 
 async function processModAction(action: ModAction, reddit: any) {
     if (action.mod == 'RepostSentinel' || action.mod == 'Automoderator' || action.mod == 'THE_MAGIC_EYE')
         return;
 
     console.log('Processing modAction by: ', action.mod, ', performed: ', new Date(action.created_utc * 1000));
-    const submissionId = action.id.slice(3, action.id.length); // format is: id_theactualid
+    const submissionId = action.id.slice(3, action.id.length); // id is prefixed with "id_"
 
     switch (action.details) {
-        case 'removelink': 
-            const modComment = getModComment(action, reddit, submissionId);
-            if (!modComment)
+        case 'removelink':
+            const modComment = getModComment(reddit, submissionId);
+            if (!modComment) {
+                console.log('No removal comment left by mod', action.mod, ' on post : ', submissionId);
                 return; // mod removed it with no comment, just ignore it
+            }
 
-            if (modComment.contains('[](#repost)')) { // hidden removal reason indicator
-                return; // mod dealt with repost manually, meant it was a duplicate we missed
+            if (modComment.contains('[](#magic_ignore)')) { // hidden removal reason indicator
+                console.log('magic_ignore, probably a manual repost removal');
+                return; // mod probably manually dealt with something like a repost we missed 
             }
 
             markAsBlacklisted(submissionId, modComment);
@@ -35,18 +52,12 @@ async function processModAction(action: ModAction, reddit: any) {
     }
 }
 
-function getModComment(action: ModAction, reddit: any, submissionId: string) {
-    const submission = reddit.getSubmission(submissionId);
-    return submission.comments.find((comment) => comment.author == action.mod);
-}
-
 async function markAsBlacklisted(submissionId: string, modComment: string) {
     const magicSubmission = await getMagicSubmissionById(submissionId);
     if (!magicSubmission) {
         console.log('Could not find magic submission for removed link with id: ', submissionId);
         return;
     }
-    magicSubmission.blacklist_reason = extractRemovalReasonText(modComment);
     magicSubmission.approve = false;
     saveMagicSubmission(magicSubmission);
 }
@@ -58,16 +69,10 @@ async function markAsApproved(submissionId: string) {
         return;
     }
     magicSubmission.approve = true;
-    magicSubmission.blacklist_reason = null;
     saveMagicSubmission(magicSubmission);
-}
-
-function extractRemovalReasonText(modComment: string): string {
-    const removalPoints = modComment.split('\n').filter(line => line.trim().startsWith('*'));     // get bullet points in the removal message
-    return removalPoints.join().replace('*', '\n*');                                              // put bullet points back into a string
 }
 
 
 module.exports = {
-    processModAction: processModAction,
+    processNewModActions: processNewModActions,
 };

@@ -1,3 +1,5 @@
+import { json } from "express";
+
 require('dotenv').config();
 var parseDbUrl = require("parse-database-url");
 var hammingDistance = require("hamming");
@@ -9,9 +11,8 @@ const dhashGet = promisify(dhashLibrary);
 var axios = require("axios");
 const fs = require('fs');
 const imageDownloader = require('image-downloader');
+const imageMagick = require('imagemagick');
 
-const hammingThreshold = 6;
-const perceptualThreshold = 20;
 
 export async function generateDHash(imagePath: string, logUrl: string): Promise<number> {
     try {
@@ -29,14 +30,6 @@ export async function generatePHash(imagePath: string, logUrl: string): Promise<
         console.log('Could not generate phash for: ', logUrl, ', ', e);
         return null;
     }
-}
-
-export async function isDuplicate(imagePath: string, logUrl: string, otherSubmission: any) {
-    const imageDHash = await generateDHash(imagePath, logUrl);
-    const imagePHash = await generateDHash(imagePath, logUrl);
-    const isHammingMatch = hammingDistance(imageDHash, otherSubmission.dhash) < hammingThreshold;
-    const isPHashMatch = phashLibrary.compare(imagePHash, otherSubmission.phash) < perceptualThreshold;
-    return isHammingMatch || isPHashMatch;
 }
 
 export async function downloadImage(submission): Promise<string> {
@@ -60,6 +53,25 @@ export function deleteImage(imagePath) {
         }
     });
 }
+
+async function trimImage(imagePath: string, logUrl: string) {
+    try {
+        await promisify(imageMagick.convert)([imagePath, '-trim', imagePath]);
+    } catch (e) {
+        console.error('Could not trim submission:', logUrl);
+    }
+}
+
+
+export async function isDuplicate(imagePath1: string, imagePath2: string) {
+    const dhash1 = await generateDHash(imagePath1, imagePath1);
+    const dhash2 = await generateDHash(imagePath2, imagePath2);
+    const distance = await hammingDistance(dhash1, dhash2); // hamming threshold
+    //console.log('Hamming distance: ', distance);
+    //const isPHashMatch = phashLibrary.compare(imagePHash, otherSubmission.phash) < 20; // percept. threshold
+    return [dhash1, dhash2, distance];
+}
+
 
 module.exports = {
     generateDHash: generateDHash,
