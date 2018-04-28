@@ -10,7 +10,7 @@ let moderators;
 const { MagicSubmission, getMagicSubmission, saveMagicSubmission, getMagicSubmissionById } = require('./mongodb_data.ts');
 
 async function getModComment(reddit: any, submissionId: string) {
-    if (moderators!) {
+    if (!moderators) {
         const moderators = await reddit.getSubreddit(process.env.SUBREDDIT_NAME).getModerators();
     }
     const submission = reddit.getSubmission(submissionId);
@@ -22,8 +22,13 @@ function extractRemovalReasonText(modComment: string): string {
     return removalPoints.join().replace('*', '\n*');                                              // put bullet points back into a string
 }
 
+function sliceSubmissionId(submissionId: string) {
+    return submissionId.slice(3, submissionId.length); // id is prefixed with "id_"
+}
+
 
 module.exports = {
     getModComment: getModComment,
-    extractRemovalReasonText: extractRemovalReasonText
+    extractRemovalReasonText: extractRemovalReasonText,
+    sliceSubmissionId: sliceSubmissionId,
 };

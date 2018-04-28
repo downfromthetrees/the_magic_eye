@@ -18,7 +18,7 @@ const snoowrap = require('snoowrap');
 import { Submission, ModAction} from 'snoowrap';
 
 // magic eye modules
-const { getLastChecked, setLastCheckedNow, initDb } = require('./mongodb_data.ts');
+const { getLastChecked, setLastCheckedNow, setLastChecked, initDb } = require('./mongodb_data.ts');
 const { processNewSubmissions } = require('./submission_processor.ts');
 const { processNewModActions } = require('./mod_action_processor.ts');
 const { processInbox } = require('./inbox_processor.ts');
@@ -37,17 +37,33 @@ const reddit = new snoowrap({
 
 async function main() {
     try {
+        console.log(chalk.bgBlueBright('Starting MAIN processing'));
+
         // get everything up from to attempt to match checked time
         const subreddit = await reddit.getSubreddit(process.env.SUBREDDIT_NAME);
         const lastChecked = await getLastChecked();
-        
+        console.log('lastChecked1', new Date(lastChecked));
+
         const submissions = await subreddit.getNew();
         const modActions = await subreddit.getModmail();
         const moderators = await subreddit.getModerators();
         await setLastCheckedNow();
 
+        console.log('lastChecked1', new Date(lastChecked));
+        const lastChecked2 = await getLastChecked();
+        console.log('lastChecked2', new Date(lastChecked2));
+        
+        // let logString = '';
+        // submissions.forEach((a) => logString += a.id + ', ');
+        // console.log('Sort1:', logString);
+        submissions.sort((a, b) => { return a.created_utc - b.created_utc});
+        // logString = '';
+        // submissions.forEach((a) => logString += a.id + ', ');
+        // console.log('Sort2:', logString);
+
         await processNewSubmissions(submissions, lastChecked, reddit);
         
+        //modActions.sort((a, b) => { return a.created_utc - b.created_utc});
         //await processNewModActions(modActions, lastChecked, reddit);
         
         //await processInbox(moderators, reddit);
@@ -72,6 +88,11 @@ app.get('/hamming/:dhash1/:dhash2', async function(req, res) {
     res.send("Id duplicate: " + await isDuplicate(
         process.env.DOWNLOAD_DIR + req.params.dhash1,
         process.env.DOWNLOAD_DIR + req.params.dhash2));
+});
+
+app.get('/resetchecked', async function(req, res) {
+    setLastChecked(1524891761414);
+    res.send('Done');
 });
 
 

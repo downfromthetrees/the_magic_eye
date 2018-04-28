@@ -2,6 +2,7 @@
 require('dotenv').config();
 const moment = require('moment');
 const outdent = require('outdent');
+const chalk = require('chalk');
 
 // reddit modules
 import { Submission, Comment } from 'snoowrap';
@@ -9,13 +10,15 @@ import { Submission, Comment } from 'snoowrap';
 // magic eye modules
 const { generateDHash, generatePHash, downloadImage, deleteImage } = require('./image_utils.ts');
 const { MagicSubmission, getMagicSubmission, saveMagicSubmission, deleteMagicSubmission } = require('./mongodb_data.ts');
-const { getModComment, extractRemovalReasonText } = require('./comment_utils.ts');
+const { getModComment, extractRemovalReasonText, sliceSubmissionId } = require('./reddit_utils.ts');
 
 
 async function processNewSubmissions(submissions: Array<Submission>, lastChecked: number, reddit: any) {
+    console.log(chalk.blue('Starting new submissions. lastChecked:'), new Date(lastChecked));
     let processedCount = 0;
     for (const submission of submissions) {
         const submissionDate = submission.created_utc * 1000; // reddit dates are in seconds
+        console.log('submitted:', new Date(submissionDate), ', submissionDate larger: ', submissionDate > lastChecked ? chalk.green(submissionDate > lastChecked) : chalk.red(submissionDate > lastChecked));
         if (submissionDate > lastChecked) {
             await processSubmission(submission, reddit);
             processedCount++;
@@ -26,7 +29,7 @@ async function processNewSubmissions(submissions: Array<Submission>, lastChecked
 }
 
 async function processSubmission(submission: Submission, reddit: any, clearSubmission?: boolean) {
-    console.log('Processing submission by: ', submission.author.name, ', submitted: ', new Date(submission.created_utc * 1000));
+    console.log(chalk.yellow('Starting process for submission by: '), submission.author.name, ', submitted: ', new Date(submission.created_utc * 1000));
     if (!submission.url.endsWith('.jpg') && !submission.url.endsWith('.png'))
         {
         console.log("Image was not a jpg/png - ignoring submission: https://www.reddit.com" + submission.permalink);
@@ -34,85 +37,90 @@ async function processSubmission(submission: Submission, reddit: any, clearSubmi
         }
 
     const imagePath = await downloadImage(submission);
-    if (!imagePath) {
+    if (imagePath == null) {
         console.log("Could not download image (probably deleted) - removing submission: https://www.reddit.com" + submission.permalink);
         removeAsBroken(submission);
         return;
     }
 
     const imageDHash = await generateDHash(imagePath, submission.url);
-    if (!imageDHash) {
+    if (imageDHash == null) {
+        console.log('imageDHash was null');
         deleteImage(imagePath);
         return;
         }
 
     const imagePHash = await generatePHash(imagePath, submission.url);
-    if (imagePHash && isImageTooSmall(imagePHash)) {
+    if (imagePHash != null && isImageTooSmall(imagePHash)) {
         console.log("Image is too small, removing - removing submission: https://www.reddit.com" + submission.permalink);
         removeAsTooSmall(submission);
         return;
     }
 
     const existingMagicSubmission = await getMagicSubmission(imageDHash);
-    console.log('Found existing submission for dhash: ', imageDHash);
-
-    if (existingMagicSubmission) {
-        if (clearSubmission) {
+    console.log('Existing submission for dhash:', chalk.blue(imageDHash), chalk.red(JSON.stringify(existingMagicSubmission)));
+    
+    if (existingMagicSubmission != null) {
+        console.log(chalk.yellow('Found existing submission for dhash: ' + imageDHash));
+        if (clearSubmission != null) {
             console.log('Clearing magic submission for dhash: ', existingMagicSubmission._id);
             deleteMagicSubmission(submission);
+        } else {
+            await processExistingSubmission(submission, existingMagicSubmission, reddit);
         }
-        else {
-            processExistingSubmission(submission, existingMagicSubmission, reddit);
-        }
-    } else {    
+    } else {
         processNewSubmission(submission, imageDHash);
     }
 
     deleteImage(imagePath);
 }
 
-function processExistingSubmission(submission: Submission, existingMagicSubmission: any, reddit: any) {
-    const lastSubmission = reddit.getSubmission(existingMagicSubmission.reddit_id);
+async function processExistingSubmission(submission: Submission, existingMagicSubmission: any, reddit: any) {
+    const lastSubmission = await reddit.getSubmission(existingMagicSubmission.reddit_id);
     existingMagicSubmission.count++;
     
+    console.log('Existing submission found - lastSubmission: ', chalk.red(JSON.stringify(lastSubmission)));
     let removalText;
     if (lastSubmission.removed) {
-        const modComment = getModComment(reddit, lastSubmission.id);
-        if (modComment) {
-            removalText = extractRemovalReasonText(modComment);
-            const repostOnlyByUser = removalText.includes('[](#repost_only_by_user)'); // mod has told them to resubmit an altered/cropped version
-            if (repostOnlyByUser) {
-                if (existingMagicSubmission.author == submission.author) {
-                    existingMagicSubmission.approve = true; // just auto-approve as this is almost certainly the needed action
-                    existingMagicSubmission.reddit_id = submission.id;
-                    saveMagicSubmission(existingMagicSubmission);
-                    return; 
-                }
-            }
-        } else {
+        console.log('Last submission removed, getting mod comment');
+        const modComment = await getModComment(reddit, existingMagicSubmission.reddit_id);
+        if (modComment == null) {
+            console.log('Repost of submission which was removed but no longer has mod comment, ignoring.');
             saveMagicSubmission(existingMagicSubmission);            
-            return; // post removed with no comment, ignore
+            return;
+        } else {
+            removalText = extractRemovalReasonText(modComment);
         }
     }
-   
-    if (existingMagicSubmission.approved == false) {
+
+    const repostOnlyByUser = removalText.includes('[](#repost_only_by_user)'); // mod has told them to resubmit an altered/cropped version
+    const rootRemovedAsRepost = removalText != null && removalText.includes('[](#repost)'); // We missed detecting a valid repost so a mod manually removed it. That image is reposted but we don't know the approved submission.
+
+
+    if (repostOnlyByUser && existingMagicSubmission.author == submission.author) {
+        console.log('Found existing hash for ', existingMagicSubmission.id, ', approving as repostOnlyByUser');
+        existingMagicSubmission.approve = true; // just auto-approve as this is almost certainly the needed action
+        existingMagicSubmission.reddit_id = submission.id;
+    } else if (existingMagicSubmission.approved == false && !rootRemovedAsRepost) { // blacklisted
         console.log('Found existing hash for ', existingMagicSubmission.id, ', removing as blacklisted');
         removeAsBlacklisted(submission, lastSubmission, removalText);
     } else if (isRecentRepost(submission, lastSubmission)) {
         console.log('Found existing hash for ', existingMagicSubmission.id, ', removing as repost');
-        removeAsRepost(submission, lastSubmission);
-    } else {
+        removeAsRepost(submission, lastSubmission, rootRemovedAsRepost);
+    } else if (lastSubmission.approved) {
         console.log('Found existing hash for ', existingMagicSubmission.id, ', approving');
         submission.approve();
         existingMagicSubmission.reddit_id = submission.id;
-    }   
+    }  else {
+        console.log('Submission saved but not acted upon for:', submission.id) // old unapproved links - shouldn't occur
+    }
 
     existingMagicSubmission.count++;
     saveMagicSubmission(existingMagicSubmission);
 }
 
 function processNewSubmission(submission: Submission, imageDHash: string) {
-    console.log('Processing new submission: ', submission.id);
+    console.log(chalk.green('Processing new submission: ' + submission.id));
     const newMagicSubmission = new MagicSubmission(imageDHash, submission);
     saveMagicSubmission(newMagicSubmission);
 }
@@ -139,8 +147,6 @@ function isRecentRepost(currentSubmission: Submission, lastSubmission: Submissio
 
     return false;
 }
-
-
 
 async function removePost(submission: Submission, removalReason: any) {
     submission.remove();
@@ -174,10 +180,19 @@ function removeAsTooSmall(submission: Submission){
     removePost(submission, removalReason + removalFooter);
 }
 
-function removeAsRepost(submission: Submission, lastSubmission: Submission){
+function removeAsRepost(submission: Submission, lastSubmission: Submission, noOriginalSubmission?: boolean){
     const permalink = 'https://www.reddit.com/' + lastSubmission.permalink;
-    const removalReason = 
+    let removalReason = 
         `Hi ${submission.author.name}. Your post has been removed because I have detected that it has already been posted [here](${permalink}) ([direct link](${lastSubmission.url})).`;
+
+
+    if (noOriginalSubmission) {
+        removalReason += outdent`
+        
+
+        That submission image was also removed as a repost, but I couldn't programatically find the original.
+        `
+    }
     removePost(submission, removalReason + removalFooter);
 }
 

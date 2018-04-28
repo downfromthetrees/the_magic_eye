@@ -8,7 +8,7 @@ import { Submission, ModAction } from 'snoowrap';
 
 // magic eye modules
 const { MagicSubmission, getMagicSubmission, saveMagicSubmission, getMagicSubmissionById } = require('./mongodb_data.ts');
-const { getModComment, extractRemovalReasonText } = require('./comment_utils.ts');
+const { getModComment, extractRemovalReasonText, sliceSubmissionId } = require('./reddit_utils.ts');
 
 async function processNewModActions(modActions: Array<ModAction>, lastChecked: number, reddit: any) {
     let processedCount = 0;
@@ -29,12 +29,12 @@ async function processModAction(action: ModAction, reddit: any) {
         return;
 
     console.log('Processing modAction by: ', action.mod, ', performed: ', new Date(action.created_utc * 1000));
-    const submissionId = action.id.slice(3, action.id.length); // id is prefixed with "id_"
+    const submissionId = sliceSubmissionId(action.id);
 
     switch (action.details) {
         case 'removelink':
-            const modComment = getModComment(reddit, submissionId);
-            if (!modComment) {
+            const modComment = await getModComment(reddit, submissionId);
+            if (modComment == null) {
                 console.log('No removal comment left by mod', action.mod, ' on post : ', submissionId);
                 return; // mod removed it with no comment, just ignore it
             }
@@ -54,11 +54,11 @@ async function processModAction(action: ModAction, reddit: any) {
 
 async function markAsBlacklisted(submissionId: string, modComment: string) {
     const magicSubmission = await getMagicSubmissionById(submissionId);
-    if (!magicSubmission) {
+    if (magicSubmission == null) {
         console.log('Could not find magic submission for removed link with id: ', submissionId);
         return;
     }
-    magicSubmission.approve = false;
+    magicSubmission.approved = false;
     saveMagicSubmission(magicSubmission);
 }
 
@@ -68,7 +68,7 @@ async function markAsApproved(submissionId: string) {
         console.log('Could not find magic submission for approved link with id: ', submissionId);
         return;
     }
-    magicSubmission.approve = true;
+    magicSubmission.approved = true;
     saveMagicSubmission(magicSubmission);
 }
 

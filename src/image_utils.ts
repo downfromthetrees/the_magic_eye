@@ -8,7 +8,6 @@ var phashLibrary = require("phash-imagemagick");
 const { promisify } = require('util');
 const phashGet = promisify(phashLibrary.get);
 const dhashGet = promisify(dhashLibrary);
-var axios = require("axios");
 const fs = require('fs');
 const imageDownloader = require('image-downloader');
 const imageMagick = require('imagemagick');

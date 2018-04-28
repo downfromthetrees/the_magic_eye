@@ -3,6 +3,7 @@ var redis = require("redis");
 const { promisify } = require('util');
 require('dotenv').config();
 var parseDbUrl = require("parse-database-url");
+const chalk = require('chalk');
 import { Submission } from 'snoowrap';
 const MongoClient = require('mongodb').MongoClient;
 
@@ -26,14 +27,9 @@ class MagicSubmission {
         this._id = dhash;
         this.reddit_id = redditSubmission.id;
         this.count = 0;
-        this.approved = false;
+        this.approved = null;
     }
 }
-
-function logError(err) {
-    console.error('MongoDb error:', err);
-}
-
 
 let database = null; 
 
@@ -71,33 +67,74 @@ async function getPropertiesCollection() {
 }
 
 async function saveMagicSubmission(submission: MagicSubmission) {
-    const collection = await getMagicCollection();
-    await collection.save(submission);
+    if (submission._id == null) {
+        throw new Error('Cannot create magic submission with null _id');
+    }
+    try {
+        const collection = await getMagicCollection();
+        await collection.save(submission);
+    } catch (err) {
+        console.error('MongoDb error:', err);
+    }
 }
 
 async function getMagicSubmission(hashKey: string): Promise<MagicSubmission> {
-    const collection = await getMagicCollection();
-    return await collection.findOne({dhash : hashKey});
+    try {
+        const collection = await getMagicCollection();
+        const magicSubmission = await collection.findOne({'_id' : hashKey});
+        chalk.red('hashKey:', hashKey, 'value:', JSON.stringify(magicSubmission));
+        chalk.red(magicSubmission);
+        return magicSubmission;
+    } catch (err) {
+        console.error('MongoDb error:', err);
+        return null;
+    }
 }
 
 async function getMagicSubmissionById(submission_id: string): Promise<MagicSubmission> {
-    const collection = await getMagicCollection();
-    return await collection.findOne({id : submission_id});
+    try {
+        const collection = await getMagicCollection();
+        return await collection.findOne({'reddit_id' : submission_id});
+    } catch (err) {
+        console.error('MongoDb error:', err);
+        return null;
+    }
 }
 
 async function deleteMagicSubmission(submission: MagicSubmission) {
-    const collection = await getMagicCollection();
-    await collection.remove({_id: submission._id});
+    try {
+        const collection = await getMagicCollection();
+        await collection.remove({'_id': submission._id});
+    } catch (err) {
+        console.error('MongoDb error:', err);
+    }
 }
 
 export async function getLastChecked(): Promise<number> {
-    const collection = await getPropertiesCollection();
-    return (await collection.findOne({_id: 'last_checked'})).value;
+    try {
+        const collection = await getPropertiesCollection();
+        const lastChecked = (await collection.findOne({'_id': 'last_checked'}));
+        if (lastChecked != null) {
+            return lastChecked.value;
+        }
+    } catch (err) {
+        console.error('MongoDb error:', err);
+    }
+    return null;
+}
+
+export async function setLastChecked(lastChecked: number) {
+    try {
+        const collection = await getPropertiesCollection();
+        await collection.save(new MagicProperty('last_checked', lastChecked));
+    } catch (err) {
+        console.error('MongoDb error:', err);
+        return null;
+    }
 }
 
 export async function setLastCheckedNow() {
-    const collection = await getPropertiesCollection();
-    await collection.save(new MagicProperty('last_checked', new Date().getTime()));
+    await setLastChecked(new Date().getTime());
 }
 
 module.exports = {
@@ -107,6 +144,7 @@ module.exports = {
     deleteMagicSubmission: deleteMagicSubmission,
     getLastChecked: getLastChecked,
     setLastCheckedNow: setLastCheckedNow,
+    setLastChecked: setLastChecked,
     getMagicSubmissionById: getMagicSubmissionById,
     initDb: initDb,
 };
