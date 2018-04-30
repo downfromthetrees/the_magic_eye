@@ -6,6 +6,9 @@ var parseDbUrl = require("parse-database-url");
 const chalk = require('chalk');
 import { Submission } from 'snoowrap';
 const MongoClient = require('mongodb').MongoClient;
+const log = require('loglevel');
+log.setLevel('debug');
+
 
 class MagicProperty {
     _id: string;
@@ -37,14 +40,13 @@ async function initDb(cb) {
     try {
         MongoClient.connect(process.env.MONGODB_URI, function (err, client) {
             if (err) {
-              console.log('Fatal MongoDb connection error: ', err);
+              log.error('Fatal MongoDb connection error: ', err);
               throw err;
             }
           
             database = client.db();
-            // needs to be done once, so use it as a db test
-            database.collection(process.env.NODE_ENV + ':magic').ensureIndex('dhash', {unique:true});
-            const lastChecked = database.collection(process.env.NODE_ENV + ':properties').findOne({_id: 'last_checked'}).value;
+            //database.collection(process.env.NODE_ENV + ':magic').ensureIndex('dhash', {unique:true});
+            const lastChecked = database.collection(process.env.NODE_ENV + ':properties').findOne({'_id': 'last_checked'}).value;
             if (!lastChecked) {
                 database.collection(process.env.NODE_ENV + ':properties').save(new MagicProperty('last_checked', new Date().getTime()));
             }
@@ -52,7 +54,7 @@ async function initDb(cb) {
             cb();
           });                 
     } catch (err) {
-        console.log('Fatal MongoDb connection error: ', err);
+        log.error('Fatal MongoDb connection error: ', err);
         throw err;
     }
 }
@@ -71,10 +73,11 @@ async function saveMagicSubmission(submission: MagicSubmission) {
         throw new Error('Cannot create magic submission with null _id');
     }
     try {
+        log.debug(chalk.red("INSERTING submission:" + JSON.stringify(submission)));
         const collection = await getMagicCollection();
         await collection.save(submission);
     } catch (err) {
-        console.error('MongoDb error:', err);
+        log.error('MongoDb error:', err);
     }
 }
 
@@ -86,7 +89,7 @@ async function getMagicSubmission(hashKey: string): Promise<MagicSubmission> {
         chalk.red(magicSubmission);
         return magicSubmission;
     } catch (err) {
-        console.error('MongoDb error:', err);
+        log.error('MongoDb error:', err);
         return null;
     }
 }
@@ -96,17 +99,18 @@ async function getMagicSubmissionById(submission_id: string): Promise<MagicSubmi
         const collection = await getMagicCollection();
         return await collection.findOne({'reddit_id' : submission_id});
     } catch (err) {
-        console.error('MongoDb error:', err);
+        log.error('MongoDb error:', err);
         return null;
     }
 }
 
 async function deleteMagicSubmission(submission: MagicSubmission) {
     try {
+        log.debug(chalk.red("DELETING:" + submission));
         const collection = await getMagicCollection();
         await collection.remove({'_id': submission._id});
     } catch (err) {
-        console.error('MongoDb error:', err);
+        log.error('MongoDb error:', err);
     }
 }
 
@@ -118,17 +122,18 @@ export async function getLastChecked(): Promise<number> {
             return lastChecked.value;
         }
     } catch (err) {
-        console.error('MongoDb error:', err);
+        log.error('MongoDb error:', err);
     }
     return null;
 }
 
 export async function setLastChecked(lastChecked: number) {
     try {
+        log.debug(chalk.red("INSERTING:" + lastChecked));
         const collection = await getPropertiesCollection();
         await collection.save(new MagicProperty('last_checked', lastChecked));
     } catch (err) {
-        console.error('MongoDb error:', err);
+        log.error('MongoDb error:', err);
         return null;
     }
 }

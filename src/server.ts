@@ -4,6 +4,10 @@ const express = require('express');
 const app = express();
 const favicon = require('serve-favicon');
 const chalk = require('chalk');
+
+const log = require('loglevel');
+//log.setLevel('debug');
+
 require('dotenv').config();
 
 // webpack middleware to serve react files
@@ -33,45 +37,46 @@ const reddit = new snoowrap({
     clientSecret: process.env.CLIENT_SECRET,
     refreshToken: process.env.REFRESH_TOKEN
   });
+reddit.config({debug: true})
 
 
 async function main() {
     try {
-        console.log(chalk.bgBlueBright('Starting MAIN processing'));
+        log.debug(chalk.bgBlueBright('Starting MAIN processing'));
 
         // get everything up from to attempt to match checked time
         const subreddit = await reddit.getSubreddit(process.env.SUBREDDIT_NAME);
         const lastChecked = await getLastChecked();
-        console.log('lastChecked1', new Date(lastChecked));
+        log.debug('lastChecked1', new Date(lastChecked));
 
         const submissions = await subreddit.getNew();
         const modActions = await subreddit.getModmail();
         const moderators = await subreddit.getModerators();
         await setLastCheckedNow();
 
-        console.log('lastChecked1', new Date(lastChecked));
+        log.debug('lastChecked1', new Date(lastChecked));
         const lastChecked2 = await getLastChecked();
-        console.log('lastChecked2', new Date(lastChecked2));
+        log.debug('lastChecked2', new Date(lastChecked2));
         
         // let logString = '';
         // submissions.forEach((a) => logString += a.id + ', ');
-        // console.log('Sort1:', logString);
+        // log.debug('Sort1:', logString);
         submissions.sort((a, b) => { return a.created_utc - b.created_utc});
         // logString = '';
         // submissions.forEach((a) => logString += a.id + ', ');
-        // console.log('Sort2:', logString);
+        // log.debug('Sort2:', logString);
 
         await processNewSubmissions(submissions, lastChecked, reddit);
         
         //modActions.sort((a, b) => { return a.created_utc - b.created_utc});
         //await processNewModActions(modActions, lastChecked, reddit);
         
-        //await processInbox(moderators, reddit);
+        await processInbox(moderators, lastChecked, reddit);
 
 
         //setTimeout(main, 30 * 1000); // run again in 30 seconds
     } catch (e) {
-        console.error(e);
+        log.error(e);
     }
 }
 
@@ -91,7 +96,7 @@ app.get('/hamming/:dhash1/:dhash2', async function(req, res) {
 });
 
 app.get('/resetchecked', async function(req, res) {
-    setLastChecked(1524891761414);
+    setLastChecked(1525079006000);
     res.send('Done');
 });
 
@@ -99,6 +104,6 @@ app.get('/resetchecked', async function(req, res) {
 
 // server
 function startServer() {
-    app.listen(3000, () => console.log(chalk.bgGreenBright('Magic Eye listening on port 3000')));
+    app.listen(3000, () => log.info(chalk.bgGreenBright('Magic Eye listening on port 3000')));
 }
 initDb(startServer); // requires callback

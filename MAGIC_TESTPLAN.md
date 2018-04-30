@@ -1,16 +1,16 @@
 # DONE
 
 * ignores not png/jpg (i.e. text)
-
-
+* removes + distinguished broken images
+* removes images that are too small
+* remove repost
 
 #normal processing
 
 
-* removes + distinguished broken images
-* removes images that are too small
+
+
 * clear command - make sure it deletes
-* remove repost
 * custom reposts
 
 

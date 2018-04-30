@@ -4,6 +4,9 @@
 
 
 #TODO
+* Distinguishing is broken
+* link_id doesn't exist for replies. Need to get the submission somehow.
+
 * implement hamming cache - store all dhashes in memory for hamming comparison, don't store duplicates just update the lastposted but not the dhash
     * downside is if we are wrong, we'd need an exception for that dhash - perhaps a "no-hamming" entry - check mongo first for no-hamming, then check hamming list
 
