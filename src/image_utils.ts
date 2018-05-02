@@ -4,6 +4,7 @@ var parseDbUrl = require("parse-database-url");
 var hammingDistance = require("hamming");
 var dhashLibrary = require("dhash");
 var phashLibrary = require("phash-imagemagick");
+const chalk = require('chalk');
 const { promisify } = require('util');
 const phashGet = promisify(phashLibrary.get);
 const dhashGet = promisify(dhashLibrary);
@@ -11,9 +12,10 @@ const fs = require('fs');
 const imageDownloader = require('image-downloader');
 const imageMagick = require('imagemagick');
 
+
 require('dotenv').config();
 const log = require('loglevel');
-log.setLevel('debug');
+log.setLevel(process.env.LOG_LEVEL);
 
 
 export async function generateDHash(imagePath: string, logUrl: string): Promise<number> {
@@ -51,7 +53,7 @@ export async function downloadImage(submission): Promise<string> {
 export function deleteImage(imagePath) {
     fs.unlink(imagePath, (e) => {
         if (e) {
-            log.error('Failed to delete file: ', imagePath, e);
+            log.error(chalk.red('Failed to delete file: '), imagePath, e);
         }
     });
 }
@@ -60,10 +62,9 @@ async function trimImage(imagePath: string, logUrl: string) {
     try {
         await promisify(imageMagick.convert)([imagePath, '-trim', imagePath]);
     } catch (e) {
-        log.error('Could not trim submission:', logUrl);
+        log.error(chalk.red('Could not trim submission:'), logUrl);
     }
 }
-
 
 export async function isDuplicate(imagePath1: string, imagePath2: string) {
     const dhash1 = await generateDHash(imagePath1, imagePath1);

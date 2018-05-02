@@ -4,7 +4,7 @@ const moment = require('moment');
 const outdent = require('outdent');
 const chalk = require('chalk');
 const log = require('loglevel');
-log.setLevel('debug');
+log.setLevel(process.env.LOG_LEVEL);
 
 // reddit modules
 import { Submission } from 'snoowrap';
@@ -20,7 +20,7 @@ async function processNewSubmissions(submissions: Array<Submission>, lastChecked
     let processedCount = 0;
     for (const submission of submissions) {
         const submissionDate = await submission.created_utc * 1000; // reddit dates are in seconds
-        log.debug('submitted:', new Date(submissionDate), ', submissionDate larger: ', submissionDate > lastChecked ? chalk.green(submissionDate > lastChecked) : chalk.red(submissionDate > lastChecked));
+        log.debug('submitted:', new Date(submissionDate), ', submissionDate larger: ', submissionDate > lastChecked ? chalk.green(submissionDate > lastChecked) : chalk.yellow(submissionDate > lastChecked));
         if (submissionDate > lastChecked) {
             await processSubmission(submission, reddit);
             processedCount++;
@@ -51,7 +51,7 @@ async function clearSubmission(submission: Submission, reddit: any): Promise<boo
     deleteImage(imagePath);
 
     const existingMagicSubmission = await getMagicSubmission(imageDHash);
-    log.debug('Existing submission for dhash:', chalk.blue(imageDHash), chalk.red(JSON.stringify(existingMagicSubmission)));
+    log.debug('Existing submission for dhash:', chalk.blue(imageDHash), chalk.yellow(JSON.stringify(existingMagicSubmission)));
     
     if (existingMagicSubmission == null) {
         return true;
@@ -94,16 +94,10 @@ async function processSubmission(submission: Submission, reddit: any) {
     }
 
     const existingMagicSubmission = await getMagicSubmission(imageDHash);
-    log.debug('Existing submission for dhash:', chalk.blue(imageDHash), chalk.red(JSON.stringify(existingMagicSubmission)));
+    log.debug('Existing submission for dhash:', chalk.blue(imageDHash), chalk.yellow(JSON.stringify(existingMagicSubmission)));
     
     if (existingMagicSubmission != null) {
-        log.debug(chalk.yellow('Found existing submission for dhash: ' + imageDHash));
-        if (clearSubmission != null) {
-            log.debug('Clearing magic submission for dhash: ', existingMagicSubmission._id);
-            deleteMagicSubmission(submission);
-        } else {
-            await processExistingSubmission(submission, existingMagicSubmission, reddit);
-        }
+        await processExistingSubmission(submission, existingMagicSubmission, reddit);
     } else {
         await processNewSubmission(submission, imageDHash);
     }
@@ -112,8 +106,8 @@ async function processSubmission(submission: Submission, reddit: any) {
 }
 
 async function processExistingSubmission(submission: Submission, existingMagicSubmission: any, reddit: any) {
+    log.debug(chalk.yellow('Found existing submission for dhash, matched: ' + existingMagicSubmission._id));
     const lastSubmission = await reddit.getSubmission(existingMagicSubmission.reddit_id);
-    existingMagicSubmission.count++;
     
     log.debug('Existing submission found.');
     let removalText;
@@ -122,7 +116,7 @@ async function processExistingSubmission(submission: Submission, existingMagicSu
         const modComment = await getModComment(reddit, existingMagicSubmission.reddit_id);
         if (modComment == null) {
             log.debug('Repost of submission which was removed but no longer has mod comment, ignoring.');
-            saveMagicSubmission(existingMagicSubmission);            
+            saveMagicSubmission(existingMagicSubmission);
             return;
         } else {
             removalText = extractRemovalReasonText(modComment);
@@ -133,10 +127,11 @@ async function processExistingSubmission(submission: Submission, existingMagicSu
     const rootRemovedAsRepost = removalText != null && removalText.includes('[](#repost)'); // We missed detecting a valid repost so a mod manually removed it. That image is reposted but we don't know the approved submission.
 
 
+    let newApprovedSubmission = false;
     if (repostOnlyByUser && existingMagicSubmission.author == await submission.author) {
         log.debug('Found existing hash for ', existingMagicSubmission._id, ', approving as repostOnlyByUser');
         existingMagicSubmission.approve = true; // just auto-approve as this is almost certainly the needed action
-        existingMagicSubmission.reddit_id = await submission.id;
+        newApprovedSubmission = true;
     } else if (existingMagicSubmission.approved == false && !rootRemovedAsRepost) { // blacklisted
         log.debug('Found existing hash for ', existingMagicSubmission._id, ', removing as blacklisted');
         removeAsBlacklisted(reddit, submission, lastSubmission, removalText);
@@ -146,19 +141,19 @@ async function processExistingSubmission(submission: Submission, existingMagicSu
     } else if (await lastSubmission.approved) {
         log.debug('Found existing hash for ', existingMagicSubmission._id, ', approving');
         submission.approve();
-        existingMagicSubmission.reddit_id = await submission.id;
+        newApprovedSubmission = true;
     }  else {
-        log.debug('Submission saved but not acted upon for:', submission.id) // old unapproved links - shouldn't occur
+        log.log('Submission saved but not acted upon for:', submission.id) // old unapproved links - shouldn't occur
     }
 
-    existingMagicSubmission.count++;
-    saveMagicSubmission(existingMagicSubmission);
+    existingMagicSubmission.addDuplicate(await submission.id);
+    saveMagicSubmission(existingMagicSubmission, newApprovedSubmission);
 }
 
 async function processNewSubmission(submission: Submission, imageDHash: string) {
     log.debug(chalk.green('Processing new submission: ' + submission.id));
     const newMagicSubmission = new MagicSubmission(imageDHash, submission);
-    await saveMagicSubmission(newMagicSubmission);
+    await saveMagicSubmission(newMagicSubmission, true);
 }
 
 function isImageTooSmall(phash: any) {

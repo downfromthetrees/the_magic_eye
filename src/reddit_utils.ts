@@ -1,7 +1,7 @@
 // standard modules
 require('dotenv').config();
 const log = require('loglevel');
-log.setLevel('debug');
+log.setLevel(process.env.LOG_LEVEL);
 
 // reddit modules
 import { Submission, ModAction, Comment } from 'snoowrap';
@@ -9,9 +9,6 @@ import { unstable_renderSubtreeIntoContainer } from 'react-dom';
 const chalk = require('chalk');
 
 let moderators;
-
-// magic eye modules
-const { MagicSubmission, getMagicSubmission, saveMagicSubmission, getMagicSubmissionById } = require('./mongodb_data.ts');
 
 async function getModComment(reddit: any, submissionId: string): Promise<Comment> {
     if (!moderators) {

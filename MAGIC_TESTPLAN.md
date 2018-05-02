@@ -7,7 +7,7 @@
 
 #normal processing
 
-
+* test caching works
 
 
 * clear command - make sure it deletes

@@ -4,13 +4,12 @@ const moment = require('moment');
 const outdent = require('outdent');
 const chalk = require('chalk');
 const log = require('loglevel');
-log.setLevel('debug');
+log.setLevel(process.env.LOG_LEVEL);
 
 // reddit modules
 import { Comment, Submission, ModAction, PrivateMessage } from 'snoowrap';
 
 // magic eye modules
-const { MagicSubmission, getMagicSubmission, saveMagicSubmission, getMagicSubmissionById } = require('./mongodb_data.ts');
 const { clearSubmission } = require('./submission_processor.ts');
 const { sliceSubmissionId } = require('./reddit_utils.ts');
 
@@ -47,13 +46,13 @@ async function processInboxReply(inboxReply: Comment, moderators: Array<any>, re
     const isMod = moderators.find((moderator) => moderator.name === inboxReply.author.name);
     if (isMod) {
         if (inboxReply.body.includes('clear')) {
-            log.debug(chalk.red('inboxReply.id'), inboxReply.id);
-            log.debug(chalk.red('inboxReply'), inboxReply);
+            log.debug(chalk.yellow('inboxReply.id'), inboxReply.id);
+            log.debug(chalk.yellow('inboxReply'), inboxReply);
             const comment = await reddit.getComment(inboxReply.id);
             await comment.fetch();
-            log.debug(chalk.red('comment'), comment);
-            log.debug(chalk.red('comment.linkId'), comment.link_id);
-            log.debug(chalk.red('await comment.linkId'), await comment.link_id);
+            log.debug(chalk.yellow('comment'), comment);
+            log.debug(chalk.yellow('comment.linkId'), comment.link_id);
+            log.debug(chalk.yellow('await comment.linkId'), await comment.link_id);
             const submission = await reddit.getSubmission(sliceSubmissionId(await comment.link_id));
             await submission.fetch();
             console.log(chalk.blue('submission: '), submission);

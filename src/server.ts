@@ -4,11 +4,11 @@ const express = require('express');
 const app = express();
 const favicon = require('serve-favicon');
 const chalk = require('chalk');
+require('dotenv').config();
 
 const log = require('loglevel');
-//log.setLevel('debug');
+log.setLevel(process.env.LOG_LEVEL);
 
-require('dotenv').config();
 
 // webpack middleware to serve react files
 const webpack = require('webpack');
@@ -76,7 +76,7 @@ async function main() {
 
         //setTimeout(main, 30 * 1000); // run again in 30 seconds
     } catch (e) {
-        log.error(e);
+        log.error(chalk.red(e));
     }
 }
 

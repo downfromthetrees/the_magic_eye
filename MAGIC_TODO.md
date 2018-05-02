@@ -4,16 +4,14 @@
 
 
 #TODO
-* Distinguishing is broken
-* link_id doesn't exist for replies. Need to get the submission somehow.
 
-* implement hamming cache - store all dhashes in memory for hamming comparison, don't store duplicates just update the lastposted but not the dhash
-    * downside is if we are wrong, we'd need an exception for that dhash - perhaps a "no-hamming" entry - check mongo first for no-hamming, then check hamming list
+* if hamming cache is wrong, we'd need an exception for that dhash - perhaps a "no-hamming" entry - check mongo first for no-hamming, then check hamming list
+    * Need a 'wrong' command which enters a no-hamming match entry that says a hamming won't match that *particular* one again
 
+* Another table for custom override messages when you want to fix one up
 * error handling - need to run with forever
 * test it while blocking reddit.com in windows settings
 * https://stackoverflow.com/questions/22675725/find-unused-npm-packages-in-package-json
-* Thank notan ardvark
 * toolbox [](#repost_only_by_user_) flag for shop reposts
 * We need a [](#magic_ignore) and a [](#repost_only_by_user) - probably just handy
 * Logging - winston

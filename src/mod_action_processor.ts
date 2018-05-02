@@ -3,7 +3,7 @@ require('dotenv').config();
 const moment = require('moment');
 const outdent = require('outdent');
 const log = require('loglevel');
-log.setLevel('debug');
+log.setLevel(process.env.LOG_LEVEL);
 
 // reddit modules
 import { Submission, ModAction } from 'snoowrap';
@@ -46,31 +46,21 @@ async function processModAction(action: ModAction, reddit: any) {
                 return; // mod probably manually dealt with something like a repost we missed 
             }
 
-            markAsBlacklisted(submissionId, modComment);
+            markAsApproved(submissionId, false);
         case 'approvelink': 
-            markAsApproved(submissionId);
+            markAsApproved(submissionId, true);
         default:
             return;
     }
 }
 
-async function markAsBlacklisted(submissionId: string, modComment: string) {
-    const magicSubmission = await getMagicSubmissionById(submissionId);
-    if (magicSubmission == null) {
-        log.info('Could not find magic submission for removed link with id: ', submissionId);
-        return;
-    }
-    magicSubmission.approved = false;
-    saveMagicSubmission(magicSubmission);
-}
-
-async function markAsApproved(submissionId: string) {
+async function markAsApproved(submissionId: string, approved: boolean) {
     const magicSubmission = await getMagicSubmissionById(submissionId);
     if (!magicSubmission) {
         log.info('Could not find magic submission for approved link with id: ', submissionId);
         return;
     }
-    magicSubmission.approved = true;
+    magicSubmission.approved = approved;
     saveMagicSubmission(magicSubmission);
 }
 
