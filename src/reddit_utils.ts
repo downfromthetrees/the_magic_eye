@@ -15,7 +15,7 @@ async function getModComment(reddit: any, submissionId: string): Promise<Comment
         const moderators = await reddit.getSubreddit(process.env.SUBREDDIT_NAME).getModerators();
     }
     const submission = reddit.getSubmission(submissionId);
-    return (await submission.comments).find((comment) => moderators.find(async function(moderator) {return moderator.name == await comment.author.name} ));
+    return (await submission.comments).find((comment) => moderators.find(async function(moderator) {return moderator.name == await comment.author.name && comment.removed != true} ));
 }
 
 

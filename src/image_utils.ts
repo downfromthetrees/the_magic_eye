@@ -12,6 +12,17 @@ const fs = require('fs');
 const imageDownloader = require('image-downloader');
 const imageMagick = require('imagemagick');
 
+// reddit modules
+import { Submission } from 'snoowrap';
+
+export interface ImageDetails {
+    dhash: string;
+    height: number;
+    width: number;
+    trimmedHeight: number;
+    trimmedWidth: number;    
+}
+
 
 require('dotenv').config();
 const log = require('loglevel');
@@ -27,7 +38,7 @@ export async function generateDHash(imagePath: string, logUrl: string): Promise<
     }
 }
 
-export async function generatePHash(imagePath: string, logUrl: string): Promise<number> {
+export async function generatePHash(imagePath: string, logUrl: string) {
     try {
         return await phashGet(imagePath);
     } catch (e) {
@@ -58,27 +69,45 @@ export function deleteImage(imagePath) {
     });
 }
 
-async function trimImage(imagePath: string, logUrl: string) {
-    try {
-        await promisify(imageMagick.convert)([imagePath, '-trim', imagePath]);
-    } catch (e) {
-        log.error(chalk.red('Could not trim submission:'), logUrl);
+async function getImageDetails(submission :Submission): Promise<ImageDetails> {
+    const imagePath = await downloadImage(submission);
+    if (imagePath == null) {
+        return null;
     }
+    const imageDetails = { dhash: null, height: null, width: null, trimmedHeight: null, trimmedWidth: null };
+    imageDetails.dhash = await generateDHash(imagePath, await submission.url);
+    const imagePHash = await generatePHash(imagePath, await submission.url); 
+    if (imagePHash != null) {
+        imageDetails.height = imagePHash.height; // there are better ways to do this but I already had this working
+        imageDetails.width = imagePHash.width;
+    }
+
+    try {
+        const trimmedPath = imagePath + '-trim';
+        await promisify(imageMagick.convert)([imagePath, '-trim', trimmedPath]);
+        const trimmedPHash = await generatePHash(imagePath, await submission.url);
+        if (trimmedPHash != null) {
+            imageDetails.trimmedHeight = trimmedPHash.height; // there are better ways to do this but I already had this working
+            imageDetails.trimmedWidth = trimmedPHash.width;
+        }
+        await deleteImage(trimmedPath);    
+    } catch (e) {
+        log.error(chalk.red('Could not trim submission:'), submission.url);
+    }
+
+    await deleteImage(imagePath);
+    return imageDetails;
 }
 
 export async function isDuplicate(imagePath1: string, imagePath2: string) {
     const dhash1 = await generateDHash(imagePath1, imagePath1);
     const dhash2 = await generateDHash(imagePath2, imagePath2);
     const distance = await hammingDistance(dhash1, dhash2); // hamming threshold
-    //const isPHashMatch = phashLibrary.compare(imagePHash, otherSubmission.phash) < 20; // percept. threshold
     return [dhash1, dhash2, distance];
 }
 
 
 module.exports = {
-    generateDHash: generateDHash,
-    generatePHash: generatePHash,
+    getImageDetails: getImageDetails,
     isDuplicate: isDuplicate,
-    downloadImage: downloadImage,
-    deleteImage: deleteImage,
 };    

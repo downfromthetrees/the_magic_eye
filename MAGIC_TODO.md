@@ -4,31 +4,21 @@
 
 
 #TODO
-
-* if hamming cache is wrong, we'd need an exception for that dhash - perhaps a "no-hamming" entry - check mongo first for no-hamming, then check hamming list
-    * Need a 'wrong' command which enters a no-hamming match entry that says a hamming won't match that *particular* one again
-
-* Another table for custom override messages when you want to fix one up
-* error handling - need to run with forever
-* test it while blocking reddit.com in windows settings
-* https://stackoverflow.com/questions/22675725/find-unused-npm-packages-in-package-json
 * toolbox [](#repost_only_by_user_) flag for shop reposts
 * We need a [](#magic_ignore) and a [](#repost_only_by_user) - probably just handy
-* Logging - winston
-* calculate how much we can store, do TTL expiry: https://www.ekito.fr/people/auto-expire-documents-mongodb-collections/
-* could read wiki page for latest removal reasons to keep them up to date
-* could archive images in background task, or perhaps explain that the original might be deleted IF it's a rule breaker - https://www.npmjs.com/package/archive.is (could do async edit)
 
 
 
 # Scrap tech notes
-* There's a hamming distance of 1 between doll4/5. Very small so essentially the same image.
+* There's a hamming distance of 1 between doll 4/5. Very small so essentially the same image.
 
 #Usage notes
 * mods shouldn't mod anything within a minute of it being posted
-* mods can reply with "clear" (no quotes) to clear the database for that image
+* mods can reply with `clear` to clear the database for that image
+* mods can reply with `wrong` if the image is wrong and it won't match those images again
 * It reads the approve/remove links in the modlog, so if you do either of those actions it'll reprocess the submission automatically
 * If a post is removed but there's no removal message, it'll just ignore the whole submission
+* 
 
 # tech usage notes
 postgres:
@@ -39,15 +29,12 @@ postgres:
 
 # Future ideas
 
-* detect uncropped pictures, crop them and upload to imgur for reposting (also take off like 10px for the black edge)
 * mods should be able to login, enter a url, see the info and fix it
 * we will need a total reset for individual rules
-
+* could archive images when they get posted, or perhaps explain that the original might be deleted IF it's a rule breaker - https://www.npmjs.com/package/archive.is (a bunch will be deleted by the time the bot gets around to it so not worth it anyway)
+* Ask it for information on previous posts, and it replies like repost sentinel
 
 # rejected
-
-* Graduating images from unmoderated to magic_submission is quite complex, and ultimately premature optimization
-* Cropping images before detection - if we match them then in future they'll be auto-approved. We need to be able to detect uncropped images first.
 
 
 

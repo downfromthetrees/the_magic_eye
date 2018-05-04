@@ -25,21 +25,15 @@ class MagicSubmission {
     reddit_id: string; // the last reddit id that matched the dhash (dhash within hamming distance)
     duplicates: Array<string>; // reddit ids, includes removed and approved posts
     approved: boolean;
+    exactMatchOnly: boolean;
 
     constructor(dhash: string, redditSubmission: Submission) {
         this._id = dhash;
         this.reddit_id = redditSubmission.id;
         this.duplicates = [];
         this.approved = null;
+        this.exactMatchOnly = null;
     }
-
-    addDuplicate(id: string, replaceId: boolean) {
-        this.duplicates.push(this.reddit_id);
-        if (replaceId) {
-            this.reddit_id = id;
-        }
-    }
-
 }
 
 let database = null; // access object
@@ -63,7 +57,9 @@ async function initDb(cb) {
 
             log.info(chalk.blue('Loading database cache...'));
             const startTime = new Date().getTime();
-            database_cache = await database.collection(process.env.NODE_ENV + ':magic').find().project({_id: 1}).map(x => x._id).toArray();
+            const magicCollection = await database.collection(process.env.NODE_ENV + ':magic');
+            magicCollection.ensureIndex( { "creationDate": 1 }, { expireAfterSeconds: 60 * 60 * 24 * 365 * 3 } ); // expire after 3 years
+            database_cache = await magicCollection.find().project({_id: 1}).map(x => x._id).toArray();
             const endTime = new Date().getTime();
             log.info(chalk.blue('Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', database_cache.length, 'entries');
             log.debug('Loaded database_cache: ', database_cache);
@@ -101,27 +97,32 @@ async function saveMagicSubmission(submission: MagicSubmission, addToCache: bool
     }
 }
 
-async function getMagicSubmission(hashKey: string): Promise<MagicSubmission> {
+async function getMagicSubmission(inputDHash: string): Promise<MagicSubmission> {
 
     function isMatch(cachedHashKey) {
-        console.log(chalk.red(cachedHashKey, hashKey, hammingDistance(cachedHashKey, hashKey)));
-        return hammingDistance(cachedHashKey, hashKey) < process.env.HAMMING_THRESHOLD;
+        console.log(chalk.red(cachedHashKey, inputDHash, hammingDistance(cachedHashKey, inputDHash)));
+        return hammingDistance(cachedHashKey, inputDHash) < process.env.HAMMING_THRESHOLD;
     }
     const canonicalHashKey = database_cache.find(isMatch);
-    //const canonicalHashKey = database_cache.find((cachedHashKey) => hammingDistance(cachedHashKey, hashKey) < process.env.HAMMING_THRESHOLD );
 
     if (canonicalHashKey == undefined) {
-        log.debug('No cache hit for hashKey:', hashKey);
+        log.debug('No cache hit for hashKey:', inputDHash);
         return null;
     }
 
-    log.debug(chalk.blue('Cached hamming match, hamming distance is: ',  hammingDistance(canonicalHashKey, hashKey)));
+    log.debug(chalk.blue('Cached hamming match, hamming distance is: ',  hammingDistance(canonicalHashKey, inputDHash)));
     
     try {
         const collection = await getMagicCollection();
         const magicSubmission = await collection.findOne({'_id' : canonicalHashKey});
         chalk.yellow('hashKey:', canonicalHashKey, 'value:', JSON.stringify(magicSubmission));
         chalk.yellow(magicSubmission);
+
+        if (magicSubmission.exactMatchOnly == true && magicSubmission.dhash != inputDHash) {
+            log.debug('cache hit, but ignoring because exactMatchOnly is set for image');
+            return null;
+        }
+
         return magicSubmission;
     } catch (err) {
         log.error(chalk.red('MongoDb error:'), err);

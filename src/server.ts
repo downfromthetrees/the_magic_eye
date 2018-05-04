@@ -37,7 +37,11 @@ const reddit = new snoowrap({
     clientSecret: process.env.CLIENT_SECRET,
     refreshToken: process.env.REFRESH_TOKEN
   });
-reddit.config({debug: true})
+  
+if (process.env.LOG_LEVEL == 'debug') {
+    reddit.config({debug: true})
+}
+
 
 
 async function main() {
@@ -58,21 +62,18 @@ async function main() {
         const lastChecked2 = await getLastChecked();
         log.debug('lastChecked2', new Date(lastChecked2));
         
-        // let logString = '';
-        // submissions.forEach((a) => logString += a.id + ', ');
-        // log.debug('Sort1:', logString);
-        submissions.sort((a, b) => { return a.created_utc - b.created_utc});
-        // logString = '';
-        // submissions.forEach((a) => logString += a.id + ', ');
-        // log.debug('Sort2:', logString);
+        if (!submissions || !modActions || !moderators) {
+            log.error(chalk.red('Cannot contact reddit - api is probably down for maintenance'));
+            return;
+        }
 
+        submissions.sort((a, b) => { return a.created_utc - b.created_utc});
         await processNewSubmissions(submissions, lastChecked, reddit);
-        
+
         //modActions.sort((a, b) => { return a.created_utc - b.created_utc});
         //await processNewModActions(modActions, lastChecked, reddit);
-        
-        await processInbox(moderators, lastChecked, reddit);
 
+        await processInbox(moderators, lastChecked, reddit);
 
         //setTimeout(main, 30 * 1000); // run again in 30 seconds
     } catch (e) {
