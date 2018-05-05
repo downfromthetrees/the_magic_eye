@@ -12,21 +12,20 @@ import { Submission } from 'snoowrap';
 // magic eye modules
 const { getImageDetails } = require('./image_utils.ts');
 const { MagicSubmission, getMagicSubmission, saveMagicSubmission, deleteMagicSubmission } = require('./mongodb_data.ts');
-const { getModComment, extractRemovalReasonText, sliceSubmissionId } = require('./reddit_utils.ts');
+const { getModComment, isRepostOnlyByUserRemoval, isRepostRemoval, getRemovalReason, sliceSubmissionId, } = require('./reddit_utils.ts');
 
 async function processNewSubmissions(submissions: Array<Submission>, lastChecked: number, reddit: any) {
-    log.debug(chalk.blue('Starting new submissions. lastChecked:'), new Date(lastChecked));
     let processedCount = 0;
     for (const submission of submissions) {
         const submissionDate = await submission.created_utc * 1000; // reddit dates are in seconds
-        log.debug('submitted:', new Date(submissionDate), ', submissionDate larger: ', submissionDate > lastChecked ? chalk.green(submissionDate > lastChecked) : chalk.yellow(submissionDate > lastChecked));
+        log.debug('submitted:', new Date(submissionDate), ', processing: ', submissionDate > lastChecked ? chalk.green(submissionDate > lastChecked) : chalk.yellow(submissionDate > lastChecked));
         if (submissionDate > lastChecked) {
             await processSubmission(submission, reddit);
             processedCount++;
             }
         }
 
-    log.debug('Magic check processed', processedCount, 'submissions... running again soon.');    
+    log.debug(chalk.blue('Processed ', processedCount, ' new submissions.'));
 }
 
 async function processSubmission(submission: Submission, reddit: any) {
@@ -71,38 +70,43 @@ async function processSubmission(submission: Submission, reddit: any) {
 async function processExistingSubmission(submission: Submission, existingMagicSubmission: any, reddit: any) {
     log.debug(chalk.yellow('Found existing submission for dhash, matched: ' + existingMagicSubmission._id));
     const lastSubmission = await reddit.getSubmission(existingMagicSubmission.reddit_id);
+    const lastSubmissionRemoved = await lastSubmission.removed;
     
     log.debug('Existing submission found.');
-    let removalText;
-    if (await lastSubmission.removed) {
+    let modComment;
+    if (lastSubmissionRemoved) {
         log.debug('Last submission removed, getting mod comment');
-        const modComment = await getModComment(reddit, existingMagicSubmission.reddit_id);
+        modComment = await getModComment(reddit, existingMagicSubmission.reddit_id);
         if (modComment == null) {
-            log.debug('Repost of submission which was removed but no longer has mod comment, ignoring.');
+            log.debug('Repost of removed submission which was removed but no longer has mod comment, ignoring.');
+            existingMagicSubmission.duplicates.push(submission.id);
             saveMagicSubmission(existingMagicSubmission);
             return;
-        } else {
-            removalText = extractRemovalReasonText(modComment);
         }
     }
 
-    const repostOnlyByUser = removalText != null && removalText.includes('[](#repost_only_by_user)'); // mod has told them to resubmit an altered/cropped version
-    const rootRemovedAsRepost = removalText != null && removalText.includes('[](#repost)'); // We missed detecting a valid repost so a mod manually removed it. That image is reposted but we don't know the approved submission.
-
+    const repostOnlyByUser = await isRepostOnlyByUserRemoval(modComment); // mod has told them to resubmit an altered/cropped version
+    const wasRemovedAsRepost = await isRepostRemoval(modComment); // We missed detecting a valid repost so a mod manually removed it. That image is reposted but we don't know the approved submission.
 
     let wasRemoved = false;
     if (repostOnlyByUser && existingMagicSubmission.author == await submission.author) {
         log.debug('Found existing hash for ', existingMagicSubmission._id, ', approving as repostOnlyByUser');
         existingMagicSubmission.approve = true; // just auto-approve as this is almost certainly the needed action
-    } else if (existingMagicSubmission.approved == false && !rootRemovedAsRepost) { // blacklisted
-        log.debug('Found existing hash for ', existingMagicSubmission._id, ', removing as blacklisted');
-        removeAsBlacklisted(reddit, submission, lastSubmission, removalText);
+        submission.approve();
+    } else if (lastSubmissionRemoved && !wasRemovedAsRepost) { // blacklisted
+        const removalReason = await getRemovalReason(modComment);
+        if (removalReason == null) {
+            log.info(chalk.red("Ignoring submission because couldn't read the last removal message. Submission: ", submission.id, ", removal message thread: ", existingMagicSubmission.reddit_id));
+            return;
+        }
+        log.debug('Found existing hash for ', existingMagicSubmission._id, ', removing as blacklisted. Reason: ', removalReason);
+        removeAsBlacklisted(reddit, submission, lastSubmission, removalReason);
         wasRemoved = true;
     } else if (isRecentRepost(submission, lastSubmission)) {
         log.debug('Found existing hash for ', existingMagicSubmission._id, ', removing as repost');
-        removeAsRepost(reddit, submission, lastSubmission, rootRemovedAsRepost);
+        removeAsRepost(reddit, submission, lastSubmission, wasRemovedAsRepost);
         wasRemoved = true;
-    } else if (await lastSubmission.approved) {
+    } else if (lastSubmissionRemoved) {
         log.debug('Found existing hash for ', existingMagicSubmission._id, ', approving');
         submission.approve();
     }  else {
@@ -142,7 +146,7 @@ async function isRecentRepost(currentSubmission: Submission, lastSubmission: Sub
 
     let daysLimit = 25;
     const score = await lastSubmission.score;
-    if (score > 15000) { // large score, be harsh
+    if (score > 10000) { // large score, be harsh
         daysLimit = 50;
     } else if (score < 15) { // small score, be lenient
         daysLimit = 15;
@@ -210,13 +214,10 @@ async function removeAsRepost(reddit: any, submission: Submission, lastSubmissio
 
 async function removeAsBlacklisted(reddit: any, submission: Submission, lastSubmission: Submission, blacklist_reason: string){
     const permalink = 'https://www.reddit.com/' + await lastSubmission.permalink;
-    if (!blacklist_reason) {
-        blacklist_reason = `* No reason found - check sidebar to make sure you've read the rules or reply to me if you need moderator help.`;
-    }
     const removalReason = outdent
-        `Hi ${await submission.author.name}. Your post has been removed because it was posted [here](${permalink}) ([this image](${await lastSubmission.url})) and removed with the message:
+        `Your post has been removed because it is a repost of [this image](${await lastSubmission.url}) posted [here](${permalink}), and that post was removed because:
 
-        **${blacklist_reason}**`;
+        ${blacklist_reason}`;
     removePost(reddit, submission, removalReason + removalFooter);
 }
 

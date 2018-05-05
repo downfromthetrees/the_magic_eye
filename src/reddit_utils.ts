@@ -8,20 +8,31 @@ import { Submission, ModAction, Comment } from 'snoowrap';
 import { unstable_renderSubtreeIntoContainer } from 'react-dom';
 const chalk = require('chalk');
 
-let moderators;
-
 async function getModComment(reddit: any, submissionId: string): Promise<Comment> {
-    if (!moderators) {
-        const moderators = await reddit.getSubreddit(process.env.SUBREDDIT_NAME).getModerators();
-    }
     const submission = reddit.getSubmission(submissionId);
-    return (await submission.comments).find((comment) => moderators.find(async function(moderator) {return moderator.name == await comment.author.name && comment.removed != true} ));
+    const comments = await submission.comments;
+    return comments.find(comment => comment.distinguished == 'moderator' && comment.removed != true);
 }
 
+async function isRepostOnlyByUserRemoval(modComment: Comment): Promise<boolean> {
+    return modComment != null && (await modComment.body).includes('[](#repost_only_by_user)'); // mod has told them to resubmit an altered/cropped version
+}
 
-async function extractRemovalReasonText(modComment: Comment): Promise<string> {
-    const removalPoints = await modComment.body.split('\n').filter(line => line.trim().startsWith('*'));     // get bullet points in the removal message
-    return removalPoints.join().replace('*', '\n*');                                              // put bullet points back into a string
+async function isRepostRemoval(modComment: Comment): Promise<boolean> {
+    return modComment != null && (await modComment.body).includes('[](#repost)'); // mod has told them to resubmit an altered/cropped version
+}
+
+async function getRemovalReason(modComment: Comment): Promise<string> {
+    const body = await modComment.body;   
+    const startRemoval = '[](#start_removal)';
+    const endRemoval = '[](#end_removal';
+
+    if (!body.includes(startRemoval) || !body.includes(endRemoval) ) {
+        log.info(chalk.magenta("Moderator comment doesn't include correct bookend tags"));
+        return null;
+    }
+
+    return body.substring(body.lastIndexOf(startRemoval) + startRemoval.length, body.lastIndexOf(endRemoval));
 }
 
 function sliceSubmissionId(submissionId: string) {
@@ -30,7 +41,9 @@ function sliceSubmissionId(submissionId: string) {
 
 
 module.exports = {
-    getModComment: getModComment,
-    extractRemovalReasonText: extractRemovalReasonText,
-    sliceSubmissionId: sliceSubmissionId,
+    getModComment,
+    isRepostOnlyByUserRemoval,
+    isRepostRemoval,
+    getRemovalReason,
+    sliceSubmissionId,
 };

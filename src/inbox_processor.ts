@@ -18,7 +18,6 @@ const { sliceSubmissionId } = require('./reddit_utils.ts');
 async function processInbox(moderators: Array<any>, lastChecked: number, reddit: any) {
     const replies = await reddit.getInbox({'filter': 'comments'});
     let processedReplies = 0;
-    log.debug(chalk.blue('Beginning processing replies'));
     for (const reply of replies) {
         const createdDate = await reply.created_utc * 1000; // reddit dates are in seconds
         if (createdDate > lastChecked) {
@@ -31,7 +30,6 @@ async function processInbox(moderators: Array<any>, lastChecked: number, reddit:
 
     const messages = await reddit.getInbox({'filter': 'messages'});
     let processedMessages = 0;
-    log.debug(chalk.blue('Beginning processing messages'));
     for (const message of messages) {
         const createdDate = await message.created_utc * 1000; // reddit dates are in seconds
         if (createdDate > lastChecked) {
@@ -64,9 +62,9 @@ async function doExactMatchOnly(inboxReply: Comment, reddit: any) {
     await comment.fetch();
     const submission = await reddit.getSubmission(sliceSubmissionId(await comment.link_id));
     await submission.fetch();
-    console.log(chalk.blue('submission: '), submission);
+    log.debug(chalk.blue('submission: '), submission);
 
-    console.log(chalk.blue('Submission for clear: '), submission);
+    log.debug(chalk.blue('Submission for clear: '), submission);
     const success = await setExactMatchOnly(submission, reddit);
     const magicReply: any = await inboxReply.reply(success ? "Thanks, won't make that mistake again." : "I couldn't do that that... image deleted or something?");
     magicReply.distinguish();
@@ -78,7 +76,7 @@ async function doClear(inboxReply: Comment, reddit: any) {
     const submission = await reddit.getSubmission(sliceSubmissionId(await comment.link_id));
     await submission.fetch();
 
-    console.log(chalk.blue('Submission for clear: '), submission);
+    log.debug(chalk.blue('Submission for clear: '), submission);
     const success = await clearSubmission(submission, reddit);
     const magicReply: any = await inboxReply.reply(success ? 'Thanks, all done.' : "I couldn't do that that... image deleted or something?");
     magicReply.distinguish();

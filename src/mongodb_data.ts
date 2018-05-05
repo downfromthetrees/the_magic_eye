@@ -24,14 +24,12 @@ class MagicSubmission {
     _id: string; // dhash of the original
     reddit_id: string; // the last reddit id that matched the dhash (dhash within hamming distance)
     duplicates: Array<string>; // reddit ids, includes removed and approved posts
-    approved: boolean;
     exactMatchOnly: boolean;
 
     constructor(dhash: string, redditSubmission: Submission) {
         this._id = dhash;
         this.reddit_id = redditSubmission.id;
         this.duplicates = [];
-        this.approved = null;
         this.exactMatchOnly = null;
     }
 }
@@ -61,8 +59,8 @@ async function initDb(cb) {
             magicCollection.ensureIndex( { "creationDate": 1 }, { expireAfterSeconds: 60 * 60 * 24 * 365 * 3 } ); // expire after 3 years
             database_cache = await magicCollection.find().project({_id: 1}).map(x => x._id).toArray();
             const endTime = new Date().getTime();
-            log.info(chalk.blue('Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', database_cache.length, 'entries');
-            log.debug('Loaded database_cache: ', database_cache);
+            log.info(chalk.green('Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', database_cache.length, 'entries');
+            log.debug('Database database_cache: ', database_cache);
 
             cb();
           });                 
@@ -100,7 +98,7 @@ async function saveMagicSubmission(submission: MagicSubmission, addToCache: bool
 async function getMagicSubmission(inputDHash: string): Promise<MagicSubmission> {
 
     function isMatch(cachedHashKey) {
-        console.log(chalk.red(cachedHashKey, inputDHash, hammingDistance(cachedHashKey, inputDHash)));
+        log.debug(chalk.red(cachedHashKey, inputDHash, hammingDistance(cachedHashKey, inputDHash)));
         return hammingDistance(cachedHashKey, inputDHash) < process.env.HAMMING_THRESHOLD;
     }
     const canonicalHashKey = database_cache.find(isMatch);

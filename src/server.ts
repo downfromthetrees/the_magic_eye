@@ -24,7 +24,6 @@ import { Submission, ModAction} from 'snoowrap';
 // magic eye modules
 const { getLastChecked, setLastCheckedNow, setLastChecked, initDb } = require('./mongodb_data.ts');
 const { processNewSubmissions } = require('./submission_processor.ts');
-const { processNewModActions } = require('./mod_action_processor.ts');
 const { processInbox } = require('./inbox_processor.ts');
 const { generateDHash, isDuplicate } = require('./image_utils.ts');
 
@@ -38,44 +37,39 @@ const reddit = new snoowrap({
     refreshToken: process.env.REFRESH_TOKEN
   });
   
-if (process.env.LOG_LEVEL == 'debug') {
-    reddit.config({debug: true})
-}
+// if (process.env.LOG_LEVEL == 'debug') {
+//     reddit.config({debug: true})
+// }
 
 
 
 async function main() {
     try {
-        log.debug(chalk.bgBlueBright('Starting MAIN processing'));
+        log.debug(chalk.blue("Starting Magic processing cycle"));
 
         // get everything up from to attempt to match checked time
         const subreddit = await reddit.getSubreddit(process.env.SUBREDDIT_NAME);
         const lastChecked = await getLastChecked();
-        log.debug('lastChecked1', new Date(lastChecked));
+        log.debug('lastChecked: ', chalk.yellow(new Date(lastChecked)));
 
         const submissions = await subreddit.getNew();
         const modActions = await subreddit.getModmail();
         const moderators = await subreddit.getModerators();
         await setLastCheckedNow();
 
-        log.debug('lastChecked1', new Date(lastChecked));
-        const lastChecked2 = await getLastChecked();
-        log.debug('lastChecked2', new Date(lastChecked2));
-        
         if (!submissions || !modActions || !moderators) {
-            log.error(chalk.red('Cannot contact reddit - api is probably down for maintenance'));
+            log.error(chalk.red('Cannot contact reddit - api is probably down for maintenance.'));
+            setTimeout(main, 30 * 1000); // run again in 30 seconds
             return;
         }
 
         submissions.sort((a, b) => { return a.created_utc - b.created_utc});
         await processNewSubmissions(submissions, lastChecked, reddit);
 
-        //modActions.sort((a, b) => { return a.created_utc - b.created_utc});
-        //await processNewModActions(modActions, lastChecked, reddit);
-
         await processInbox(moderators, lastChecked, reddit);
 
-        //setTimeout(main, 30 * 1000); // run again in 30 seconds
+        log.debug(chalk.green('Finished processing, running again soon.'));
+        setTimeout(main, 30 * 1000); // run again in 30 seconds
     } catch (e) {
         log.error(chalk.red(e));
     }
@@ -85,6 +79,7 @@ async function main() {
 async function runStart(request, response) { await main(); response.send('The Magic Eye has started.'); }
 app.get('/start', runStart);
 
+// temp helper functions
 app.get('/dhash/:filename', async function(req, res) {
     const dhash = await generateDHash(process.env.DOWNLOAD_DIR + req.params.filename);
     res.send("dhash for image in download_dir is: " + dhash);
