@@ -8,13 +8,7 @@
 * test caching works
 * reports comment
 * clear command - make sure it deletes
-
-#normal processing
-
 * custom reposts
+* can use [](#magic_ignore), reposts do this automatically
 
-
----
-
-can use [](#magic_ignore), reposts do this automatically
 

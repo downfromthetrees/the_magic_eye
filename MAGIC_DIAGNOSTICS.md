@@ -8,6 +8,12 @@
 
 
 
+new
+100k = 24mb
+1m = 240mb
+
+
+
 1kb = 2
 1kb-phash = 4
 

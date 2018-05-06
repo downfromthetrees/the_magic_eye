@@ -76,23 +76,28 @@ async function getImageDetails(submission :Submission): Promise<ImageDetails> {
     }
     const imageDetails = { dhash: null, height: null, width: null, trimmedHeight: null, trimmedWidth: null };
     imageDetails.dhash = await generateDHash(imagePath, await submission.url);
+
+    if (imageDetails.dhash == null) {
+        return null; // must generate a dhash to be valid details
+    }
+
     const imagePHash = await generatePHash(imagePath, await submission.url); 
     if (imagePHash != null) {
-        imageDetails.height = imagePHash.height; // there are better ways to do this but I already had this working
+        imageDetails.height = imagePHash.height; // there are better ways to get image dimensions but I already had phash working
         imageDetails.width = imagePHash.width;
     }
 
     try {
-        const trimmedPath = imagePath + '-trim';
+        const trimmedPath = imagePath + '_trimmed';
         await promisify(imageMagick.convert)([imagePath, '-trim', trimmedPath]);
         const trimmedPHash = await generatePHash(imagePath, await submission.url);
         if (trimmedPHash != null) {
-            imageDetails.trimmedHeight = trimmedPHash.height; // there are better ways to do this but I already had this working
+            imageDetails.trimmedHeight = trimmedPHash.height;
             imageDetails.trimmedWidth = trimmedPHash.width;
         }
         await deleteImage(trimmedPath);    
     } catch (e) {
-        log.error(chalk.red('Could not trim submission:'), submission.url);
+        log.error(chalk.red('Could not trim submission:'), submission.url, ' - imagemagick error: ', e);
     }
 
     await deleteImage(imagePath);

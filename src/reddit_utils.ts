@@ -14,6 +14,10 @@ async function getModComment(reddit: any, submissionId: string): Promise<Comment
     return comments.find(comment => comment.distinguished == 'moderator' && comment.removed != true);
 }
 
+async function isMagicIgnore(modComment: Comment): Promise<boolean> {
+    return modComment != null && (await modComment.body).includes('[](#magic_ignore)'); // mod wants removal ignored
+}
+
 async function isRepostOnlyByUserRemoval(modComment: Comment): Promise<boolean> {
     return modComment != null && (await modComment.body).includes('[](#repost_only_by_user)'); // mod has told them to resubmit an altered/cropped version
 }
@@ -32,7 +36,7 @@ async function getRemovalReason(modComment: Comment): Promise<string> {
         return null;
     }
 
-    return body.substring(body.lastIndexOf(startRemoval) + startRemoval.length, body.lastIndexOf(endRemoval));
+    return body.substring(body.indexOf(startRemoval) + startRemoval.length, body.lastIndexOf(endRemoval));
 }
 
 function sliceSubmissionId(submissionId: string) {
@@ -43,6 +47,7 @@ function sliceSubmissionId(submissionId: string) {
 module.exports = {
     getModComment,
     isRepostOnlyByUserRemoval,
+    isMagicIgnore,
     isRepostRemoval,
     getRemovalReason,
     sliceSubmissionId,

@@ -10,9 +10,11 @@ const hammingDistance = require("hamming");
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL);
 
+const collectionPrefix = (process.env.NODE_ENV == 'production' ? '' : process.env.NODE_ENV + ':') + process.env.SUBREDDIT_NAME + ':';
+const magicPropertyName = collectionPrefix + 'properties';
 class MagicProperty {
     _id: string;
-    value: string;
+    value: any;
 
     constructor(name, value) {
         this._id = name;
@@ -20,17 +22,20 @@ class MagicProperty {
     }
 }
 
+const magicSubmissionName = collectionPrefix + 'submissions';
 class MagicSubmission {
     _id: string; // dhash of the original
     reddit_id: string; // the last reddit id that matched the dhash (dhash within hamming distance)
     duplicates: Array<string>; // reddit ids, includes removed and approved posts
     exactMatchOnly: boolean;
+    highest_score: number;
 
-    constructor(dhash: string, redditSubmission: Submission) {
+    constructor(dhash: string, redditSubmission: Submission, highestScore: number) {
         this._id = dhash;
         this.reddit_id = redditSubmission.id;
         this.duplicates = [];
         this.exactMatchOnly = null;
+        this.highest_score = highestScore;
     }
 }
 
@@ -47,20 +52,20 @@ async function initDb(cb) {
           
             database = await client.db();
 
-            const lastChecked = await database.collection(process.env.NODE_ENV + ':properties').findOne({'_id': 'last_checked'});
+            const lastChecked = await database.collection(magicPropertyName).findOne({'_id': 'last_checked'});
             if (lastChecked == undefined) {
-                log.error(chalk.red('last_checked has never been set: assuming first time setup.'));
-                database.collection(process.env.NODE_ENV + ':properties').save(new MagicProperty('last_checked', new Date().getTime()));
+                log.error(chalk.yellow('last_checked has never been set: assuming first time setup.'));
+                database.collection(magicPropertyName).save(new MagicProperty('last_checked', new Date().getTime()));
             }
 
             log.info(chalk.blue('Loading database cache...'));
             const startTime = new Date().getTime();
-            const magicCollection = await database.collection(process.env.NODE_ENV + ':magic');
-            magicCollection.ensureIndex( { "creationDate": 1 }, { expireAfterSeconds: 60 * 60 * 24 * 365 * 3 } ); // expire after 3 years
+            const magicCollection = await database.collection(magicSubmissionName);
+            magicCollection.ensureIndex( { "creationDate": 1 }, { expireAfterSeconds: 60 * 60 * 24 * 365 * 5 } ); // expire after 5 years. 
             database_cache = await magicCollection.find().project({_id: 1}).map(x => x._id).toArray();
             const endTime = new Date().getTime();
             log.info(chalk.green('Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', database_cache.length, 'entries');
-            log.debug('Database database_cache: ', database_cache);
+            //log.debug('Database database_cache: ', database_cache);
 
             cb();
           });                 
@@ -71,12 +76,12 @@ async function initDb(cb) {
 }
 
 
-async function getMagicCollection() {
-    return database.collection(process.env.NODE_ENV + ':magic');
+async function getSubmissionCollection() {
+    return database.collection(magicSubmissionName);
 }
 
-async function getPropertiesCollection() {
-    return database.collection(process.env.NODE_ENV + ':properties');
+async function getPropertyCollection() {
+    return database.collection(magicPropertyName);
 }
 
 async function saveMagicSubmission(submission: MagicSubmission, addToCache: boolean) {
@@ -85,7 +90,7 @@ async function saveMagicSubmission(submission: MagicSubmission, addToCache: bool
     }
     try {
         log.debug(chalk.yellow("INSERTING submission:" + JSON.stringify(submission)));
-        const collection = await getMagicCollection();
+        const collection = await getSubmissionCollection();
         await collection.save(submission);
         if (addToCache) {
             database_cache.push(submission._id);
@@ -96,9 +101,7 @@ async function saveMagicSubmission(submission: MagicSubmission, addToCache: bool
 }
 
 async function getMagicSubmission(inputDHash: string): Promise<MagicSubmission> {
-
     function isMatch(cachedHashKey) {
-        log.debug(chalk.red(cachedHashKey, inputDHash, hammingDistance(cachedHashKey, inputDHash)));
         return hammingDistance(cachedHashKey, inputDHash) < process.env.HAMMING_THRESHOLD;
     }
     const canonicalHashKey = database_cache.find(isMatch);
@@ -111,7 +114,7 @@ async function getMagicSubmission(inputDHash: string): Promise<MagicSubmission> 
     log.debug(chalk.blue('Cached hamming match, hamming distance is: ',  hammingDistance(canonicalHashKey, inputDHash)));
     
     try {
-        const collection = await getMagicCollection();
+        const collection = await getSubmissionCollection();
         const magicSubmission = await collection.findOne({'_id' : canonicalHashKey});
         chalk.yellow('hashKey:', canonicalHashKey, 'value:', JSON.stringify(magicSubmission));
         chalk.yellow(magicSubmission);
@@ -130,7 +133,7 @@ async function getMagicSubmission(inputDHash: string): Promise<MagicSubmission> 
 
 async function getMagicSubmissionById(submission_id: string): Promise<MagicSubmission> {
     try {
-        const collection = await getMagicCollection();
+        const collection = await getSubmissionCollection();
         return await collection.findOne({'reddit_id' : submission_id});
     } catch (err) {
         log.error(chalk.red('MongoDb error:'), err);
@@ -141,7 +144,7 @@ async function getMagicSubmissionById(submission_id: string): Promise<MagicSubmi
 async function deleteMagicSubmission(submission: MagicSubmission) {
     try {
         log.debug(chalk.yellow("DELETING:" + submission));
-        const collection = await getMagicCollection();
+        const collection = await getSubmissionCollection();
         await collection.remove({'_id': submission._id});
 
         const index = database_cache.indexOf(submission._id);
@@ -153,9 +156,13 @@ async function deleteMagicSubmission(submission: MagicSubmission) {
     }
 }
 
+export async function setLastCheckedNow() {
+    await setMagicProperty('last_checked', new Date().getTime());
+}
+
 export async function getLastChecked(): Promise<number> {
     try {
-        const collection = await getPropertiesCollection();
+        const collection = await getPropertyCollection();
         const lastChecked = (await collection.findOne({'_id': 'last_checked'}));
         if (lastChecked != null) {
             return lastChecked.value;
@@ -166,29 +173,42 @@ export async function getLastChecked(): Promise<number> {
     return null;
 }
 
-export async function setLastChecked(lastChecked: number) {
+
+export async function setMagicProperty(key: string, value: any) {
     try {
-        log.debug(chalk.yellow("INSERTING:" + lastChecked));
-        const collection = await getPropertiesCollection();
-        await collection.save(new MagicProperty('last_checked', lastChecked));
+        log.debug(chalk.yellow("inserting property. key:"), key, chalk.yellow('value:'), value);
+        const collection = await getPropertyCollection();
+        await collection.save(new MagicProperty(key, value));
     } catch (err) {
         log.error(chalk.red('MongoDb error:'), err);
         return null;
     }
 }
 
-export async function setLastCheckedNow() {
-    await setLastChecked(new Date().getTime());
+
+export async function getMagicProperty(key: string): Promise<number> {
+    try {
+        const collection = await getPropertyCollection();
+        const property = (await collection.findOne({'_id': key}));
+        if (property != null) {
+            return property.value;
+        }
+    } catch (err) {
+        log.error(chalk.red('MongoDb error:'), err);
+    }
+    return null;
 }
+
 
 module.exports = {
     MagicSubmission,
-    getMagicSubmission: getMagicSubmission,
-    saveMagicSubmission: saveMagicSubmission,
-    deleteMagicSubmission: deleteMagicSubmission,
-    getLastChecked: getLastChecked,
-    setLastCheckedNow: setLastCheckedNow,
-    setLastChecked: setLastChecked,
-    getMagicSubmissionById: getMagicSubmissionById,
-    initDb: initDb,
+    getMagicSubmission,
+    saveMagicSubmission,
+    deleteMagicSubmission,
+    getLastChecked,
+    setLastCheckedNow,
+    getMagicSubmissionById,
+    initDb,
+    setMagicProperty,
+    getMagicProperty,
 };

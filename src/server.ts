@@ -22,8 +22,8 @@ const snoowrap = require('snoowrap');
 import { Submission, ModAction} from 'snoowrap';
 
 // magic eye modules
-const { getLastChecked, setLastCheckedNow, setLastChecked, initDb } = require('./mongodb_data.ts');
-const { processNewSubmissions } = require('./submission_processor.ts');
+const { getLastChecked, setLastCheckedNow, setMagicProperty, getMagicProperty, initDb } = require('./mongodb_data.ts');
+const { processOldSubmissions, processNewSubmissions, } = require('./submission_processor.ts');
 const { processInbox } = require('./inbox_processor.ts');
 const { generateDHash, isDuplicate } = require('./image_utils.ts');
 
@@ -37,49 +37,88 @@ const reddit = new snoowrap({
     refreshToken: process.env.REFRESH_TOKEN
   });
   
-// if (process.env.LOG_LEVEL == 'debug') {
-//     reddit.config({debug: true})
-// }
-
+if (process.env.LOG_LEVEL == 'debug') {
+    reddit.config({debug: true})
+}
 
 
 async function main() {
-    try {
-        log.debug(chalk.blue("Starting Magic processing cycle"));
+    log.debug(chalk.blue("Starting Magic processing cycle"));
 
-        // get everything up from to attempt to match checked time
-        const subreddit = await reddit.getSubreddit(process.env.SUBREDDIT_NAME);
-        const lastChecked = await getLastChecked();
-        log.debug('lastChecked: ', chalk.yellow(new Date(lastChecked)));
+    // get everything up from to attempt to match checked time
+    const subreddit = await reddit.getSubreddit(process.env.SUBREDDIT_NAME);
+    const lastChecked = await getLastChecked();
+    log.debug('lastChecked: ', chalk.yellow(new Date(lastChecked)));
 
-        const submissions = await subreddit.getNew();
-        const modActions = await subreddit.getModmail();
-        const moderators = await subreddit.getModerators();
-        await setLastCheckedNow();
-
-        if (!submissions || !modActions || !moderators) {
-            log.error(chalk.red('Cannot contact reddit - api is probably down for maintenance.'));
-            setTimeout(main, 30 * 1000); // run again in 30 seconds
-            return;
-        }
-
-        submissions.sort((a, b) => { return a.created_utc - b.created_utc});
-        await processNewSubmissions(submissions, lastChecked, reddit);
-
-        await processInbox(moderators, lastChecked, reddit);
-
-        log.debug(chalk.green('Finished processing, running again soon.'));
+    const submissions = await subreddit.getNew();
+    const moderators = await subreddit.getModerators();
+    
+    if (!submissions || !moderators) {
+        log.error(chalk.red('Cannot contact reddit - api is probably down for maintenance.'));
         setTimeout(main, 30 * 1000); // run again in 30 seconds
+        return;
+    }
+
+    await setLastCheckedNow();
+
+    submissions.sort((a, b) => { return a.created_utc - b.created_utc});
+    await processNewSubmissions(submissions, lastChecked, reddit);
+    await processInbox(moderators, lastChecked, reddit);
+
+    log.debug(chalk.green('Finished processing, running again soon.'));
+    setTimeout(main, 30 * 1000); // run again in 30 seconds
+}
+
+async function firstTimeInit() {
+    const topPostsProcessed = await getMagicProperty('top_posts_processed');
+    if (topPostsProcessed) {
+        return;
+    }
+
+    const subredditName = process.env.SUBREDDIT_NAME;
+    const postAmount = 1000; // not sure if required, but it's reddits current limit
+    const alreadyProcessed = [];
+    
+    log.info(chalk.blue('Beginning first time initialisation. Retrieving top posts...'));
+    const topSubmissionsAll = await reddit.getSubreddit(subredditName).getTop({time: 'all'}).fetchAll({amount: postAmount});
+    await processOldSubmissions(topSubmissionsAll, alreadyProcessed, 'all time top');
+
+    const topSubmissionsYear = await reddit.getSubreddit(subredditName).getTop({time: 'year'}).fetchAll({amount: postAmount});
+    await processOldSubmissions(topSubmissionsYear, alreadyProcessed, 'year top');
+
+    const topSubmissionsMonth = await reddit.getSubreddit(subredditName).getTop({time: 'month'}).fetchAll({amount: postAmount});
+    await processOldSubmissions(topSubmissionsMonth, alreadyProcessed, 'month top');
+
+    const topSubmissionsWeek = await reddit.getSubreddit(subredditName).getTop({time: 'week'}).fetchAll({amount: postAmount});
+    await processOldSubmissions(topSubmissionsWeek, alreadyProcessed, 'week top');
+
+    const newSubmissions = await reddit.getSubreddit(subredditName).getNew().fetchAll({amount: postAmount});
+    await setLastCheckedNow(); // set last checked as we've just processed the /new queue    
+    await processOldSubmissions(newSubmissions, alreadyProcessed, 'new');
+    
+    await setMagicProperty('top_posts_processed', true);
+    log.info(chalk.green('Initialisation processing complete.'));
+}
+
+
+// server
+async function startServer() {   
+    try {
+        app.listen(3000, () => log.info(chalk.bgGreenBright('Magic Eye listening on port 3000')));
+
+        await firstTimeInit();
+
+        main();
     } catch (e) {
         log.error(chalk.red(e));
     }
 }
+initDb(startServer); // requires callback
 
-// start main loop
-async function runStart(request, response) { await main(); response.send('The Magic Eye has started.'); }
-app.get('/start', runStart);
 
-// temp helper functions
+
+
+// ===================== temp helper functions =====================
 app.get('/dhash/:filename', async function(req, res) {
     const dhash = await generateDHash(process.env.DOWNLOAD_DIR + req.params.filename);
     res.send("dhash for image in download_dir is: " + dhash);
@@ -92,14 +131,6 @@ app.get('/hamming/:dhash1/:dhash2', async function(req, res) {
 });
 
 app.get('/resetchecked', async function(req, res) {
-    setLastChecked(1525079006000);
+    setMagicProperty('last_checked', 1525079006000);
     res.send('Done');
 });
-
-
-
-// server
-function startServer() {
-    app.listen(3000, () => log.info(chalk.bgGreenBright('Magic Eye listening on port 3000')));
-}
-initDb(startServer); // requires callback
