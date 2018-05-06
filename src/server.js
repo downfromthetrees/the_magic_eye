@@ -44,6 +44,12 @@ if (process.env.LOG_LEVEL == 'debug') {
 
 async function main() {
     try {
+        const onlineMode = await getMagicProperty('online');
+        if (!onlineMode) {
+            setTimeout(main, 30 * 1000); // run again in 30 seconds
+            return;
+        }
+
         log.debug(chalk.blue("Starting Magic processing cycle"));
 
         // get everything up from to attempt to match checked time
@@ -119,6 +125,7 @@ async function startServer() {
                 fs.mkdirSync(tempDir);
             }
 
+            await setMagicProperty('online', true);
             log.info('The magic eye is ONLINE.');
             main();
         } else {
@@ -131,24 +138,28 @@ async function startServer() {
 initDb(startServer); // requires callback
 
 
+app.get('/stop', async function(req, res) {
+    await setMagicProperty('online', false);
+    log.info('Setting online mode FALSE');
+    res.send('THE_MAGIC_EYE has been set in offline mode.');
+});
+
+app.get('/start', async function(req, res) {
+    await setMagicProperty('online', true);
+    log.info('Setting online mode TRUE');
+    res.send('THE_MAGIC_EYE has been set in online mode.');
+});
+
+
 
 // ===================== temp helper functions =====================
 app.get('/dhash/:filename', async function(req, res) {
-    const dhash = await generateDHash(process.env.DOWNLOAD_DIR + req.params.filename);
+    const dhash = await generateDHash('./tmp' + req.params.filename);
     res.send("dhash for image in download_dir is: " + dhash);
   });
 
 app.get('/hamming/:dhash1/:dhash2', async function(req, res) {
     res.send("Id duplicate: " + await isDuplicate(
-        process.env.DOWNLOAD_DIR + req.params.dhash1,
-        process.env.DOWNLOAD_DIR + req.params.dhash2));
-});
-
-app.get('/resetchecked', async function(req, res) {
-    setMagicProperty('last_checked', 1525079006000);
-    res.send('Done');
-});
-
-app.get('/helloworld', async function(req, res) {
-    res.send('Hello world.');
+        './tmp' + req.params.dhash1,
+        './tmp' + req.params.dhash2));
 });
