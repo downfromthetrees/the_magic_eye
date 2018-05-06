@@ -87,7 +87,8 @@ async function processSubmission(submission, reddit) {
     const imageDetails = await getImageDetails(submission);
     if (imageDetails == null){
         log.debug("Could not download image (probably deleted) - removing submission: https://www.reddit.com" + await submission.permalink);
-        removeAsBroken(reddit, submission);
+        //removeAsBroken(reddit, submission);
+        return;
     }
 
     if (isImageTooSmall(imageDetails)) {
