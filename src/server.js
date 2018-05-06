@@ -113,6 +113,11 @@ async function startServer() {
         if (process.env.DEPLOY_TEST == 'false') {
             await firstTimeInit();
     
+            const tempDir = './tmp';
+            if (!fs.existsSync(tempDir)){
+                fs.mkdirSync(tempDir);
+            }
+
             log.info('The magic eye is ONLINE.');
             main();
         } else {
