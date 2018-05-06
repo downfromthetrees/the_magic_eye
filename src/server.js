@@ -11,10 +11,10 @@ log.setLevel(process.env.LOG_LEVEL);
 
 
 // webpack middleware to serve react files
-const webpack = require('webpack');
-const webpackMiddleware = require('webpack-dev-middleware');
-const webpackConfig = require('../webpack.config.js');
-app.use(webpackMiddleware(webpack(webpackConfig), {noInfo: true, publicPath: '/'}));
+// const webpack = require('webpack');
+// const webpackMiddleware = require('webpack-dev-middleware');
+// const webpackConfig = require('../webpack.config.js');
+// app.use(webpackMiddleware(webpack(webpackConfig), {noInfo: true, publicPath: '/'}));
 app.use(favicon('./src/img/favicon.ico'));
 
 // reddit modules
@@ -109,6 +109,8 @@ async function startServer() {
             await firstTimeInit();
     
             main();
+        } else {
+            log.info('Starting in DEPLOY_TEST mode.');
         }
     } catch (e) {
         log.error(chalk.red(e));
