@@ -43,34 +43,34 @@ if (process.env.LOG_LEVEL == 'debug') {
 
 async function main() {
     try {
-    log.debug(chalk.blue("Starting Magic processing cycle"));
+        log.debug(chalk.blue("Starting Magic processing cycle"));
 
-    // get everything up from to attempt to match checked time
-    const subreddit = await reddit.getSubreddit(process.env.SUBREDDIT_NAME);
-    const lastChecked = await getLastChecked();
-    log.debug('lastChecked: ', chalk.yellow(new Date(lastChecked)));
+        // get everything up from to attempt to match checked time
+        const subreddit = await reddit.getSubreddit(process.env.SUBREDDIT_NAME);
+        const lastChecked = await getLastChecked();
+        log.debug('lastChecked: ', chalk.yellow(new Date(lastChecked)));
 
-    const submissions = await subreddit.getNew();
-    const moderators = await subreddit.getModerators();
-    
-    if (!submissions || !moderators) {
-        log.error(chalk.red('Cannot contact reddit - api is probably down for maintenance.'));
-        setTimeout(main, 30 * 1000); // run again in 30 seconds
-        return;
-    }
+        const submissions = await subreddit.getNew();
+        const moderators = await subreddit.getModerators();
+        
+        if (!submissions || !moderators) {
+            log.error(chalk.red('Cannot contact reddit - api is probably down for maintenance.'));
+            setTimeout(main, 30 * 1000); // run again in 30 seconds
+            return;
+        }
 
-    await setLastCheckedNow();
+        await setLastCheckedNow();
 
-    submissions.sort((a, b) => { return a.created_utc - b.created_utc});
-    await processNewSubmissions(submissions, lastChecked, reddit);
-    await processInbox(moderators, lastChecked, reddit);
+        submissions.sort((a, b) => { return a.created_utc - b.created_utc});
+        await processNewSubmissions(submissions, lastChecked, reddit);
+        await processInbox(moderators, lastChecked, reddit);
 
-    log.debug(chalk.green('Finished processing, running again soon.'));
-    setTimeout(main, 30 * 1000); // run again in 30 seconds
+        log.debug(chalk.green('Finished processing, running again soon.'));
     } catch (err) {
         log.error("Main loop error: ", err);
     }
-
+    
+    setTimeout(main, 30 * 1000); // run again in 30 seconds
 }
 
 async function firstTimeInit() {
