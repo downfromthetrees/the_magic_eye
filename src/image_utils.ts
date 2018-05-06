@@ -1,5 +1,3 @@
-import { json } from "express";
-
 var parseDbUrl = require("parse-database-url");
 var hammingDistance = require("hamming");
 var dhashLibrary = require("dhash");
@@ -13,7 +11,6 @@ const imageDownloader = require('image-downloader');
 const imageMagick = require('imagemagick');
 
 // reddit modules
-import { Submission } from 'snoowrap';
 
 export interface ImageDetails {
     dhash: string;
@@ -69,7 +66,7 @@ export function deleteImage(imagePath) {
     });
 }
 
-async function getImageDetails(submission :Submission): Promise<ImageDetails> {
+async function getImageDetails(submission: any): Promise<ImageDetails> {
     const imagePath = await downloadImage(submission);
     if (imagePath == null) {
         return null;

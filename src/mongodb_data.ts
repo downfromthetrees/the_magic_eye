@@ -4,7 +4,6 @@ const { promisify } = require('util');
 require('dotenv').config();
 var parseDbUrl = require("parse-database-url");
 const chalk = require('chalk');
-import { Submission } from 'snoowrap';
 const MongoClient = require('mongodb').MongoClient;
 const hammingDistance = require("hamming");
 const log = require('loglevel');
@@ -30,7 +29,7 @@ class MagicSubmission {
     exactMatchOnly: boolean;
     highest_score: number;
 
-    constructor(dhash: string, redditSubmission: Submission, highestScore: number) {
+    constructor(dhash: string, redditSubmission: any, highestScore: number) {
         this._id = dhash;
         this.reddit_id = redditSubmission.id;
         this.duplicates = [];

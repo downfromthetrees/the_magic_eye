@@ -1,3 +1,5 @@
+export {}
+
 // standard modules
 require('dotenv').config();
 const moment = require('moment');
@@ -8,9 +10,6 @@ log.setLevel(process.env.LOG_LEVEL);
 
 const { ImageDetails, getImageDetails } = require('./image_utils.ts');
 const { MagicSubmission, getMagicSubmission, saveMagicSubmission, deleteMagicSubmission } = require('./mongodb_data.ts');
-
-// reddit modules
-import { Comment, Submission, ModAction, PrivateMessage } from 'snoowrap';
 
 // magic eye modules
 const { sliceSubmissionId } = require('./reddit_utils.ts');
@@ -42,7 +41,7 @@ async function processInbox(moderators: Array<any>, lastChecked: number, reddit:
     log.debug(chalk.blue('Processed ', processedMessages, 'messages'));
 }
 
-async function processInboxReply(inboxReply: Comment, moderators: Array<any>, reddit: any) {
+async function processInboxReply(inboxReply: any, moderators: Array<any>, reddit: any) {
     const isMod = moderators.find((moderator) => moderator.name === inboxReply.author.name);
     if (isMod) {
         if (inboxReply.body.includes('clear')) {
@@ -57,7 +56,7 @@ async function processInboxReply(inboxReply: Comment, moderators: Array<any>, re
     }
 }
 
-async function doExactMatchOnly(inboxReply: Comment, reddit: any) {
+async function doExactMatchOnly(inboxReply: any, reddit: any) {
     const comment = await reddit.getComment(inboxReply.id);
     await comment.fetch();
     const submission = await reddit.getSubmission(sliceSubmissionId(await comment.link_id));
@@ -70,7 +69,7 @@ async function doExactMatchOnly(inboxReply: Comment, reddit: any) {
     magicReply.distinguish();
 }
 
-async function doClear(inboxReply: Comment, reddit: any) {
+async function doClear(inboxReply: any, reddit: any) {
     const comment = await reddit.getComment(inboxReply.id);
     await comment.fetch();
     const submission = await reddit.getSubmission(sliceSubmissionId(await comment.link_id));
@@ -82,7 +81,7 @@ async function doClear(inboxReply: Comment, reddit: any) {
     magicReply.distinguish();
 }
 
-async function clearSubmission(submission: Submission, reddit: any): Promise<boolean> {
+async function clearSubmission(submission: any, reddit: any): Promise<boolean> {
     log.debug(chalk.yellow('Starting process for clear submission by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
 
     const imageDetails = await getImageDetails(submission);
@@ -102,7 +101,7 @@ async function clearSubmission(submission: Submission, reddit: any): Promise<boo
     return true; 
 }
 
-async function setExactMatchOnly(submission: Submission, reddit: any): Promise<boolean> {
+async function setExactMatchOnly(submission: any, reddit: any): Promise<boolean> {
     log.debug(chalk.yellow('Starting process for setExactMatchOnly for submission by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
 
     const imageDetails = await getImageDetails(submission);
@@ -125,7 +124,7 @@ async function setExactMatchOnly(submission: Submission, reddit: any): Promise<b
 }
 
 
-async function processInboxMessage(inboxReply: PrivateMessage, moderators: Array<any>, reddit: any) {
+async function processInboxMessage(inboxReply: any, moderators: Array<any>, reddit: any) {
     inboxReply.reply(`I'm a bot so don't support private messages, but contact /u/CosmicKeys for details about how I work.`);
 }
 

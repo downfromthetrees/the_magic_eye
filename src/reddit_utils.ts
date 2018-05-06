@@ -1,32 +1,32 @@
+export {}
+
 // standard modules
 require('dotenv').config();
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL);
 
 // reddit modules
-import { Submission, ModAction, Comment } from 'snoowrap';
-import { unstable_renderSubtreeIntoContainer } from 'react-dom';
 const chalk = require('chalk');
 
-async function getModComment(reddit: any, submissionId: string): Promise<Comment> {
+async function getModComment(reddit: any, submissionId: string): Promise<any> {
     const submission = reddit.getSubmission(submissionId);
     const comments = await submission.comments;
     return comments.find(comment => comment.distinguished == 'moderator' && comment.removed != true);
 }
 
-async function isMagicIgnore(modComment: Comment): Promise<boolean> {
+async function isMagicIgnore(modComment: any): Promise<boolean> {
     return modComment != null && (await modComment.body).includes('[](#magic_ignore)'); // mod wants removal ignored
 }
 
-async function isRepostOnlyByUserRemoval(modComment: Comment): Promise<boolean> {
+async function isRepostOnlyByUserRemoval(modComment: any): Promise<boolean> {
     return modComment != null && (await modComment.body).includes('[](#repost_only_by_user)'); // mod has told them to resubmit an altered/cropped version
 }
 
-async function isRepostRemoval(modComment: Comment): Promise<boolean> {
+async function isRepostRemoval(modComment: any): Promise<boolean> {
     return modComment != null && (await modComment.body).includes('[](#repost)'); // mod has told them to resubmit an altered/cropped version
 }
 
-async function getRemovalReason(modComment: Comment): Promise<string> {
+async function getRemovalReason(modComment: any): Promise<string> {
     const body = await modComment.body;   
     const startRemoval = '[](#start_removal)';
     const endRemoval = '[](#end_removal';

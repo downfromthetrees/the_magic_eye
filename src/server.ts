@@ -1,3 +1,5 @@
+export {}
+
 // standard server modules
 const babel = require("babel-core/register");
 const express = require('express');
@@ -19,7 +21,6 @@ app.use(favicon('./src/img/favicon.ico'));
 
 // reddit modules
 const snoowrap = require('snoowrap');
-import { Submission, ModAction} from 'snoowrap';
 
 // magic eye modules
 const { getLastChecked, setLastCheckedNow, setMagicProperty, getMagicProperty, initDb } = require('./mongodb_data.ts');
