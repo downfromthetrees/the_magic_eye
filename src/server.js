@@ -4,6 +4,7 @@ const express = require('express');
 const app = express();
 const favicon = require('serve-favicon');
 const chalk = require('chalk');
+const fs = require('fs');
 require('dotenv').config();
 
 const log = require('loglevel');
