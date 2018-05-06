@@ -108,6 +108,7 @@ async function startServer() {
         if (process.env.DEPLOY_TEST == 'false') {
             await firstTimeInit();
     
+            log.info('The magic eye is ONLINE.');
             main();
         } else {
             log.info('Starting in DEPLOY_TEST mode.');
