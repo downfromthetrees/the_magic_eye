@@ -60,12 +60,14 @@ export function deleteImage(imagePath) {
 async function getImageDetails(submission) {
     const imagePath = await downloadImage(submission);
     if (imagePath == null) {
+        log.debug('download image stage failed');
         return null;
     }
     const imageDetails = { dhash: null, height: null, width: null, trimmedHeight: null, trimmedWidth: null };
     imageDetails.dhash = await generateDHash(imagePath, await submission.url);
 
     if (imageDetails.dhash == null) {
+        log.debug('dhash generate stage failed');
         return null; // must generate a dhash to be valid details
     }
 
