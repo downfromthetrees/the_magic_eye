@@ -66,11 +66,11 @@ async function main() {
     await processInbox(moderators, lastChecked, reddit);
 
     log.debug(chalk.green('Finished processing, running again soon.'));
+    setTimeout(main, 30 * 1000); // run again in 30 seconds
     } catch (err) {
         log.error("Main loop error: ", err);
     }
 
-    setTimeout(main, 30 * 1000); // run again in 30 seconds
 }
 
 async function firstTimeInit() {
