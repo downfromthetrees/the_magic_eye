@@ -42,6 +42,7 @@ if (process.env.LOG_LEVEL == 'debug') {
 
 
 async function main() {
+    try {
     log.debug(chalk.blue("Starting Magic processing cycle"));
 
     // get everything up from to attempt to match checked time
@@ -65,6 +66,10 @@ async function main() {
     await processInbox(moderators, lastChecked, reddit);
 
     log.debug(chalk.green('Finished processing, running again soon.'));
+    } catch (err) {
+        log.error(err);
+    }
+
     setTimeout(main, 30 * 1000); // run again in 30 seconds
 }
 
