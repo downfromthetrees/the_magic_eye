@@ -103,7 +103,7 @@ async function firstTimeInit() {
 // server
 async function startServer() {   
     try {
-        app.listen(3000, () => log.info(chalk.bgGreenBright('Magic Eye listening on port 3000')));
+        app.listen(process.env.PORT || 3000, () => log.info(chalk.bgGreenBright('Magic Eye listening on port 3000')));
 
         if (process.env.DEPLOY_TEST == 'false') {
             await firstTimeInit();
