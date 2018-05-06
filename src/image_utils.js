@@ -43,10 +43,9 @@ export async function downloadImage(submission) {
 
     try {
         const { filename, image } = await imageDownloader.image(options);
-        log.debug('fileName:', filename);
-        log.debug('image:', image);
         return filename;
-    } catch (e) {
+    } catch (err) {
+        log.info("Couldn't download image, error: ", err)
         return null;
     }
 }
