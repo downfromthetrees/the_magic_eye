@@ -61,8 +61,8 @@ async function processNewSubmissions(submissions, lastChecked, reddit) {
     let processedCount = 0;
     for (const submission of submissions) {
         const submissionDate = await submission.created_utc * 1000; // reddit dates are in seconds
-        log.debug('submitted:', new Date(submissionDate), ', processing: ', submissionDate > lastChecked ? chalk.green(submissionDate > lastChecked) : chalk.yellow(submissionDate > lastChecked));
         if (submissionDate > lastChecked) {
+            log.debug('submitted:', new Date(submissionDate), ', processing: ', submissionDate > lastChecked ? chalk.green(submissionDate > lastChecked) : chalk.yellow(submissionDate > lastChecked));
             await processSubmission(submission, reddit);
             processedCount++;
             }
