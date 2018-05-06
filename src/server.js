@@ -67,7 +67,7 @@ async function main() {
 
     log.debug(chalk.green('Finished processing, running again soon.'));
     } catch (err) {
-        log.error(err);
+        log.error("Main loop error: ", err);
     }
 
     setTimeout(main, 30 * 1000); // run again in 30 seconds
