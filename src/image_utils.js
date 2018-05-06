@@ -38,7 +38,7 @@ export async function generatePHash(imagePath, logUrl) {
 export async function downloadImage(submission) {
     const options = {
         url: await submission.url,
-        dest: process.env.DOWNLOAD_DIR
+        dest: './tmp'
       }
 
     try {
