@@ -11,10 +11,10 @@ log.setLevel(process.env.LOG_LEVEL);
 
 
 // webpack middleware to serve react files
-// const webpack = require('webpack');
-// const webpackMiddleware = require('webpack-dev-middleware');
-// const webpackConfig = require('../webpack.config.js');
-// app.use(webpackMiddleware(webpack(webpackConfig), {noInfo: true, publicPath: '/'}));
+const webpack = require('webpack');
+const webpackMiddleware = require('webpack-dev-middleware');
+const webpackConfig = require('../webpack.config.js');
+app.use(webpackMiddleware(webpack(webpackConfig), {noInfo: true, publicPath: '/'}));
 app.use(favicon('./src/img/favicon.ico'));
 
 // reddit modules
@@ -135,4 +135,8 @@ app.get('/hamming/:dhash1/:dhash2', async function(req, res) {
 app.get('/resetchecked', async function(req, res) {
     setMagicProperty('last_checked', 1525079006000);
     res.send('Done');
+});
+
+app.get('/helloworld', async function(req, res) {
+    res.send('Hello world.');
 });
