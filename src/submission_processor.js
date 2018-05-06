@@ -174,7 +174,7 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
 }
 
 async function processNewSubmission(submission, imageDetails) {
-    log.debug(chalk.green('Processing new submission: ' + submission.id));
+    log.info(chalk.green('Processing new submission: ' + submission.id));
     const newMagicSubmission = new MagicSubmission(imageDetails.dhash, submission, submission.score);
     await saveMagicSubmission(newMagicSubmission, true);
 }
