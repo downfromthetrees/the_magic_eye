@@ -145,7 +145,7 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
     const imageIsBlacklisted = lastSubmissionRemoved && !lastIsRemovedAsRepost;
 
     if (lastIsRepostOnlyByUser && sameUserForBothSubmissions) {
-        log.info('Found matching hash for submission', submission.id, ', but approving as special user only repost.');
+        log.info('Found matching hash for submission', submission.id, ', but approving as special user only repost of submission: ', existingMagicSubmission.reddit_id);
         existingMagicSubmission.approve = true; // just auto-approve as this is almost certainly the needed action
         submission.approve();
     } else if (imageIsBlacklisted) {
@@ -160,7 +160,7 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
         removeAsRepost(reddit, submission, lastSubmission, lastIsRemovedAsRepost);
         doneRemove = true;
     } else if (!lastSubmissionRemoved) {
-        log.info('Found matching hash for submission ', submission.id, ', re-approving as it is over the repost limit.');
+        log.info('Found matching hash for submission ', submission.id, ', matched,', existingMagicSubmission.reddit_id,' re-approving as it is over the repost limit.');
         submission.approve();
     }  else {
         log.error('Could not process submission - old unnapproved link? Ignoring submission:', submission.id);

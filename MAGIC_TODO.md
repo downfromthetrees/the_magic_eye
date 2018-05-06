@@ -2,10 +2,11 @@
 
 
 #TODO
-if bot goes crazy just remove permissions
+
 
 # Scrap tech notes
 * There's a hamming distance of 1 between doll 4/5. Very small so essentially the same image.
+* Need bulletproof way of dealing with inbox messages. Print api inbox, "get" individual comments to mark them read.
 
 #Usage notes
 * mods shouldn't mod anything within a minute of it being posted
