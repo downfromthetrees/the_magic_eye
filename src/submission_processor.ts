@@ -136,7 +136,7 @@ async function processExistingSubmission(submission: Submission, existingMagicSu
         modComment = await getModComment(reddit, existingMagicSubmission.reddit_id);
         const magicIgnore = await isMagicIgnore(modComment);
         if (modComment == null || magicIgnore) {
-            log.debug('Repost of removed submission, but no relevant removal message exists. Ignoring.');
+            log.info('Found repost of removed submission, but no relevant removal message exists. Ignoring submission: ', submission.id);
             saveMagicSubmission(existingMagicSubmission);
             return;
         }
@@ -150,7 +150,7 @@ async function processExistingSubmission(submission: Submission, existingMagicSu
     const imageIsBlacklisted = lastSubmissionRemoved && !lastIsRemovedAsRepost;
 
     if (lastIsRepostOnlyByUser && sameUserForBothSubmissions) {
-        log.debug('Found existing hash for ', existingMagicSubmission._id, ', approving as repostOnlyByUser');
+        log.info('Found matching hash for submission', submission.id, ', but approving as special user only repost.');
         existingMagicSubmission.approve = true; // just auto-approve as this is almost certainly the needed action
         submission.approve();
     } else if (imageIsBlacklisted) {
@@ -165,10 +165,10 @@ async function processExistingSubmission(submission: Submission, existingMagicSu
         removeAsRepost(reddit, submission, lastSubmission, lastIsRemovedAsRepost);
         doneRemove = true;
     } else if (!lastSubmissionRemoved) {
-        log.debug('Found existing hash for ', existingMagicSubmission._id, ', re-approving as it is over the repost limit');
+        log.info('Found matching hash for submission ', submission.id, ', re-approving as it is over the repost limit.');
         submission.approve();
     }  else {
-        log.debug('Found old unnapproved link. Ignoring submission:', submission.id);
+        log.error('Could not process submission - old unnapproved link? Ignoring submission:', submission.id);
     }
 
     if (!doneRemove) {
@@ -234,7 +234,7 @@ const removalFooter =
 
     -----------------------
 
-    *I'm a bot so if I was wrong, reply to me and a moderator will check it. ([rules faq](https://www.reddit.com/r/${process.env.SUBREDDIT}/wiki/rules))*`;
+    *I'm a bot so if I was wrong, reply to me and a moderator will check it. ([rules faq](https://www.reddit.com/r/${process.env.SUBREDDIT_NAME}/wiki/rules))*`;
 
 async function removeAsBroken(reddit: any, submission: Submission){
     const removalReason = 
@@ -256,7 +256,7 @@ async function removeAsTooSmall(reddit: any, submission: Submission){
 
 
 async function removeAsRepost(reddit: any, submission: Submission, lastSubmission: Submission, noOriginalSubmission?: boolean){
-    log.debug('Found existing hash for submission: ', submission.id, ', removing as repost');
+    log.info('Found matching hash for submission: ', submission.id, ', removing as repost of:', await lastSubmission.id);
 
     const permalink = 'https://www.reddit.com/' + await lastSubmission.permalink;
     let removalReason = 
@@ -274,7 +274,7 @@ async function removeAsRepost(reddit: any, submission: Submission, lastSubmissio
 }
 
 async function removeAsBlacklisted(reddit: any, submission: Submission, lastSubmission: Submission, blacklistReason: string){
-    log.debug('Removing ', submission.id, ', as blacklisted. ', blacklistReason);
+    log.info('Removing ', submission.id, ', as blacklisted. Root blacklisted submission: ', await lastSubmission.id);
 
     const permalink = 'https://www.reddit.com/' + await lastSubmission.permalink;
     const removalReason = outdent
