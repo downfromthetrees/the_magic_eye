@@ -4,7 +4,7 @@ var HtmlWebpackPlugin = require('html-webpack-plugin');
 var LiveReloadPlugin =  require('webpack-livereload-plugin');
 
 module.exports = {
-    entry: path.resolve(__dirname, './src/client/index.tsx'),
+    entry: path.resolve(__dirname, './src/client/index.jsx'),
     output: {
         path: '/',
         filename: 'bundle.js'
@@ -12,7 +12,7 @@ module.exports = {
     module: {
         rules: [
             {
-              test: /\.tsx?$/,
+              test: /\.jsx?$/,
               
               use: [
                 {

@@ -12,21 +12,12 @@ const imageMagick = require('imagemagick');
 
 // reddit modules
 
-export interface ImageDetails {
-    dhash: string;
-    height: number;
-    width: number;
-    trimmedHeight: number;
-    trimmedWidth: number;    
-}
-
-
 require('dotenv').config();
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL);
 
 
-export async function generateDHash(imagePath: string, logUrl: string): Promise<number> {
+export async function generateDHash(imagePath, logUrl) {
     try {
         return await dhashGet(imagePath);
     } catch (e) {
@@ -35,7 +26,7 @@ export async function generateDHash(imagePath: string, logUrl: string): Promise<
     }
 }
 
-export async function generatePHash(imagePath: string, logUrl: string) {
+export async function generatePHash(imagePath, logUrl) {
     try {
         return await phashGet(imagePath);
     } catch (e) {
@@ -44,7 +35,7 @@ export async function generatePHash(imagePath: string, logUrl: string) {
     }
 }
 
-export async function downloadImage(submission): Promise<string> {
+export async function downloadImage(submission) {
     const options = {
         url: await submission.url,
         dest: process.env.DOWNLOAD_DIR
@@ -66,7 +57,7 @@ export function deleteImage(imagePath) {
     });
 }
 
-async function getImageDetails(submission: any): Promise<ImageDetails> {
+async function getImageDetails(submission) {
     const imagePath = await downloadImage(submission);
     if (imagePath == null) {
         return null;
@@ -101,7 +92,7 @@ async function getImageDetails(submission: any): Promise<ImageDetails> {
     return imageDetails;
 }
 
-export async function isDuplicate(imagePath1: string, imagePath2: string) {
+export async function isDuplicate(imagePath1, imagePath2) {
     const dhash1 = await generateDHash(imagePath1, imagePath1);
     const dhash2 = await generateDHash(imagePath2, imagePath2);
     const distance = await hammingDistance(dhash1, dhash2); // hamming threshold

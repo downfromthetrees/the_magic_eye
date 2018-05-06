@@ -1,5 +1,3 @@
-export {}
-
 // standard server modules
 const babel = require("babel-core/register");
 const express = require('express');
@@ -23,10 +21,10 @@ app.use(favicon('./src/img/favicon.ico'));
 const snoowrap = require('snoowrap');
 
 // magic eye modules
-const { getLastChecked, setLastCheckedNow, setMagicProperty, getMagicProperty, initDb } = require('./mongodb_data.ts');
-const { processOldSubmissions, processNewSubmissions, } = require('./submission_processor.ts');
-const { processInbox } = require('./inbox_processor.ts');
-const { generateDHash, isDuplicate } = require('./image_utils.ts');
+const { getLastChecked, setLastCheckedNow, setMagicProperty, getMagicProperty, initDb } = require('./mongodb_data.js');
+const { processOldSubmissions, processNewSubmissions, } = require('./submission_processor.js');
+const { processInbox } = require('./inbox_processor.js');
+const { generateDHash, isDuplicate } = require('./image_utils.js');
 
 
 // Create a new snoowrap requester with OAuth credentials

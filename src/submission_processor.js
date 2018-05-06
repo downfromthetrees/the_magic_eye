@@ -1,5 +1,3 @@
-export {}
-
 // standard modules
 require('dotenv').config();
 const moment = require('moment');
@@ -10,12 +8,12 @@ const cliProgress = require('cli-progress');
 log.setLevel(process.env.LOG_LEVEL);
 
 // magic eye modules
-const { getImageDetails } = require('./image_utils.ts');
-const { MagicSubmission, getMagicSubmission, saveMagicSubmission, deleteMagicSubmission } = require('./mongodb_data.ts');
-const { getModComment, isRepostOnlyByUserRemoval, isRepostRemoval, getRemovalReason, sliceSubmissionId, isMagicIgnore, } = require('./reddit_utils.ts');
+const { getImageDetails } = require('./image_utils.js');
+const { MagicSubmission, getMagicSubmission, saveMagicSubmission, deleteMagicSubmission } = require('./mongodb_data.js');
+const { getModComment, isRepostOnlyByUserRemoval, isRepostRemoval, getRemovalReason, sliceSubmissionId, isMagicIgnore, } = require('./reddit_utils.js');
 
 
-async function processOldSubmissions(submissions: Array<any>, alreadyProcessed: any, name: string) {
+async function processOldSubmissions(submissions, alreadyProcessed, name) {
     const submissionsToProcess = submissions.filter(submission => !alreadyProcessed.includes(submission.id));
     log.info('Retrived', submissions.length, name, 'posts.', submissionsToProcess.length, ' are new posts. Beginning processing.');
     const progressBar = new cliProgress.Bar({}, cliProgress.Presets.shades_classic);
@@ -35,7 +33,7 @@ async function processOldSubmissions(submissions: Array<any>, alreadyProcessed: 
     log.info(chalk.blue('Processed', processedCount, name, ' submissions.'),' Took: ', (endTime - startTime) / 1000, 's.');
 }
 
-async function processOldSubmission(submission: any) {
+async function processOldSubmission(submission) {
     log.debug(chalk.yellow('Starting process for old submission by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
     if (!await submission.url.endsWith('.jpg') && !await submission.url.endsWith('.png'))
         {
@@ -59,7 +57,7 @@ async function processOldSubmission(submission: any) {
 
 
 
-async function processNewSubmissions(submissions: Array<any>, lastChecked: number, reddit: any) {
+async function processNewSubmissions(submissions, lastChecked, reddit) {
     let processedCount = 0;
     for (const submission of submissions) {
         const submissionDate = await submission.created_utc * 1000; // reddit dates are in seconds
@@ -73,7 +71,7 @@ async function processNewSubmissions(submissions: Array<any>, lastChecked: numbe
     log.debug(chalk.blue('Processed ', processedCount, ' new submissions.'));
 }
 
-async function processSubmission(submission: any, reddit: any) {
+async function processSubmission(submission, reddit) {
     if (await submission.approved) {
         log.debug("Submission is already approved, - ignoring submission: https://www.reddit.com" + await submission.permalink);
         return;
@@ -117,7 +115,7 @@ async function processSubmission(submission: any, reddit: any) {
 }
 
 
-async function processExistingSubmission(submission: any, existingMagicSubmission: any, reddit: any) {
+async function processExistingSubmission(submission, existingMagicSubmission, reddit) {
     log.debug(chalk.yellow('Found existing submission for dhash, matched: ' + existingMagicSubmission._id));
     const lastSubmission = await reddit.getSubmission(existingMagicSubmission.reddit_id);
     const lastSubmissionRemoved = await lastSubmission.removed;
@@ -174,20 +172,20 @@ async function processExistingSubmission(submission: any, existingMagicSubmissio
     await saveMagicSubmission(existingMagicSubmission);
 }
 
-async function processNewSubmission(submission: any, imageDetails: any) {
+async function processNewSubmission(submission, imageDetails) {
     log.debug(chalk.green('Processing new submission: ' + submission.id));
     const newMagicSubmission = new MagicSubmission(imageDetails.dhash, submission, submission.score);
     await saveMagicSubmission(newMagicSubmission, true);
 }
 
 
-function isImageTooSmall(imageDetails: any) {
+function isImageTooSmall(imageDetails) {
     if (imageDetails.height == null || imageDetails.width == null) { return false; }
 
     return (imageDetails.height * imageDetails.width) < (270 * 270); // https://i.imgur.com/xLRZOF5.png
 }
 
-function isImageUncropped(imageDetails: any) {
+function isImageUncropped(imageDetails) {
     if (imageDetails.trimmedHeight == null || imageDetails.trimmedHeight == null) { return false; }
 
     log.debug(chalk.blue('(imageDetails.trimmedHeight / imageDetails.height) < 0.75', (imageDetails.trimmedHeight / imageDetails.height)));
@@ -196,11 +194,11 @@ function isImageUncropped(imageDetails: any) {
     return (imageDetails.trimmedHeight / imageDetails.height) < 0.81; // https://i.imgur.com/tfDO06G.png
 }
 
-function isTopRepost(highestScore: number) {
+function isTopRepost(highestScore) {
     return highestScore > +process.env.TOP_SCORE_THRESHOLD;
 }
 
-async function isRecentRepost(currentSubmission: any, lastSubmission: any, highest_score: number) {
+async function isRecentRepost(currentSubmission, lastSubmission, highest_score) {
     const currentDate = moment(await currentSubmission.created_utc * 1000);
     const lastPosted = moment(await lastSubmission.created_utc * 1000);
 
@@ -215,9 +213,9 @@ async function isRecentRepost(currentSubmission: any, lastSubmission: any, highe
     return daysSincePosted < daysLimit;
 }
 
-async function removePost(reddit: any, submission: any, removalReason: any) {
+async function removePost(reddit, submission, removalReason) {
     submission.remove();
-    const replyable: any = await submission.reply(removalReason);
+    const replyable = await submission.reply(removalReason);
     replyable.distinguish();
 }
 
@@ -232,26 +230,26 @@ const removalFooter =
 
     *I'm a bot so if I was wrong, reply to me and a moderator will check it. ([rules faq](https://www.reddit.com/r/${process.env.SUBREDDIT_NAME}/wiki/rules))*`;
 
-async function removeAsBroken(reddit: any, submission: any){
+async function removeAsBroken(reddit, submission){
     const removalReason = 
         `It looks like your link is broken or deleted? I've removed it so you will need to fix it and resubmit.`;
     removePost(reddit, submission, removalReason + removalFooter);
 }
 
-async function removeAsUncropped(reddit: any, submission: any){
+async function removeAsUncropped(reddit, submission){
     const removalReason = 
         `This image appears to be uncropped (i.e. black bars at the top and bottom). Black bars must be cropped out before posting (or post the original).`;
     removePost(reddit, submission, removalReason + removalFooter);
 }
 
-async function removeAsTooSmall(reddit: any, submission: any){
+async function removeAsTooSmall(reddit, submission){
     const removalReason = 
         `This image is too small (images must be larger than 270px*270px). Try drag the image into [google image search](https://www.google.com/imghp?sbi=1) and look for a bigger version.`;
     removePost(reddit, submission, removalReason + removalFooter);
 }
 
 
-async function removeAsRepost(reddit: any, submission: any, lastSubmission: any, noOriginalSubmission?: boolean){
+async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubmission){
     log.info('Found matching hash for submission: ', submission.id, ', removing as repost of:', await lastSubmission.id);
 
     const permalink = 'https://www.reddit.com/' + await lastSubmission.permalink;
@@ -269,7 +267,7 @@ async function removeAsRepost(reddit: any, submission: any, lastSubmission: any,
     removePost(reddit, submission, removalReason + removalFooter);
 }
 
-async function removeAsBlacklisted(reddit: any, submission: any, lastSubmission: any, blacklistReason: string){
+async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklistReason){
     log.info('Removing ', submission.id, ', as blacklisted. Root blacklisted submission: ', await lastSubmission.id);
 
     const permalink = 'https://www.reddit.com/' + await lastSubmission.permalink;

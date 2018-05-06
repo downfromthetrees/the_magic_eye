@@ -12,8 +12,8 @@ log.setLevel(process.env.LOG_LEVEL);
 const collectionPrefix = (process.env.NODE_ENV == 'production' ? '' : process.env.NODE_ENV + ':') + process.env.SUBREDDIT_NAME + ':';
 const magicPropertyName = collectionPrefix + 'properties';
 class MagicProperty {
-    _id: string;
-    value: any;
+    _id;
+    value;
 
     constructor(name, value) {
         this._id = name;
@@ -23,13 +23,13 @@ class MagicProperty {
 
 const magicSubmissionName = collectionPrefix + 'submissions';
 class MagicSubmission {
-    _id: string; // dhash of the original
-    reddit_id: string; // the last reddit id that matched the dhash (dhash within hamming distance)
-    duplicates: Array<string>; // reddit ids, includes removed and approved posts
-    exactMatchOnly: boolean;
-    highest_score: number;
+    _id; // dhash of the original
+    reddit_id; // the last reddit id that matched the dhash (dhash within hamming distance)
+    duplicates; // array of reddit ids, includes removed and approved posts
+    exactMatchOnly; // boolean value
+    highest_score; // number
 
-    constructor(dhash: string, redditSubmission: any, highestScore: number) {
+    constructor(dhash, redditSubmission, highestScore) {
         this._id = dhash;
         this.reddit_id = redditSubmission.id;
         this.duplicates = [];
@@ -83,7 +83,7 @@ async function getPropertyCollection() {
     return database.collection(magicPropertyName);
 }
 
-async function saveMagicSubmission(submission: MagicSubmission, addToCache: boolean) {
+async function saveMagicSubmission(submission, addToCache) {
     if (submission._id == null) {
         throw new Error('Cannot create magic submission with null _id');
     }
@@ -99,7 +99,7 @@ async function saveMagicSubmission(submission: MagicSubmission, addToCache: bool
     }
 }
 
-async function getMagicSubmission(inputDHash: string): Promise<MagicSubmission> {
+async function getMagicSubmission(inputDHash) {
     function isMatch(cachedHashKey) {
         return hammingDistance(cachedHashKey, inputDHash) < process.env.HAMMING_THRESHOLD;
     }
@@ -130,7 +130,7 @@ async function getMagicSubmission(inputDHash: string): Promise<MagicSubmission> 
     }
 }
 
-async function getMagicSubmissionById(submission_id: string): Promise<MagicSubmission> {
+async function getMagicSubmissionById(submission_id) {
     try {
         const collection = await getSubmissionCollection();
         return await collection.findOne({'reddit_id' : submission_id});
@@ -140,7 +140,7 @@ async function getMagicSubmissionById(submission_id: string): Promise<MagicSubmi
     }
 }
 
-async function deleteMagicSubmission(submission: MagicSubmission) {
+async function deleteMagicSubmission(submission) {
     try {
         log.debug(chalk.yellow("DELETING:" + submission));
         const collection = await getSubmissionCollection();
@@ -159,7 +159,7 @@ export async function setLastCheckedNow() {
     await setMagicProperty('last_checked', new Date().getTime());
 }
 
-export async function getLastChecked(): Promise<number> {
+export async function getLastChecked() {
     try {
         const collection = await getPropertyCollection();
         const lastChecked = (await collection.findOne({'_id': 'last_checked'}));
@@ -173,7 +173,7 @@ export async function getLastChecked(): Promise<number> {
 }
 
 
-export async function setMagicProperty(key: string, value: any) {
+export async function setMagicProperty(key, value) {
     try {
         log.debug(chalk.yellow("inserting property. key:"), key, chalk.yellow('value:'), value);
         const collection = await getPropertyCollection();
@@ -185,7 +185,7 @@ export async function setMagicProperty(key: string, value: any) {
 }
 
 
-export async function getMagicProperty(key: string): Promise<number> {
+export async function getMagicProperty(key) {
     try {
         const collection = await getPropertyCollection();
         const property = (await collection.findOne({'_id': key}));
