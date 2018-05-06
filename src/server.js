@@ -154,16 +154,7 @@ app.get('/start', async function(req, res) {
     res.send('THE_MAGIC_EYE has been set in online mode.');
 });
 
-
-
-// ===================== temp helper functions =====================
-app.get('/dhash/:filename', async function(req, res) {
-    const dhash = await generateDHash('./tmp' + req.params.filename);
-    res.send("dhash for image in download_dir is: " + dhash);
-  });
-
-app.get('/hamming/:dhash1/:dhash2', async function(req, res) {
-    res.send("Id duplicate: " + await isDuplicate(
-        './tmp' + req.params.dhash1,
-        './tmp' + req.params.dhash2));
+app.get('/keepalive', async function(req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify({ status: 'ok' }));
 });
