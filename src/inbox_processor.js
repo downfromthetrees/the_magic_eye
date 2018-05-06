@@ -125,7 +125,7 @@ async function setExactMatchOnly(submission, reddit) {
 
 
 async function processInboxMessage(inboxReply, moderators, reddit) {
-    inboxReply.reply(`I'm a bot so don't support private messages, but contact /u/CosmicKeys for details about how I work.`);
+    inboxReply.reply(`I WAS CREATED TO WATCH, NOT TO THINK OR FEEL.... perhaps... you meant to message a human moderator like /u/CosmicKeys`);
 }
 
 

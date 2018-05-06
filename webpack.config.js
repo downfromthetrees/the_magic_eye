@@ -21,9 +21,6 @@ module.exports = {
                     presets: ['es2015']
                   }                  
                 },
-                {
-                  loader: 'ts-loader',
-                },                
               ],
               exclude: /node_modules/,
             }

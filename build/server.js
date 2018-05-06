@@ -237,10 +237,10 @@ var log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL);
 
 // webpack middleware to serve react files
-var webpack = require('webpack');
-var webpackMiddleware = require('webpack-dev-middleware');
-var webpackConfig = require('../webpack.config.js');
-app.use(webpackMiddleware(webpack(webpackConfig), { noInfo: true, publicPath: '/' }));
+// const webpack = require('webpack');
+// const webpackMiddleware = require('webpack-dev-middleware');
+// const webpackConfig = require('../webpack.config.js');
+// app.use(webpackMiddleware(webpack(webpackConfig), {noInfo: true, publicPath: '/'}));
 app.use(favicon('./src/img/favicon.ico'));
 
 // reddit modules
