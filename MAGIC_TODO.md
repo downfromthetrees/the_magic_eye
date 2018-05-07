@@ -2,6 +2,17 @@
 
 
 #TODO
+- we try to be as objective and descriptive as possible in our rules faq.
+- reassess hmmm /rules 
+- go through and submit the worst images on your own account, then remove them with right removal message
+- put the algorithm in the wiki
+- could re-flair classic reposts
+- "too low quality" should potentially not remove unless it's an exact match
+- 'wrong' command should remove incorrect match from duplicates, 'never' should permanently set it
+
+- failing to remove all time top!! separate them out
+- For some reason approved this pic? https://www.reddit.com/r/hmmm/comments/8hldoa/hmmm/
+
 
 
 # Scrap tech notes

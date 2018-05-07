@@ -25,7 +25,7 @@ const snoowrap = require('snoowrap');
 const { getLastChecked, setLastCheckedNow, setMagicProperty, getMagicProperty, initDb } = require('./mongodb_data.js');
 const { processOldSubmissions, processNewSubmissions, } = require('./submission_processor.js');
 const { processInbox } = require('./inbox_processor.js');
-const { generateDHash, isDuplicate } = require('./image_utils.js');
+const { generateDHash } = require('./image_utils.js');
 
 
 // Create a new snoowrap requester with OAuth credentials
@@ -116,10 +116,6 @@ async function firstTimeInit() {
 async function startServer() {   
     try {
         app.listen(process.env.PORT || 3000, () => log.info(chalk.bgGreenBright('Magic Eye listening on port 3000')));
-
-        if (process.env.NODE_ENV == 'develop') {
-            await setLastCheckedNow(); // never want to re-process old inbox messages in develop mode, so time to now on startup
-        }
 
         if (process.env.DEPLOY_TEST == 'false') {
             await firstTimeInit();

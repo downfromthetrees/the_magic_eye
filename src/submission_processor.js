@@ -121,7 +121,7 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
     const lastSubmission = await reddit.getSubmission(existingMagicSubmission.reddit_id);
     const lastSubmissionRemoved = await lastSubmission.removed;
 
-    existingMagicSubmission.highest_score = Math.max(existingMagicSubmission.highest_score, lastSubmission.score);
+    existingMagicSubmission.highest_score = Math.max(existingMagicSubmission.highest_score, await lastSubmission.score);
     existingMagicSubmission.duplicates.push(submission.id);
     
     log.debug('Existing submission found.');
@@ -138,12 +138,13 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
     }
 
     const lastIsRepostOnlyByUser = await isRepostOnlyByUserRemoval(modComment); // mod has told them to resubmit an altered/cropped version
-    const lastIsRemovedAsRepost = await isRepostRemoval(modComment); // We missed detecting a valid repost so a mod manually removed it. That image is reposted but we don't know the approved submission.
-    const isRepost = await isRecentRepost(submission, lastSubmission, existingMagicSubmission.highest_score) || isTopRepost(existingMagicSubmission.highest_score);
-    let doneRemove = false;
+    const lastIsRemovedAsRepost = await isRepostRemoval(modComment); // We missed detecting a valid repost so a mod manually removed it. That image is reposted but we don't know the approved submission.   
+    const recentRepost = await isRecentRepost(submission, lastSubmission, existingMagicSubmission.highest_score);
+    const topRepost = isTopRepost(existingMagicSubmission.highest_score);
     const sameUserForBothSubmissions = await lastSubmission.author.name == await submission.author.name;
     const imageIsBlacklisted = lastSubmissionRemoved && !lastIsRemovedAsRepost;
-
+    
+    let doneRemove = false;
     if (lastIsRepostOnlyByUser && sameUserForBothSubmissions) {
         log.info('Found matching hash for submission', submission.id, ', but approving as special user only repost of submission: ', existingMagicSubmission.reddit_id);
         existingMagicSubmission.approve = true; // just auto-approve as this is almost certainly the needed action
@@ -156,7 +157,10 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
         }
         removeAsBlacklisted(reddit, submission, lastSubmission, removalReason);
         doneRemove = true;
-    } else if (isRepost) {
+    } else if (topRepost) {
+        removeAsTopRepost(reddit, submission, lastSubmission);
+        doneRemove = true;
+    } else if (recentRepost) {
         removeAsRepost(reddit, submission, lastSubmission, lastIsRemovedAsRepost);
         doneRemove = true;
     } else if (!lastSubmissionRemoved) {
@@ -175,7 +179,7 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
 
 async function processNewSubmission(submission, imageDetails) {
     log.info(chalk.green('Processing new submission: ' + submission.id));
-    const newMagicSubmission = new MagicSubmission(imageDetails.dhash, submission, submission.score);
+    const newMagicSubmission = new MagicSubmission(imageDetails.dhash, submission, await submission.score);
     await saveMagicSubmission(newMagicSubmission, true);
 }
 
@@ -249,28 +253,28 @@ async function removeAsTooSmall(reddit, submission){
     removePost(reddit, submission, removalReason + removalFooter);
 }
 
+async function removeAsTopRepost(reddit, submission, lastSubmission){
+    log.info('Found matching hash for submission: ', submission.id, ', removing as repost of all time top post:', await lastSubmission.id);
+    const permalink = 'https://www.reddit.com/' + await lastSubmission.permalink;
+    let removalReason = 
+        `Good hmmm but unfortunately your post has been removed because it is one of our all time top posts. You can see it [here](${permalink}), ([direct link](${ await lastSubmission.url})).`;
+
+    removePost(reddit, submission, removalReason + removalFooter);
+}
 
 async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubmission){
     log.info('Found matching hash for submission: ', submission.id, ', removing as repost of:', await lastSubmission.id);
-
     const permalink = 'https://www.reddit.com/' + await lastSubmission.permalink;
     let removalReason = 
         `Good hmmm but unfortunately your post has been removed because it has been posted recently [here](${permalink}) by another user. ([direct link](${ await lastSubmission.url})).`;
-
-
     if (noOriginalSubmission) {
-        removalReason += outdent`
-        
-
-        That submission image was also removed as a repost, but I couldn't programatically find the original.
-        `
+        removalReason += ` That submission image was also removed as a repost, but I couldn't programatically find the original.`;
     }
     removePost(reddit, submission, removalReason + removalFooter);
 }
 
 async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklistReason){
     log.info('Removing ', submission.id, ', as blacklisted. Root blacklisted submission: ', await lastSubmission.id);
-
     const permalink = 'https://www.reddit.com/' + await lastSubmission.permalink;
     const removalReason = outdent
         `Your post has been removed because it is a repost of [this image](${await lastSubmission.url}) posted [here](${permalink}), and that post was removed because:

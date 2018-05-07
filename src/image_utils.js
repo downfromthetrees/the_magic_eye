@@ -95,15 +95,6 @@ async function getImageDetails(submission) {
     return imageDetails;
 }
 
-export async function isDuplicate(imagePath1, imagePath2) {
-    const dhash1 = await generateDHash(imagePath1, imagePath1);
-    const dhash2 = await generateDHash(imagePath2, imagePath2);
-    const distance = await hammingDistance(dhash1, dhash2); // hamming threshold
-    return [dhash1, dhash2, distance];
-}
-
-
 module.exports = {
-    getImageDetails: getImageDetails,
-    isDuplicate: isDuplicate,
+    getImageDetails: getImageDetails
 };    
