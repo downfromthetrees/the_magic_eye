@@ -10,9 +10,10 @@
 - "too low quality" should potentially not remove unless it's an exact match
 - 'wrong' command should remove incorrect match from duplicates, 'never' should permanently set it
 
+
 - failing to remove all time top!! separate them out
 - For some reason approved this pic? https://www.reddit.com/r/hmmm/comments/8hldoa/hmmm/
-
+- Also failed to find this one: https://www.reddit.com/r/hmmm/comments/8hj2qx/hmmm/
 
 
 # Scrap tech notes

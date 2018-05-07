@@ -143,7 +143,7 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
     const topRepost = isTopRepost(existingMagicSubmission.highest_score);
     const sameUserForBothSubmissions = await lastSubmission.author.name == await submission.author.name;
     const imageIsBlacklisted = lastSubmissionRemoved && !lastIsRemovedAsRepost;
-    
+
     let doneRemove = false;
     if (lastIsRepostOnlyByUser && sameUserForBothSubmissions) {
         log.info('Found matching hash for submission', submission.id, ', but approving as special user only repost of submission: ', existingMagicSubmission.reddit_id);
@@ -153,6 +153,7 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
         const removalReason = await getRemovalReason(modComment);
         if (removalReason == null) {
             log.info(chalk.red("Ignoring submission because couldn't read the last removal message. Submission: ", submission.id, ", removal message thread: ", existingMagicSubmission.reddit_id));
+            saveMagicSubmission(existingMagicSubmission);
             return;
         }
         removeAsBlacklisted(reddit, submission, lastSubmission, removalReason);
