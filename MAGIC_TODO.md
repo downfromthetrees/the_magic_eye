@@ -9,6 +9,15 @@
 - could re-flair classic reposts
 - "too low quality" should potentially not remove unless it's an exact match
 - 'wrong' command should remove incorrect match from duplicates, 'never' should permanently set it
+"Please post this hq version instead: "
+
+- switch to BIT_COUNT in mongodb
+    - { $bit: { _id: { or: dhashToCompare } } }
+    - have to check this is actually the same as: xorhttps://github.com/miguelmota/hamming/blob/master/hamming.js
+- log all the magic lines with a prefix so it's easy to sort
+- Duplicates are pretty fucked. Suggest regenerating the database once we know what's happening with incorrect duplicates.
+   - `wrong` should fix the current thread, remove it as a duplicate.
+   - Potentially should not approve any posts.
 
 
 - failing to remove all time top!! separate them out

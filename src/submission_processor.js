@@ -188,11 +188,13 @@ async function processNewSubmission(submission, imageDetails) {
 function isImageTooSmall(imageDetails) {
     if (imageDetails.height == null || imageDetails.width == null) { return false; }
 
-    return (imageDetails.height * imageDetails.width) < (270 * 270); // https://i.imgur.com/xLRZOF5.png
+    return (imageDetails.height * imageDetails.width) < (300 * 300); // https://i.imgur.com/xLRZOF5.png
 }
 
 function isImageUncropped(imageDetails) {
-    if (imageDetails.trimmedHeight == null || imageDetails.trimmedHeight == null) { return false; }
+    if (imageDetails.trimmedHeight == null || imageDetails.trimmedHeight == null) {
+        return false;
+    }
 
     log.debug(chalk.blue('(imageDetails.trimmedHeight / imageDetails.height) < 0.75', (imageDetails.trimmedHeight / imageDetails.height)));
     log.debug(chalk.blue('imageDetails.trimmedHeight', imageDetails.trimmedHeight));
@@ -244,13 +246,13 @@ async function removeAsBroken(reddit, submission){
 
 async function removeAsUncropped(reddit, submission){
     const removalReason = 
-        `This image appears to be uncropped (i.e. black bars at the top and bottom). Black bars must be cropped out before posting (or post the original).`;
+        `This image appears to be uncropped (i.e. black bars at the top and bottom). Images must be cropped before posting (or post the original).`;
     removePost(reddit, submission, removalReason + removalFooter);
 }
 
 async function removeAsTooSmall(reddit, submission){
     const removalReason = 
-        `This image is too small (images must be larger than 270px*270px). Try drag the image into [google image search](https://www.google.com/imghp?sbi=1) and look for a bigger version.`;
+        `This image is too small (images must be larger than 300px*300px). Try drag the image into [google image search](https://www.google.com/imghp?sbi=1) and look for a bigger version.`;
     removePost(reddit, submission, removalReason + removalFooter);
 }
 

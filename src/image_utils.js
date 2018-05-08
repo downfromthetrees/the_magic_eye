@@ -76,15 +76,19 @@ async function getImageDetails(submission) {
     if (imagePHash != null) {
         imageDetails.height = imagePHash.height; // there are better ways to get image dimensions but I already had phash working
         imageDetails.width = imagePHash.width;
+    } else {
+        log.error('failed to generate phash for ', submission.id);
     }
 
     try {
         const trimmedPath = imagePath + '_trimmed';
         await promisify(imageMagick.convert)([imagePath, '-trim', trimmedPath]);
-        const trimmedPHash = await generatePHash(imagePath, await submission.url);
+        const trimmedPHash = await generatePHash(trimmedPath, await submission.url);
         if (trimmedPHash != null) {
             imageDetails.trimmedHeight = trimmedPHash.height;
             imageDetails.trimmedWidth = trimmedPHash.width;
+        } else {
+            log.error('failed to generate trimmed phash for ', submission.id);
         }
         await deleteImage(trimmedPath);    
     } catch (e) {
