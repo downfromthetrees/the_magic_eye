@@ -35,6 +35,8 @@ module.exports = {
       ),
       new LiveReloadPlugin()
     ],
-    stats: "errors-only",
+    stats: {
+      chunks: false
+    },
     devtool: 'source-map'
 };

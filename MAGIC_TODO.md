@@ -7,7 +7,7 @@
 - go through and submit the worst images on your own account, then remove them with right removal message
 - put the algorithm in the wiki
 - could re-flair classic reposts
-- "too low quality" should potentially not remove unless it's an exact match
+
 - 'wrong' command should remove incorrect match from duplicates, 'never' should permanently set it
 "Please post this hq version instead: "
 
@@ -46,6 +46,7 @@ postgres:
 
 # Future ideas
 
+* "too low quality" should potentially not remove unless it's an exact match
 * mods should be able to login, enter a url, see the info and fix it
 * we will need a total reset for individual rules
 * could archive images when they get posted, or perhaps explain that the original might be deleted IF it's a rule breaker - https://www.npmjs.com/package/archive.is (a bunch will be deleted by the time the bot gets around to it so not worth it anyway)
