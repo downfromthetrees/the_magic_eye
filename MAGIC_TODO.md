@@ -2,11 +2,24 @@
 
 
 #TODO
+
+TODO: I think the time is failing, we need to shift to the "after" mechanism
+
+- Error R14 (Memory quota exceeded) - sooner we get off the array the better. We get 512 which should be enough but need to log in and see how much it's actually using.
+
+- Duplicates are pretty fucked. Suggest regenerating the database once we know what's happening with incorrect duplicates.
+   - `wrong` should fix the current thread, remove it as a duplicate.
+   - Potentially should not approve any posts.
+
+- implement a way of adding duplicates together
+
+- could re-flair classic reposts based on last time
+- horizontal cropping
 - we try to be as objective and descriptive as possible in our rules faq.
-- reassess hmmm /rules 
-- go through and submit the worst images on your own account, then remove them with right removal message
+- reassess hmmm /rules
+- go through and submit the worst images on your own account, then remove them with right removal message (especially all the confusing perspective pics)
 - put the algorithm in the wiki
-- could re-flair classic reposts
+
 
 - 'wrong' command should remove incorrect match from duplicates, 'never' should permanently set it
 "Please post this hq version instead: "
@@ -14,10 +27,6 @@
 - switch to BIT_COUNT in mongodb
     - { $bit: { _id: { or: dhashToCompare } } }
     - have to check this is actually the same as: xorhttps://github.com/miguelmota/hamming/blob/master/hamming.js
-- log all the magic lines with a prefix so it's easy to sort
-- Duplicates are pretty fucked. Suggest regenerating the database once we know what's happening with incorrect duplicates.
-   - `wrong` should fix the current thread, remove it as a duplicate.
-   - Potentially should not approve any posts.
 
 
 - failing to remove all time top!! separate them out

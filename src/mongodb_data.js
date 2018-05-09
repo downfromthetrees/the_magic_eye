@@ -155,23 +155,6 @@ async function deleteMagicSubmission(submission) {
     }
 }
 
-export async function setLastCheckedNow() {
-    await setMagicProperty('last_checked', new Date().getTime());
-}
-
-export async function getLastChecked() {
-    try {
-        const collection = await getPropertyCollection();
-        const lastChecked = (await collection.findOne({'_id': 'last_checked'}));
-        if (lastChecked != null) {
-            return lastChecked.value;
-        }
-    } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
-    }
-    return null;
-}
-
 
 export async function setMagicProperty(key, value) {
     try {
@@ -204,8 +187,6 @@ module.exports = {
     getMagicSubmission,
     saveMagicSubmission,
     deleteMagicSubmission,
-    getLastChecked,
-    setLastCheckedNow,
     getMagicSubmissionById,
     initDb,
     setMagicProperty,

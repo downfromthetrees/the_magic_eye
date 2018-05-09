@@ -57,12 +57,13 @@ async function processOldSubmission(submission) {
 
 
 
-async function processNewSubmissions(submissions, lastChecked, reddit) {
+async function processNewSubmissions(submissions, lastProcessedTime, lastProcessedId, reddit) {
     let processedCount = 0;
     for (const submission of submissions) {
         const submissionDate = await submission.created_utc * 1000; // reddit dates are in seconds
-        if (submissionDate > lastChecked) {
-            log.debug('submitted:', new Date(submissionDate), ', processing: ', submissionDate > lastChecked ? chalk.green(submissionDate > lastChecked) : chalk.yellow(submissionDate > lastChecked));
+        const submissionId = await submission.id;
+        if (submissionDate >= lastProcessedTime && submissionId != lastProcessedId) {
+            log.debug('submitted:', new Date(submissionDate), ', processing: ', submissionDate > lastProcessedTime ? chalk.green(submissionDate > lastProcessedTime) : chalk.yellow(submissionDate > lastProcessedTime));
             await processSubmission(submission, reddit);
             processedCount++;
             }
@@ -216,8 +217,7 @@ async function isRecentRepost(currentSubmission, lastSubmission, highest_score) 
         daysLimit = process.env.LARGE_SCORE_REPOST_DAYS;
     }
 
-    const daysSincePosted = currentDate.diff(lastPosted, 'days');
-    
+    const daysSincePosted = currentDate.diff(lastPosted, 'days');   
     return daysSincePosted < daysLimit;
 }
 

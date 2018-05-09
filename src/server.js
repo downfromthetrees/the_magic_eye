@@ -22,7 +22,7 @@ app.use(favicon('./src/img/favicon.ico'));
 const snoowrap = require('snoowrap');
 
 // magic eye modules
-const { getLastChecked, setLastCheckedNow, setMagicProperty, getMagicProperty, initDb } = require('./mongodb_data.js');
+const { setMagicProperty, getMagicProperty, initDb } = require('./mongodb_data.js');
 const { processOldSubmissions, processNewSubmissions, } = require('./submission_processor.js');
 const { processInbox } = require('./inbox_processor.js');
 const { generateDHash } = require('./image_utils.js');
@@ -51,26 +51,34 @@ async function main() {
         }
 
         log.debug(chalk.blue("Starting Magic processing cycle"));
-
-        // get everything up from to attempt to match checked time
+        
+        // get new reddit submission
         const subreddit = await reddit.getSubreddit(process.env.SUBREDDIT_NAME);
-        const lastChecked = await getLastChecked();
-        log.debug('lastChecked: ', chalk.yellow(new Date(lastChecked)));
-
         const submissions = await subreddit.getNew();
         const moderators = await subreddit.getModerators();
-        
-        if (!submissions || !moderators) {
-            log.error(chalk.red('Cannot contact reddit - api is probably down for maintenance.'));
+
+        if (!submissions || submissions.length < 1 || !moderators) {
+            log.error(chalk.red('Cannot contact reddit - api is probably down for maintenance, or subreddit is empty.'));
             setTimeout(main, 30 * 1000); // run again in 30 seconds
             return;
         }
 
-        await setLastCheckedNow();
+        const lastProcessedSubmission = await getLastProcessedSubmission();
+        await setLastProcessedSubmission(submissions); // also sorts
+        
+        // process submissions
+        await processNewSubmissions(submissions,
+            lastProcessedSubmission ? await lastProcessedSubmission.created_utc * 1000 : 0,
+            lastProcessedSubmission ? await lastProcessedSubmission.id : null,
+            reddit);
 
-        submissions.sort((a, b) => { return a.created_utc - b.created_utc});
-        await processNewSubmissions(submissions, lastChecked, reddit);
-        await processInbox(moderators, lastChecked, reddit);
+        // process inbox
+        let lastCheckedInboxTime = await getMagicProperty('last_checked'); // legacy method, need to switch to recording ids
+        if (lastCheckedInboxTime == null) {
+            lastCheckedInboxTime = new Date();
+        }
+        await setMagicProperty('last_checked', new Date());
+        await processInbox(moderators, lastCheckedInboxTime, reddit);
 
         log.debug(chalk.green('Finished processing, running again soon.'));
     } catch (err) {
@@ -79,6 +87,38 @@ async function main() {
     
     setTimeout(main, 30 * 1000); // run again in 30 seconds
 }
+
+async function getLastProcessedSubmission() {
+    try {
+        // get everything up from to attempt to match checked time
+        const lastProcessedId = await getMagicProperty('last_processed_id');
+        if (!lastProcessedId) {
+            log.info(chalk.yellow('lastProcessedId not set, assuming first time run.'));
+            return null; // utc start date
+        }
+        
+        log.debug('lastProcessedId: ', chalk.blue(lastProcessedId));
+        const lastProcessedSubmission = await reddit.getSubmission(lastProcessedId);
+        if (!lastProcessedSubmission) {
+            log.error(chalk.red('Cannot contact reddit to get lastProcessedSubmission - api is probably down for maintenance. lastProcessedId: ', lastProcessedId));
+            return null;
+        }
+
+        return await lastProcessedSubmission;
+    } catch (e) {
+        log.error(chalk.red('Cannot contact reddit to get lastProcessedSubmission, thrown error. Api is probably down for maintenance. lastProcessedId: ', lastCheckedId));
+    }
+
+    return null;
+}
+
+async function setLastProcessedSubmission(submissions) {
+    // set last processed submission here so any processing errors aren't repeated
+    submissions.sort((a, b) => { return a.created_utc - b.created_utc});
+    const newLastCheckedId = submissions[submissions.length-1].id;
+    await setMagicProperty('last_processed_id', newLastCheckedId);    
+}
+
 
 async function firstTimeInit() {
     const topPostsProcessed = await getMagicProperty('top_posts_processed');
@@ -104,9 +144,9 @@ async function firstTimeInit() {
     await processOldSubmissions(topSubmissionsWeek, alreadyProcessed, 'week top');
 
     const newSubmissions = await reddit.getSubreddit(subredditName).getNew().fetchAll({amount: postAmount});
-    await setLastCheckedNow(); // set last checked as we've just processed the /new queue    
     await processOldSubmissions(newSubmissions, alreadyProcessed, 'new');
     
+    await setLastProcessedSubmission(newSubmissions); // set last checked as we've just processed the /new queue
     await setMagicProperty('top_posts_processed', true);
     log.info(chalk.green('Initialisation processing complete.'));
 }
@@ -119,9 +159,9 @@ async function startServer() {
 
         if (process.env.DEPLOY_TEST == 'false') {
             await firstTimeInit();
-    
+
             const tempDir = './tmp';
-            if (!fs.existsSync(tempDir)){
+            if (!fs.existsSync(tempDir)) {
                 fs.mkdirSync(tempDir);
             }
 
