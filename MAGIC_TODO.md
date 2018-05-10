@@ -3,7 +3,7 @@
 
 #TODO
 
-TODO: I think the time is failing, we need to shift to the "after" mechanism
+uncomment: if (processedIds.length > 150) {
 
 - Error R14 (Memory quota exceeded) - sooner we get off the array the better. We get 512 which should be enough but need to log in and see how much it's actually using.
 
@@ -29,10 +29,6 @@ TODO: I think the time is failing, we need to shift to the "after" mechanism
     - have to check this is actually the same as: xorhttps://github.com/miguelmota/hamming/blob/master/hamming.js
 
 
-- failing to remove all time top!! separate them out
-- For some reason approved this pic? https://www.reddit.com/r/hmmm/comments/8hldoa/hmmm/
-- Also failed to find this one: https://www.reddit.com/r/hmmm/comments/8hj2qx/hmmm/
-
 
 # Scrap tech notes
 * There's a hamming distance of 1 between doll 4/5. Very small so essentially the same image.
@@ -55,6 +51,7 @@ postgres:
 
 # Future ideas
 
+* benign mode
 * "too low quality" should potentially not remove unless it's an exact match
 * mods should be able to login, enter a url, see the info and fix it
 * we will need a total reset for individual rules

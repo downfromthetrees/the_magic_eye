@@ -14,32 +14,7 @@ const { MagicSubmission, getMagicSubmission, saveMagicSubmission, deleteMagicSub
 // magic eye modules
 const { sliceSubmissionId } = require('./reddit_utils.js');
 
-async function processInbox(moderators, lastChecked, reddit) {
-    const replies = await reddit.getInbox({'filter': 'comments'});
-    let processedReplies = 0;
-    for (const reply of replies) {
-        const createdDate = await reply.created_utc * 1000; // reddit dates are in seconds
-        if (createdDate > lastChecked) {
-            log.debug('Procesing reply');
-            processInboxReply(reply, moderators, reddit);
-            processedReplies++;
-        }
-    }
-    log.debug(chalk.blue('Processed ', processedReplies, 'replies'));
 
-    const messages = await reddit.getInbox({'filter': 'messages'});
-    let processedMessages = 0;
-    for (const message of messages) {
-        const createdDate = await message.created_utc * 1000; // reddit dates are in seconds
-        if (createdDate > lastChecked) {
-            log.debug('Procesing message');
-            processInboxMessage(message, moderators, reddit);
-            processedMessages++;
-        }
-    }
-
-    log.debug(chalk.blue('Processed ', processedMessages, 'messages'));
-}
 
 async function processInboxReply(inboxReply, moderators, reddit) {
     const isMod = moderators.find((moderator) => moderator.name === inboxReply.author.name);
@@ -130,5 +105,6 @@ async function processInboxMessage(inboxReply, moderators, reddit) {
 
 
 module.exports = {
-    processInbox: processInbox,
+    processInboxReply,
+    processInboxMessage,
 };

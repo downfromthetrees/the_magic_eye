@@ -56,23 +56,9 @@ async function processOldSubmission(submission) {
 }
 
 
-
-async function processNewSubmissions(submissions, lastProcessedTime, lastProcessedId, reddit) {
-    let processedCount = 0;
-    for (const submission of submissions) {
-        const submissionDate = await submission.created_utc * 1000; // reddit dates are in seconds
-        const submissionId = await submission.id;
-        if (submissionDate >= lastProcessedTime && submissionId != lastProcessedId) {
-            log.debug('submitted:', new Date(submissionDate), ', processing: ', submissionDate > lastProcessedTime ? chalk.green(submissionDate > lastProcessedTime) : chalk.yellow(submissionDate > lastProcessedTime));
-            await processSubmission(submission, reddit);
-            processedCount++;
-            }
-        }
-
-    log.debug(chalk.blue('Processed ', processedCount, ' new submissions.'));
-}
-
 async function processSubmission(submission, reddit) {
+    log.debug('starting processing for ', submission.id, 'submitted:', new Date(submission.created_utc));
+
     if (await submission.approved) {
         log.debug("Submission is already approved, - ignoring submission: https://www.reddit.com" + await submission.permalink);
         return;
@@ -289,5 +275,5 @@ async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklist
 
 module.exports = {
     processOldSubmissions,
-    processNewSubmissions,
+    processSubmission,
 };

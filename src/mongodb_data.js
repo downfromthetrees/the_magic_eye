@@ -51,12 +51,6 @@ async function initDb(cb) {
           
             database = await client.db();
 
-            const lastChecked = await database.collection(magicPropertyName).findOne({'_id': 'last_checked'});
-            if (lastChecked == undefined) {
-                log.error(chalk.yellow('last_checked has never been set: assuming first time setup.'));
-                database.collection(magicPropertyName).save(new MagicProperty('last_checked', new Date().getTime()));
-            }
-
             log.info(chalk.blue('Loading database cache...'));
             const startTime = new Date().getTime();
             const magicCollection = await database.collection(magicSubmissionName);
@@ -64,7 +58,6 @@ async function initDb(cb) {
             database_cache = await magicCollection.find().project({_id: 1}).map(x => x._id).toArray();
             const endTime = new Date().getTime();
             log.info(chalk.green('Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', database_cache.length, 'entries');
-            //log.debug('Database database_cache: ', database_cache);
 
             cb();
           });                 
