@@ -65,22 +65,22 @@ async function main() {
         log.debug(chalk.blue('Processed', unprocessedSubmissions.length, ' new submissions'));
 
         // inbox
-        // const replies = await reddit.getInbox({'filter': 'comments'});
-        // const messages = await reddit.getInbox({'filter': 'messages'});
-        // const moderators = await subreddit.getModerators();
-        // if (!replies || !moderators || !messages) {
-        //     log.error(chalk.red('Cannot get new inbox items to process - api is probably down for maintenance.'));
-        //     setTimeout(main, 30 * 1000); // run again in 30 seconds
-        //     return;
-        // }
-        // const unprocessedReplies = await getUnprocessedItems(replies, 'processed_replies');
-        // for (let reply of unprocessedReplies) { await processInboxReply(reply, moderators, reddit) };
-        // log.debug(chalk.blue('Processed', unprocessedReplies.length, ' new inbox replies'));
+        const replies = await reddit.getInbox({'filter': 'comments'});
+        const messages = await reddit.getInbox({'filter': 'messages'});
+        const moderators = await subreddit.getModerators();
+        if (!replies || !moderators || !messages) {
+            log.error(chalk.red('Cannot get new inbox items to process - api is probably down for maintenance.'));
+            setTimeout(main, 30 * 1000); // run again in 30 seconds
+            return;
+        }
+        const unprocessedReplies = await getUnprocessedItems(replies, 'processed_replies');
+        for (let reply of unprocessedReplies) { await processInboxReply(reply, moderators, reddit) };
+        log.debug(chalk.blue('Processed', unprocessedReplies.length, ' new inbox replies'));
 
-        // const unprocessedMessages = await getUnprocessedItems(messages, 'processed_messages');
-        // for (let message of unprocessedMessages) { await processInboxMessage(message, moderators, reddit) };
+        const unprocessedMessages = await getUnprocessedItems(messages, 'processed_messages');
+        for (let message of unprocessedMessages) { await processInboxMessage(message, moderators, reddit) };
         
-        // log.debug(chalk.blue('Processed', unprocessedMessages.length, ' new inbox messages'));
+        log.debug(chalk.blue('Processed', unprocessedMessages.length, ' new inbox messages'));
 
         // done
         log.debug(chalk.green('Finished processing, running again soon.'));
@@ -92,25 +92,38 @@ async function main() {
 }
 
 
-async function getUnprocessedItems(items, propertyName) {
-    items.sort((a, b) => { return a.created_utc - b.created_utc}); // oldest first
+async function getUnprocessedItems(latestItems, propertyName) {
+    latestItems.sort((a, b) => { return a.created_utc - b.created_utc}); // oldest first
+
+    // only check the last 50
+    const maxCheck = 50;
+    if (latestItems.length > maxCheck) {
+        latestItems = latestItems.slice(latestItems.length - maxCheck, latestItems.length);
+        log.debug('slicedItems', chalk.magenta(latestItems.map(sliceItem => sliceItem.id)));
+    }
 
     let processedIds = await getMagicProperty(propertyName);
-    log.debug('processedIds', processedIds);
-    processedIds = processedIds ? processedIds : [];
-    const newSubmissions = items.filter(item => !processedIds.find(processedId => processedId == item.id));
-    log.debug(newSubmissions.map(newSub => newSub.id));
+
+    if (!processedIds) {
+        logger.error('Could not find the last processed id list for type:', propertyName);
+        return [];
+    }
+
+    log.debug('processedIds(0,4)', chalk.magenta(processedIds.slice(0, 4), ', totalSize: ', processedIds.length));
+    const newItems = latestItems.filter(item => !processedIds.find(processedId => processedId == item.id));
+    log.debug('newSubmissions:', chalk.magenta(newItems.map(newSub => newSub.id)));
 
     // update the processed list before processing so we don't retry any submissions that cause exceptions
-    //if (processedIds.length > 150) {
-        let updatedProcessedIds = processedIds.slice(newSubmissions.length, processedIds.length); // [3,2,1] => // [2,1]
-        log.debug('updatedProcessedIds1', updatedProcessedIds);
-        updatedProcessedIds = updatedProcessedIds.concat(newSubmissions.map(submission => submission.id)); // [2,1] + [new] = [2,1,new]
-        log.debug('updatedProcessedIds2', updatedProcessedIds);
-        await setMagicProperty(propertyName, updatedProcessedIds);
-    //}
+    let updatedProcessedIds = processedIds.concat(newItems.map(submission => submission.id)); // [3,2,1] + [new] = [3,2,1,new]
+    log.debug('updatedProcessedIds1(0,4)', chalk.magenta(updatedProcessedIds.slice(0, 4), ', totalSize: ', updatedProcessedIds.length));
 
-    return newSubmissions;
+    if (updatedProcessedIds.length > maxCheck*2) { // larger size for any weird/future edge-cases where a mod removes a lot of submissions
+        updatedProcessedIds = updatedProcessedIds.slice(newItems.length, updatedProcessedIds.length); // [3,2,1,new] => [2,1,new]
+        log.debug('updatedProcessedIds2(0,4)', chalk.magenta(updatedProcessedIds.slice(0, 4), ', totalSize: ', updatedProcessedIds.length));
+    }
+    await setMagicProperty(propertyName, updatedProcessedIds);
+
+    return newItems;
 }
 
 
@@ -132,6 +145,9 @@ async function firstTimeInit() {
         }
 
         // sets current items as processed, start from this point
+        await setMagicProperty('processed_submissions', []);
+        await setMagicProperty('processed_replies', []);
+        await setMagicProperty('processed_messages', []);
         await getUnprocessedItems(submissions, 'processed_submissions'); 
         await getUnprocessedItems(replies, 'processed_replies');
         await getUnprocessedItems(messages, 'processed_messages');

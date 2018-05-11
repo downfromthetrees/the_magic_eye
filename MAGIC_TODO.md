@@ -3,15 +3,15 @@
 
 #TODO
 
-uncomment: if (processedIds.length > 150) {
-
 - Error R14 (Memory quota exceeded) - sooner we get off the array the better. We get 512 which should be enough but need to log in and see how much it's actually using.
 
 - Duplicates are pretty fucked. Suggest regenerating the database once we know what's happening with incorrect duplicates.
    - `wrong` should fix the current thread, remove it as a duplicate.
    - Potentially should not approve any posts.
 
-- implement a way of adding duplicates together
+- implement a way of adding duplicates together 
+
+- error in cropping : https://www.reddit.com/r/hmmm/comments/8im9oy/hmmm/ - https://i.imgur.com/lNvhmH1.png
 
 - could re-flair classic reposts based on last time
 - horizontal cropping
@@ -20,6 +20,7 @@ uncomment: if (processedIds.length > 150) {
 - go through and submit the worst images on your own account, then remove them with right removal message (especially all the confusing perspective pics)
 - put the algorithm in the wiki
 
+- increase the repost range, introduce more complexity in the algorithm
 
 - 'wrong' command should remove incorrect match from duplicates, 'never' should permanently set it
 "Please post this hq version instead: "
