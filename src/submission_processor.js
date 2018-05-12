@@ -169,7 +169,7 @@ async function processNewSubmission(submission, imageDetails) {
 function isImageTooSmall(imageDetails) {
     if (imageDetails.height == null || imageDetails.width == null) { return false; }
 
-    return (imageDetails.height * imageDetails.width) < (300 * 300); // https://i.imgur.com/xLRZOF5.png
+    return (imageDetails.height * imageDetails.width) < (330 * 330); // https://i.imgur.com/xLRZOF5.png
 }
 
 function isImageUncropped(imageDetails) {
@@ -235,7 +235,7 @@ async function removeAsUncropped(reddit, submission){
 
 async function removeAsTooSmall(reddit, submission){
     const removalReason = 
-        `This image is too small (images must be larger than 300px*300px). Try drag the image into [google image search](https://www.google.com/imghp?sbi=1) and look for a bigger version.`;
+        `This image is too small (images must be larger than 330px*330px). Try drag the image into [google image search](https://www.google.com/imghp?sbi=1) and look for a bigger version.`;
     removePost(reddit, submission, removalReason + removalFooter);
 }
 

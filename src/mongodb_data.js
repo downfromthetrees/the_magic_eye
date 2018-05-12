@@ -151,7 +151,7 @@ async function deleteMagicSubmission(submission) {
 
 export async function setMagicProperty(key, value) {
     try {
-        log.debug(chalk.yellow("inserting property. key:"), key, chalk.yellow('value:'), value);
+        log.debug(chalk.yellow("inserting property. key:"), key, Array.isArray(value) ? (chalk.yellow('size: ') + value.length) : (chalk.yellow('value: ') + value));
         const collection = await getPropertyCollection();
         await collection.save(new MagicProperty(key, value));
     } catch (err) {
@@ -174,6 +174,17 @@ export async function getMagicProperty(key) {
     return null;
 }
 
+async function resetDuplicates() {
+    try {
+        log.info(chalk.yellow("resetting all duplicates"));
+        const collection = await getSubmissionCollection();
+        await collection.updateMany({}, {$set: {'duplicates': []}});
+    } catch (err) {
+        log.error(chalk.red('MongoDb error resetting duplicates:'), err);
+    }
+}
+
+
 
 module.exports = {
     MagicSubmission,
@@ -184,4 +195,5 @@ module.exports = {
     initDb,
     setMagicProperty,
     getMagicProperty,
+    resetDuplicates,
 };

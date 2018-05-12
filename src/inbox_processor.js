@@ -18,7 +18,7 @@ const { sliceSubmissionId } = require('./reddit_utils.js');
 
 async function processInboxMessage(inboxMessage, moderators, reddit) {
     if (!inboxMessage.was_comment) {
-        inboxMessage.reply(`I WAS CREATED TO WATCH, NOT TO THINK OR FEEL.... perhaps... you meant to message a human moderator like /u/CosmicKeys`);
+        inboxMessage.reply(`I WAS CREATED TO WATCH, NOT TO THINK OR FEEL.... I am a bot, perhaps you want to contact the moderators of the subreddit instead.`);
         log.info('Processed inbox private message:', inboxMessage.id);
         return;
     }
@@ -37,45 +37,41 @@ async function processInboxMessage(inboxMessage, moderators, reddit) {
     
     // moderator commands
     switch (inboxMessage.body) {
+        case 'help':  
+            printHelp(inboxMessage);
+            break;    
         case 'clear':  
-            doClear(inboxMessage, reddit);
+            runCommand(inboxMessage, reddit, clearSubmission);
             break;
         case 'wrong':
-            doExactMatchOnly(inboxMessage, reddit);
+            runCommand(inboxMessage, reddit, removeDuplicate);
+            break;
+        case 'avoid':
+            runCommand(inboxMessage, reddit, setExactMatchOnly);
             break;
         default:
-            await inboxMessage.reply("Not sure what that command is. You can use `clear` and I'll forget the submission, or `wrong` and I'll avoid the same mistake in the future.").distinguish();
+            await inboxMessage.reply("Not sure what that command is. See my subreddit r/THE_MAGIC_EYE for documentation.").distinguish();
             break;
     }
 }
 
-async function doExactMatchOnly(inboxMessage, reddit) {
+
+async function printHelp(inboxMessage) {
+    const helpMessage = outdent`
+    Here are the commands I support (root image is the one linked, current image is from this thread): 
+
+    * \`wrong\`: Removes the current image as a duplicate of the root. Helpful for record keeping for future features.
+    * \`avoid\`: Only match identical images with the root the future. Helps with root images that keep matching wrong (commonly because they are dark).
+    * \`clear\`: Removes all the information I have about the root image that it the current image was matched with. For when it doesn't really matter and you want the root to go away.
+    `
+    await inboxMessage.reply(helpMessage).distinguish();
+}
+
+async function runCommand(inboxMessage, reddit, commandFunction) {
     const comment = await reddit.getComment(inboxMessage.id);
     await comment.fetch();
     const submission = await reddit.getSubmission(sliceSubmissionId(await comment.link_id));
     await submission.fetch();
-    log.debug(chalk.blue('submission: '), submission);
-
-    log.debug(chalk.blue('Submission for clear: '), submission);
-    const success = await setExactMatchOnly(submission, reddit);
-    const magicReply = await inboxMessage.reply(success ? "Thanks, won't make that mistake again." : "I couldn't do that that... image deleted or something?");
-    magicReply.distinguish();
-}
-
-async function doClear(inboxMessage, reddit) {
-    const comment = await reddit.getComment(inboxMessage.id);
-    await comment.fetch();
-    const submission = await reddit.getSubmission(sliceSubmissionId(await comment.link_id));
-    await submission.fetch();
-
-    log.debug(chalk.blue('Submission for clear: '), submission);
-    const success = await clearSubmission(submission, reddit);
-    const magicReply = await inboxMessage.reply(success ? 'Thanks, all done.' : "I couldn't do that that... image deleted or something?");
-    magicReply.distinguish();
-}
-
-async function clearSubmission(submission, reddit) {
-    log.debug(chalk.yellow('Starting process for clear submission by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
 
     const imageDetails = await getImageDetails(submission);
     if (imageDetails == null){
@@ -90,28 +86,27 @@ async function clearSubmission(submission, reddit) {
         return true; // already cleared
     }
 
-    log.debug('Clearing magic submission for dhash: ', existingMagicSubmission._id);
+    const success = await commandFunction(submission, existingMagicSubmission);
+    inboxMessage.reply(success ? 'Thanks, all done.' : "I couldn't do that that... image deleted or something?").distinguish();
+}
+
+
+async function clearSubmission(submission, existingMagicSubmission) {
+    log.debug(chalk.yellow('Clearing magic submission by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
     await deleteMagicSubmission(existingMagicSubmission);
     return true; 
 }
 
-async function setExactMatchOnly(submission, reddit) {
-    log.debug(chalk.yellow('Starting process for setExactMatchOnly for submission by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
+async function removeDuplicate(submission, existingMagicSubmission) {
+    log.debug(chalk.yellow('Starting process for remove duplicate by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
+    const duplicateIndex = existingMagicSubmission.duplicates.indexOf(await submission.id);
+    existingMagicSubmission.duplicates.splice(duplicateIndex, 1);
+    await saveMagicSubmission(existingMagicSubmission);
+    return true; 
+}
 
-    const imageDetails = await getImageDetails(submission);
-    if (imageDetails == null){
-        log.debug("Could not download image for setting exact match (probably deleted) - removing submission: https://www.reddit.com" + await submission.permalink);
-        return false;
-    }
-
-    const existingMagicSubmission = await getMagicSubmission(imageDetails.dhash);
-    log.debug('Existing submission for dhash:', chalk.blue(imageDetails.dhash), chalk.yellow(JSON.stringify(existingMagicSubmission)));
-    if (existingMagicSubmission == null) {
-        log.info("No magic submission found for setExactMatch/wrong, ignoring. dhash: ", submission.id);
-        return true;
-    }
-
-    log.debug('Setting exact match only for submission with dhash: ', existingMagicSubmission._id);
+async function setExactMatchOnly(submission, existingMagicSubmission) {
+    log.debug(chalk.yellow('Setting exact match only for submission by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
     existingMagicSubmission.exactMatchOnly = true;
     await saveMagicSubmission(existingMagicSubmission);
     return true; 
