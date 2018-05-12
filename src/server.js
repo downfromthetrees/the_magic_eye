@@ -22,7 +22,7 @@ app.use(favicon('./src/img/favicon.ico'));
 const snoowrap = require('snoowrap');
 
 // magic eye modules
-const { setMagicProperty, getMagicProperty, initDb, resetDuplicates } = require('./mongodb_data.js');
+const { setMagicProperty, getMagicProperty, initDb } = require('./mongodb_data.js');
 const { processOldSubmissions, processSubmission, } = require('./submission_processor.js');
 const { processInboxReply, processInboxMessage, } = require('./inbox_processor.js');
 const { generateDHash } = require('./image_utils.js');
@@ -120,11 +120,8 @@ async function getUnprocessedSubmissions(latestItems) {
 
 
 async function firstTimeInit() {
-
     const subreddit = await reddit.getSubreddit(process.env.SUBREDDIT_NAME);
     
-    resetDuplicates();
-
     const firstTimeInitComplete = await getMagicProperty('first_time_init');
     if (firstTimeInitComplete) {
         return;

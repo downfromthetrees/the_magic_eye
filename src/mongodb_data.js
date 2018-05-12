@@ -195,5 +195,4 @@ module.exports = {
     initDb,
     setMagicProperty,
     getMagicProperty,
-    resetDuplicates,
 };
