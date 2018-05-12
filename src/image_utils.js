@@ -92,7 +92,7 @@ async function getImageDetails(submission) {
         }
         await deleteImage(trimmedPath);    
     } catch (e) {
-        log.error(chalk.red('Could not trim submission:'), submission.url, ' - imagemagick error: ', e);
+        log.error(chalk.red('Could not trim submission:'), await submission.url, ' - imagemagick error: ', e);
     }
 
     await deleteImage(imagePath);

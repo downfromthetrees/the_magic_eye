@@ -16,23 +16,41 @@ const { sliceSubmissionId } = require('./reddit_utils.js');
 
 
 
-async function processInboxReply(inboxReply, moderators, reddit) {
-    const isMod = moderators.find((moderator) => moderator.name === inboxReply.author.name);
-    if (isMod) {
-        if (inboxReply.body.includes('clear')) {
-            doClear(inboxReply, reddit);
-        } else if (inboxReply.body.includes('wrong')) {
-            doExactMatchOnly(inboxReply, reddit);
-        } else {
-            inboxReply.reply("Not sure what that command is. You can use `clear` and I'll forget the submission, but that's all I support right now.");
-        }
-    } else {
-        inboxReply.report({'reason': 'Moderator requested'});
+async function processInboxMessage(inboxMessage, moderators, reddit) {
+    if (!inboxMessage.was_comment) {
+        inboxMessage.reply(`I WAS CREATED TO WATCH, NOT TO THINK OR FEEL.... perhaps... you meant to message a human moderator like /u/CosmicKeys`);
+        log.info('Processed inbox private message:', inboxMessage.id);
+        return;
+    }
+
+    if (inboxMessage.subject == "username mention") {
+        log.info('Username mention:', inboxMessage.id);
+        return;
+    }
+
+    const isMod = moderators.find((moderator) => moderator.name === inboxMessage.author.name);
+    if (!isMod) {
+        inboxMessage.report({'reason': 'Moderator requested'});
+        log.info('User requesting assistance:', inboxMessage.id);
+        return;
+    }
+    
+    // moderator commands
+    switch (inboxMessage.body) {
+        case 'clear':  
+            doClear(inboxMessage, reddit);
+            break;
+        case 'wrong':
+            doExactMatchOnly(inboxMessage, reddit);
+            break;
+        default:
+            await inboxMessage.reply("Not sure what that command is. You can use `clear` and I'll forget the submission, or `wrong` and I'll avoid the same mistake in the future.").distinguish();
+            break;
     }
 }
 
-async function doExactMatchOnly(inboxReply, reddit) {
-    const comment = await reddit.getComment(inboxReply.id);
+async function doExactMatchOnly(inboxMessage, reddit) {
+    const comment = await reddit.getComment(inboxMessage.id);
     await comment.fetch();
     const submission = await reddit.getSubmission(sliceSubmissionId(await comment.link_id));
     await submission.fetch();
@@ -40,19 +58,19 @@ async function doExactMatchOnly(inboxReply, reddit) {
 
     log.debug(chalk.blue('Submission for clear: '), submission);
     const success = await setExactMatchOnly(submission, reddit);
-    const magicReply = await inboxReply.reply(success ? "Thanks, won't make that mistake again." : "I couldn't do that that... image deleted or something?");
+    const magicReply = await inboxMessage.reply(success ? "Thanks, won't make that mistake again." : "I couldn't do that that... image deleted or something?");
     magicReply.distinguish();
 }
 
-async function doClear(inboxReply, reddit) {
-    const comment = await reddit.getComment(inboxReply.id);
+async function doClear(inboxMessage, reddit) {
+    const comment = await reddit.getComment(inboxMessage.id);
     await comment.fetch();
     const submission = await reddit.getSubmission(sliceSubmissionId(await comment.link_id));
     await submission.fetch();
 
     log.debug(chalk.blue('Submission for clear: '), submission);
     const success = await clearSubmission(submission, reddit);
-    const magicReply = await inboxReply.reply(success ? 'Thanks, all done.' : "I couldn't do that that... image deleted or something?");
+    const magicReply = await inboxMessage.reply(success ? 'Thanks, all done.' : "I couldn't do that that... image deleted or something?");
     magicReply.distinguish();
 }
 
@@ -68,10 +86,11 @@ async function clearSubmission(submission, reddit) {
     const existingMagicSubmission = await getMagicSubmission(imageDetails.dhash);
     log.debug('Existing submission for dhash:', chalk.blue(imageDetails.dhash), chalk.yellow(JSON.stringify(existingMagicSubmission)));
     if (existingMagicSubmission == null) {
+        log.debug('No magic submission found for clear, ignoring. dhash: ', await submission._id);
         return true; // already cleared
     }
 
-    log.debug('Clearing magic submission for dhash: ', existingMagicSubmission._id);    
+    log.debug('Clearing magic submission for dhash: ', existingMagicSubmission._id);
     await deleteMagicSubmission(existingMagicSubmission);
     return true; 
 }
@@ -88,8 +107,8 @@ async function setExactMatchOnly(submission, reddit) {
     const existingMagicSubmission = await getMagicSubmission(imageDetails.dhash);
     log.debug('Existing submission for dhash:', chalk.blue(imageDetails.dhash), chalk.yellow(JSON.stringify(existingMagicSubmission)));
     if (existingMagicSubmission == null) {
-        log.info("dhash not generated for submission", submission.id);
-        return false;
+        log.info("No magic submission found for setExactMatch/wrong, ignoring. dhash: ", submission.id);
+        return true;
     }
 
     log.debug('Setting exact match only for submission with dhash: ', existingMagicSubmission._id);
@@ -99,12 +118,6 @@ async function setExactMatchOnly(submission, reddit) {
 }
 
 
-async function processInboxMessage(inboxReply, moderators, reddit) {
-    inboxReply.reply(`I WAS CREATED TO WATCH, NOT TO THINK OR FEEL.... perhaps... you meant to message a human moderator like /u/CosmicKeys`);
-}
-
-
 module.exports = {
-    processInboxReply,
     processInboxMessage,
 };

@@ -10,11 +10,11 @@
    - Potentially should not approve any posts.
 
 - implement a way of adding duplicates together 
+- command that just removes the duplicate, rather than sets only
 
 - error in cropping : https://www.reddit.com/r/hmmm/comments/8im9oy/hmmm/ - https://i.imgur.com/lNvhmH1.png
 
 - could re-flair classic reposts based on last time
-- horizontal cropping
 - we try to be as objective and descriptive as possible in our rules faq.
 - reassess hmmm /rules
 - go through and submit the worst images on your own account, then remove them with right removal message (especially all the confusing perspective pics)
@@ -31,28 +31,17 @@
 
 
 
-# Scrap tech notes
-* There's a hamming distance of 1 between doll 4/5. Very small so essentially the same image.
-* Need bulletproof way of dealing with inbox messages. Print api inbox, "get" individual comments to mark them read.
-
 #Usage notes
 * mods shouldn't mod anything within a minute of it being posted
 * mods can reply with `clear` to clear the database for that image
 * mods can reply with `wrong` if the image is wrong and it won't match those images again
-* It reads the approve/remove links in the modlog, so if you do either of those actions it'll reprocess the submission automatically
 * If a post is removed but there's no removal message, it'll just ignore the whole submission
-* 
 
-# tech usage notes
-postgres:
-* psql is cli - localhost/postgres/(username) postgres/(password) admin
-* use databse: \connect the_magic_eye
-* execute script: psql -h host -p port -d dbname -U username -f datafile.sql
-* REMOVAL_REASONS=['repost', 'porn_gore', 'not_hmmm', 'special_case', 'low_quality', 'meme_stock_comic', 'needs_crop', 'custom_reason']      
 
 # Future ideas
 
 * benign mode
+* horizontal cropping
 * "too low quality" should potentially not remove unless it's an exact match
 * mods should be able to login, enter a url, see the info and fix it
 * we will need a total reset for individual rules

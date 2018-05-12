@@ -41,6 +41,8 @@ if (process.env.LOG_LEVEL == 'debug') {
     reddit.config({debug: true})
 }
 
+const processedSubmissionsKey = 'processed_submissions';
+
 
 async function main() {
     try {
@@ -51,36 +53,32 @@ async function main() {
         }
 
         log.debug(chalk.blue("Starting Magic processing cycle"));
-        
-        // submissions
         const subreddit = await reddit.getSubreddit(process.env.SUBREDDIT_NAME);
+        
+        // // submissions
         const submissions = await subreddit.getNew();
         if (!submissions) {
             log.error(chalk.red('Cannot get new submissions to process - api is probably down for maintenance.'));
             setTimeout(main, 30 * 1000); // run again in 30 seconds
             return;
         }
-        const unprocessedSubmissions = await getUnprocessedItems(submissions, 'processed_submissions');
+        const unprocessedSubmissions = await getUnprocessedSubmissions(submissions);
         for (let submission of unprocessedSubmissions) { await processSubmission(submission, reddit) };
         log.debug(chalk.blue('Processed', unprocessedSubmissions.length, ' new submissions'));
 
         // inbox
-        const replies = await reddit.getInbox({'filter': 'comments'});
-        const messages = await reddit.getInbox({'filter': 'messages'});
+        const unreadMessages = await reddit.getUnreadMessages();
         const moderators = await subreddit.getModerators();
-        if (!replies || !moderators || !messages) {
+        if (!unreadMessages || !moderators) {
             log.error(chalk.red('Cannot get new inbox items to process - api is probably down for maintenance.'));
             setTimeout(main, 30 * 1000); // run again in 30 seconds
             return;
         }
-        const unprocessedReplies = await getUnprocessedItems(replies, 'processed_replies');
-        for (let reply of unprocessedReplies) { await processInboxReply(reply, moderators, reddit) };
-        log.debug(chalk.blue('Processed', unprocessedReplies.length, ' new inbox replies'));
-
-        const unprocessedMessages = await getUnprocessedItems(messages, 'processed_messages');
-        for (let message of unprocessedMessages) { await processInboxMessage(message, moderators, reddit) };
-        
-        log.debug(chalk.blue('Processed', unprocessedMessages.length, ' new inbox messages'));
+        if (unreadMessages.length > 0) {
+            reddit.markMessagesAsRead(unreadMessages);
+        }
+        for (let message of unreadMessages) { await processInboxMessage(message, moderators, reddit) };
+        log.debug(chalk.blue('Processed', unreadMessages.length, ' new inbox messages'));
 
         // done
         log.debug(chalk.green('Finished processing, running again soon.'));
@@ -92,7 +90,7 @@ async function main() {
 }
 
 
-async function getUnprocessedItems(latestItems, propertyName) {
+async function getUnprocessedSubmissions(latestItems) {
     latestItems.sort((a, b) => { return a.created_utc - b.created_utc}); // oldest first
 
     // only check the last 50
@@ -102,26 +100,20 @@ async function getUnprocessedItems(latestItems, propertyName) {
         log.debug('slicedItems', chalk.magenta(latestItems.map(sliceItem => sliceItem.id)));
     }
 
-    let processedIds = await getMagicProperty(propertyName);
-
+    let processedIds = await getMagicProperty(processedSubmissionsKey);
     if (!processedIds) {
-        logger.error('Could not find the last processed id list for type:', propertyName);
+        logger.error('Could not find the last processed id list when retrieving unprocessed submissions');
         return [];
     }
 
-    log.debug('processedIds(0,4)', chalk.magenta(processedIds.slice(0, 4), ', totalSize: ', processedIds.length));
     const newItems = latestItems.filter(item => !processedIds.find(processedId => processedId == item.id));
-    log.debug('newSubmissions:', chalk.magenta(newItems.map(newSub => newSub.id)));
-
     // update the processed list before processing so we don't retry any submissions that cause exceptions
     let updatedProcessedIds = processedIds.concat(newItems.map(submission => submission.id)); // [3,2,1] + [new] = [3,2,1,new]
-    log.debug('updatedProcessedIds1(0,4)', chalk.magenta(updatedProcessedIds.slice(0, 4), ', totalSize: ', updatedProcessedIds.length));
-
+   
     if (updatedProcessedIds.length > maxCheck*2) { // larger size for any weird/future edge-cases where a mod removes a lot of submissions
         updatedProcessedIds = updatedProcessedIds.slice(newItems.length, updatedProcessedIds.length); // [3,2,1,new] => [2,1,new]
-        log.debug('updatedProcessedIds2(0,4)', chalk.magenta(updatedProcessedIds.slice(0, 4), ', totalSize: ', updatedProcessedIds.length));
     }
-    await setMagicProperty(propertyName, updatedProcessedIds);
+    await setMagicProperty(processedSubmissionsKey, updatedProcessedIds);
 
     return newItems;
 }
@@ -135,33 +127,29 @@ async function firstTimeInit() {
     const firstTimeInitComplete = await getMagicProperty('first_time_init');
     if (!firstTimeInitComplete) {
         const submissions = await subreddit.getNew();
-        const replies = await reddit.getInbox({'filter': 'comments'});
-        const messages = await reddit.getInbox({'filter': 'messages'});
         const moderators = await subreddit.getModerators();
+        const unreadMessages = await reddit.getUnreadMessages();
 
-        if (!submissions || !replies || !moderators || !messages) {
+        if (!submissions || !moderators || !unreadMessages) {
             log.error(chalk.red('Error: Cannot get new items to process for first time init.'));
             return;
         }
 
-        // sets current items as processed, start from this point
-        await setMagicProperty('processed_submissions', []);
-        await setMagicProperty('processed_replies', []);
-        await setMagicProperty('processed_messages', []);
-        await getUnprocessedItems(submissions, 'processed_submissions'); 
-        await getUnprocessedItems(replies, 'processed_replies');
-        await getUnprocessedItems(messages, 'processed_messages');
-        log.info(chalk.blue('Processed first time init data.'));
+        // set current items as processed, start from this point
+        await setMagicProperty(processedSubmissionsKey, []);
+        await getUnprocessedSubmissions(submissions);  // marks submissions as processed
+        if (unreadMessages.length > 0) {
+            reddit.markMessagesAsRead(unreadMessages);
+        }
 
+        log.info(chalk.blue('Processed first time init data.'));
         await setMagicProperty('first_time_init', true);
     }
-
 
     const topPostsProcessed = await getMagicProperty('top_posts_processed');
     if (topPostsProcessed) {
         return;
     }
-
 
     const postAmount = 1000; // not sure if required, but it's reddits current limit
     const alreadyProcessed = [];
@@ -186,22 +174,20 @@ async function firstTimeInit() {
 
     // sets current items as processed, starting from this point
     const submissions = await subreddit.getNew();
-    const replies = await reddit.getInbox({'filter': 'comments'});
-    const messages = await reddit.getInbox({'filter': 'messages'});
     const moderators = await subreddit.getModerators();
+    const unreadMessages = await reddit.getUnreadMessages();
 
-    if (!submissions || !replies || !moderators || !messages) {
+    if (!submissions || !moderators || !unreadMessages) {
         log.error(chalk.red('Error: Cannot get new items to process for first time init.'));
         return;
     }
 
-    await getUnprocessedItems(submissions, 'processed_submissions'); 
-    await getUnprocessedItems(replies, 'processed_replies');
-    await getUnprocessedItems(messages, 'processed_messages');
-    log.info(chalk.blue('Processed first time init data.'));
+    await getUnprocessedSubmissions(submissions); 
+    if (unreadMessages.length > 0) {
+        reddit.markMessagesAsRead(unreadMessages);
+    }
 
     await setMagicProperty('first_time_init', true);
-
     log.info(chalk.green('Initialisation processing complete.'));
 }
 
