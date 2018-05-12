@@ -111,7 +111,6 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
     existingMagicSubmission.highest_score = Math.max(existingMagicSubmission.highest_score, await lastSubmission.score);
     existingMagicSubmission.duplicates.push(submission.id);
     
-    log.debug('Existing submission found.');
     let modComment;
     if (lastSubmissionRemoved) {
         log.debug('Last submission removed, getting mod comment');
@@ -131,35 +130,30 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
     const sameUserForBothSubmissions = await lastSubmission.author.name == await submission.author.name;
     const imageIsBlacklisted = lastSubmissionRemoved && !lastIsRemovedAsRepost;
 
-    let doneRemove = false;
     if (lastIsRepostOnlyByUser && sameUserForBothSubmissions) {
         log.info('Found matching hash for submission', submission.id, ', but approving as special user only repost of submission: ', existingMagicSubmission.reddit_id);
         existingMagicSubmission.approve = true; // just auto-approve as this is almost certainly the needed action
+        existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
         submission.approve();
     } else if (imageIsBlacklisted) {
         const removalReason = await getRemovalReason(modComment);
         if (removalReason == null) {
             log.info(chalk.red("Ignoring submission because couldn't read the last removal message. Submission: ", submission.id, ", removal message thread: ", existingMagicSubmission.reddit_id));
-            saveMagicSubmission(existingMagicSubmission);
-            return;
+            existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
+        } else {
+            removeAsBlacklisted(reddit, submission, lastSubmission, removalReason);
         }
-        removeAsBlacklisted(reddit, submission, lastSubmission, removalReason);
-        doneRemove = true;
     } else if (topRepost) {
         removeAsTopRepost(reddit, submission, lastSubmission);
-        doneRemove = true;
     } else if (recentRepost) {
         removeAsRepost(reddit, submission, lastSubmission, lastIsRemovedAsRepost);
-        doneRemove = true;
     } else if (!lastSubmissionRemoved) {
         log.info('Found matching hash for submission ', submission.id, ', matched,', existingMagicSubmission.reddit_id,' re-approving as it is over the repost limit.');
         submission.approve();
+        submission.assignFlair({'text': await lastSubmission.link_flair_text}); // reflair with same flair
+        existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
     }  else {
         log.error('Could not process submission - old unnapproved link? Ignoring submission:', submission.id);
-    }
-
-    if (!doneRemove) {
-        existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
     }
 
     await saveMagicSubmission(existingMagicSubmission);

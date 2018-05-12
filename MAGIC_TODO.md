@@ -3,7 +3,14 @@
 
 #TODO
 
+- could re-flair classic reposts based on last time
+- error in cropping : https://www.reddit.com/r/hmmm/comments/8im9oy/hmmm/ - https://i.imgur.com/lNvhmH1.png
+
+- switch to BIT_COUNT in mongodb
+    - { $bit: { _id: { or: dhashToCompare } } }
+    - have to check this is actually the same as: xorhttps://github.com/miguelmota/hamming/blob/master/hamming.js
 - Error R14 (Memory quota exceeded) - sooner we get off the array the better. We get 512 which should be enough but need to log in and see how much it's actually using.
+
 
 - Duplicates are pretty fucked. Suggest regenerating the database once we know what's happening with incorrect duplicates.
    - `wrong` should fix the current thread, remove it as a duplicate.
@@ -12,9 +19,7 @@
 - implement a way of adding duplicates together 
 - command that just removes the duplicate, rather than sets only
 
-- error in cropping : https://www.reddit.com/r/hmmm/comments/8im9oy/hmmm/ - https://i.imgur.com/lNvhmH1.png
 
-- could re-flair classic reposts based on last time
 - we try to be as objective and descriptive as possible in our rules faq.
 - reassess hmmm /rules
 - go through and submit the worst images on your own account, then remove them with right removal message (especially all the confusing perspective pics)
@@ -25,9 +30,6 @@
 - 'wrong' command should remove incorrect match from duplicates, 'never' should permanently set it
 "Please post this hq version instead: "
 
-- switch to BIT_COUNT in mongodb
-    - { $bit: { _id: { or: dhashToCompare } } }
-    - have to check this is actually the same as: xorhttps://github.com/miguelmota/hamming/blob/master/hamming.js
 
 
 
