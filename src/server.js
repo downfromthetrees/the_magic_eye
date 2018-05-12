@@ -123,54 +123,30 @@ async function firstTimeInit() {
 
     const subreddit = await reddit.getSubreddit(process.env.SUBREDDIT_NAME);
     
-    // first time init data
     const firstTimeInitComplete = await getMagicProperty('first_time_init');
-    if (!firstTimeInitComplete) {
-        const submissions = await subreddit.getNew();
-        const moderators = await subreddit.getModerators();
-        const unreadMessages = await reddit.getUnreadMessages();
-
-        if (!submissions || !moderators || !unreadMessages) {
-            log.error(chalk.red('Error: Cannot get new items to process for first time init.'));
-            return;
-        }
-
-        // set current items as processed, start from this point
-        await setMagicProperty(processedSubmissionsKey, []);
-        await getUnprocessedSubmissions(submissions);  // marks submissions as processed
-        if (unreadMessages.length > 0) {
-            reddit.markMessagesAsRead(unreadMessages);
-        }
-
-        log.info(chalk.blue('Processed first time init data.'));
-        await setMagicProperty('first_time_init', true);
-    }
-
-    const topPostsProcessed = await getMagicProperty('top_posts_processed');
-    if (topPostsProcessed) {
+    if (firstTimeInitComplete) {
         return;
     }
 
+    log.info(chalk.blue('Beginning first time initialisation. Retrieving top posts...'));
+    
     const postAmount = 1000; // not sure if required, but it's reddits current limit
     const alreadyProcessed = [];
-    
-    log.info(chalk.blue('Beginning first time initialisation. Retrieving top posts...'));
+    const startTime = new Date().getTime();
+
     const topSubmissionsAll = await subreddit.getTop({time: 'all'}).fetchAll({amount: postAmount});
     await processOldSubmissions(topSubmissionsAll, alreadyProcessed, 'all time top');
-
     const topSubmissionsYear = await subreddit.getTop({time: 'year'}).fetchAll({amount: postAmount});
     await processOldSubmissions(topSubmissionsYear, alreadyProcessed, 'year top');
-
     const topSubmissionsMonth = await subreddit.getTop({time: 'month'}).fetchAll({amount: postAmount});
     await processOldSubmissions(topSubmissionsMonth, alreadyProcessed, 'month top');
-
     const topSubmissionsWeek = await subreddit.getTop({time: 'week'}).fetchAll({amount: postAmount});
     await processOldSubmissions(topSubmissionsWeek, alreadyProcessed, 'week top');
-
     const newSubmissions = await subreddit.getNew().fetchAll({amount: postAmount});
     await processOldSubmissions(newSubmissions, alreadyProcessed, 'new');
-    
-    await setMagicProperty('top_posts_processed', true);
+
+    const endTime = new Date().getTime();
+    log.info(chalk.blue('Top and new posts successfully processed. Took: '), (endTime - startTime) / 1000, 's');
 
     // sets current items as processed, starting from this point
     const submissions = await subreddit.getNew();
@@ -178,7 +154,7 @@ async function firstTimeInit() {
     const unreadMessages = await reddit.getUnreadMessages();
 
     if (!submissions || !moderators || !unreadMessages) {
-        log.error(chalk.red('Error: Cannot get new items to process for first time init.'));
+        log.error(chalk.red('Error: Cannot get new items to process for first time init. Initialisation failed.'));
         return;
     }
 
