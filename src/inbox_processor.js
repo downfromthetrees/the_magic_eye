@@ -60,7 +60,7 @@ async function printHelp(inboxMessage) {
     const helpMessage = outdent`
     Here are the commands I support (root image is the one linked, current image is from this thread): 
 
-    * \`wrong\`: Removes the current image as a duplicate of the root. Helpful for record keeping for future features.
+    * \`wrong\`: Removes the current image as a duplicate of the root. (future feature wanted here so that the two images won't match again.)
     * \`avoid\`: Only match identical images with the root the future. Helps with root images that keep matching wrong (commonly because they are dark).
     * \`clear\`: Removes all the information I have about the root image that it the current image was matched with. For when it doesn't really matter and you want the root to go away.
     `

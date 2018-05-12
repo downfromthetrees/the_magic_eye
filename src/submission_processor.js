@@ -250,6 +250,10 @@ async function removeAsTopRepost(reddit, submission, lastSubmission){
 
 async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubmission){
     log.info('Found matching hash for submission: ', submission.id, ', removing as repost of:', await lastSubmission.id);
+    if (submission.id == await lastSubmission.id) {
+        error.log('Duplicate detection error, ignoring but this indicates a real issue.');
+        return;
+    }
     const permalink = 'https://www.reddit.com/' + await lastSubmission.permalink;
     let removalReason = 
         `Good hmmm but unfortunately your post has been removed because it has been posted recently [here](${permalink}) by another user. ([direct link](${ await lastSubmission.url})).`;

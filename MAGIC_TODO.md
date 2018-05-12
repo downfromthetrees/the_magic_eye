@@ -3,28 +3,26 @@
 
 #TODO
 
+- increase the repost range, introduce more complexity in the algorithm
+
 - switch to BIT_COUNT in mongodb
+    - convert to _id to binary
     - { $bit: { _id: { or: dhashToCompare } } }
-    - have to check this is actually the same as: xorhttps://github.com/miguelmota/hamming/blob/master/hamming.js
-- Error R14 (Memory quota exceeded) - sooner we get off the array the better. We get 512 which should be enough but need to log in and see how much it's actually using.
+    - current hamming is just xor on individual string chars. https://github.com/miguelmota/hamming/blob/master/hamming.js
+    - Error R14 (Memory quota exceeded) - sooner we get off the array the better. We get 512 which should be enough but need to log in and see how much it's actually using.
+    - db.mycollection.find( { $where: "this.a ^ this.b" } );
 
 - Duplicates are pretty fucked. Suggest regenerating the database once we know what's happening with incorrect duplicates.
-   - `wrong` should fix the current thread, remove it as a duplicate.
+   - `wrong` should make it so in the future it won't false positive.
    - Potentially should not approve any posts.
 
 - implement a way of adding duplicates together 
-- command that just removes the duplicate, rather than sets only
-
 
 - we try to be as objective and descriptive as possible in our rules faq.
 - reassess hmmm /rules
 - go through and submit the worst images on your own account, then remove them with right removal message (especially all the confusing perspective pics)
 - put the algorithm in the wiki
 
-- increase the repost range, introduce more complexity in the algorithm
-
-- 'wrong' command should remove incorrect match from duplicates, 'never' should permanently set it
-"Please post this hq version instead: "
 
 
 
