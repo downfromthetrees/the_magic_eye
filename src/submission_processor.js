@@ -173,7 +173,10 @@ function isImageTooSmall(imageDetails) {
 }
 
 function isImageUncropped(imageDetails) {
-    if (imageDetails.trimmedHeight == null || imageDetails.trimmedHeight == null) {
+    const isSquarish = imageDetails.height < imageDetails.width * 1.2;
+    
+    if (isSquarish || imageDetails.trimmedHeight == null || imageDetails.trimmedHeight == null) {
+        log.debug(chalk.blue('Image is squarish, not checking for crop'));
         return false;
     }
 
@@ -226,7 +229,7 @@ async function removeAsBroken(reddit, submission){
 
 async function removeAsUncropped(reddit, submission){
     const removalReason = 
-        `This image appears to be uncropped (i.e. black bars at the top and bottom). Images must be cropped before posting (or post the original).`;
+        `This image appears to be uncropped (i.e. black/white bars at the top and bottom). Images must be cropped before posting (or post the original).`;
     removePost(reddit, submission, removalReason + removalFooter);
 }
 
