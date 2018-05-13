@@ -3,6 +3,10 @@
 
 #TODO
 
+- REMOVAL BUG - I think the issue is that it's not approved
+
+- dhash test https://www.reddit.com/r/hmmm/comments/8ix19u/hmmm/
+
 - increase the repost range, introduce more complexity in the algorithm
 
 - switch to BIT_COUNT in mongodb
