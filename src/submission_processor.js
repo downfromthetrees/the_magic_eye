@@ -194,10 +194,13 @@ async function isRecentRepost(currentSubmission, lastSubmission, highest_score) 
     const currentDate = moment(await currentSubmission.created_utc * 1000);
     const lastPosted = moment(await lastSubmission.created_utc * 1000);
 
-    let daysLimit = process.env.REPOST_DAYS;
-    const score = Math.max(await lastSubmission.score, highest_score);
-    if (score > +process.env.LARGE_SCORE) {
+    const lastScore = await lastSubmission.score;
+    let daysLimit = process.env.SMALL_SCORE_REPOST_DAYS;
+
+    if (highest_score > +process.env.LARGE_SCORE) {
         daysLimit = process.env.LARGE_SCORE_REPOST_DAYS;
+    } else if (lastScore > +process.env.MEDIUM_SCORE) {
+        daysLimit = process.env.MEDIUM_SCORE_REPOST_DAYS;
     }
 
     const daysSincePosted = currentDate.diff(lastPosted, 'days');   
