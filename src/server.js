@@ -41,9 +41,6 @@ if (process.env.LOG_LEVEL == 'debug') {
     reddit.config({debug: true})
 }
 
-const processedSubmissionsKey = 'processed_submissions';
-
-
 async function main() {
     try {
         const onlineMode = await getMagicProperty('online');
@@ -56,7 +53,7 @@ async function main() {
         const subreddit = await reddit.getSubreddit(process.env.SUBREDDIT_NAME);
         
         // // submissions
-        const submissions = await subreddit.getNew();
+        const submissions = await subreddit.getNew({'limit': 25});
         if (!submissions) {
             log.error(chalk.red('Cannot get new submissions to process - api is probably down for maintenance.'));
             setTimeout(main, 30 * 1000); // run again in 30 seconds
@@ -93,28 +90,32 @@ async function main() {
 async function getUnprocessedSubmissions(latestItems) {
     latestItems.sort((a, b) => { return a.created_utc - b.created_utc}); // oldest first
 
-    // only check the last 50
-    const maxCheck = 50;
+    // 100 posts per hour, 25 posts at a time - fairly safe. For edge cases like unspammed submissions.
+    const maxCheck = 25;
     if (latestItems.length > maxCheck) {
+        log.info('Passed more than maxCheck items:', latestItems.length,', - empty subreddit?');
         latestItems = latestItems.slice(latestItems.length - maxCheck, latestItems.length);
-        log.debug('slicedItems', chalk.magenta(latestItems.map(sliceItem => sliceItem.id)));
     }
 
-    let processedIds = await getMagicProperty(processedSubmissionsKey);
+    const processedIds = await getMagicProperty('processed_submissions');
     if (!processedIds) {
-        logger.error('Could not find the last processed id list when retrieving unprocessed submissions');
+        log.error('Could not find the last processed id list when retrieving unprocessed submissions');
         return [];
     }
 
-    const newItems = latestItems.filter(item => !processedIds.find(processedId => processedId == item.id));
-    // update the processed list before processing so we don't retry any submissions that cause exceptions
-    let updatedProcessedIds = processedIds.concat(newItems.map(submission => submission.id)); // [3,2,1] + [new] = [3,2,1,new]
-   
-    if (updatedProcessedIds.length > maxCheck*2) { // larger size for any weird/future edge-cases where a mod removes a lot of submissions
-        updatedProcessedIds = updatedProcessedIds.slice(newItems.length, updatedProcessedIds.length); // [3,2,1,new] => [2,1,new]
-    }
-    await setMagicProperty(processedSubmissionsKey, updatedProcessedIds);
+    // don't process anything over 60 minutes old. created_utc is in seconds/getTime is in millis.
+    const oneHourAgo = new Date().getTime() - 1000*60*60;
+    latestItems = latestItems.filter(item => (item.created_utc * 1000) > oneHourAgo); 
 
+    // update the processed list before processing so we don't retry any submissions that cause exceptions
+    const newItems = latestItems.filter(item => !processedIds.includes(item.id));
+    let updatedProcessedIds = processedIds.concat(newItems.map(submission => submission.id)); // [3,2,1] + [new] = [3,2,1,new]
+    const processedCacheSize = maxCheck*4; // larger size for any weird/future edge-cases where a mod removes a lot of submissions
+    if (updatedProcessedIds.length > processedCacheSize) { 
+        updatedProcessedIds = updatedProcessedIds.slice(updatedProcessedIds.length - processedCacheSize); // [3,2,1,new] => [2,1,new]
+    }
+    await setMagicProperty('processed_submissions', updatedProcessedIds);
+    
     return newItems;
 }
 
@@ -147,7 +148,7 @@ async function firstTimeInit() {
     const endTime = new Date().getTime();
     log.info(chalk.blue('Top and new posts successfully processed. Took: '), (endTime - startTime) / 1000, 's');
 
-    // sets current items as processed, starting from this point
+    // sets current items as processed/read, starting from this point
     const submissions = await subreddit.getNew();
     const moderators = await subreddit.getModerators();
     const unreadMessages = await reddit.getUnreadMessages();
