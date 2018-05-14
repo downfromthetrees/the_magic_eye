@@ -45,9 +45,6 @@ async function runHammingCompare() {
   console.log(chalk.blue(process.argv[2] + 'dhash:'), dhash1);
   console.log(chalk.blue(process.argv[3] + 'dhash:'), dhash2);
   console.log(chalk.green('hamming distance:'), distance); 
-
-  console.log(chalk.green('value:'), +'20000'); 
-  
 }
 
 runHammingCompare();

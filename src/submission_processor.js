@@ -261,7 +261,7 @@ async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubm
     let removalReason = 
         `Good hmmm but unfortunately your post has been removed because it has been posted recently [here](${permalink}) by another user. ([direct link](${ await lastSubmission.url})).`;
     if (noOriginalSubmission) {
-        removalReason += ` That submission image was also removed as a repost, but I couldn't programatically find the original.`;
+        removalReason += ` That submission was also removed by a moderator as a repost, so it will have been posted in the last week or so.`;
     }
     removePost(reddit, submission, removalReason + removalFooter);
 }
