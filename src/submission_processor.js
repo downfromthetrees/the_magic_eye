@@ -244,7 +244,7 @@ async function removeAsTooSmall(reddit, submission){
 
 async function removeAsTopRepost(reddit, submission, lastSubmission){
     log.info('Found matching hash for submission: ', submission.id, ', removing as repost of all time top post:', await lastSubmission.id);
-    const permalink = 'https://www.reddit.com/' + await lastSubmission.permalink;
+    const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
     let removalReason = 
         `Good hmmm but unfortunately your post has been removed because it is one of our all time top posts. You can see it [here](${permalink}), ([direct link](${ await lastSubmission.url})).`;
 
@@ -257,7 +257,7 @@ async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubm
         log.error('Duplicate detection error, ignoring but this indicates a real issue.');
         return;
     }
-    const permalink = 'https://www.reddit.com/' + await lastSubmission.permalink;
+    const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
     let removalReason = 
         `Good hmmm but unfortunately your post has been removed because it has been posted recently [here](${permalink}) by another user. ([direct link](${ await lastSubmission.url})).`;
     if (noOriginalSubmission) {
@@ -268,7 +268,7 @@ async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubm
 
 async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklistReason){
     log.info('Removing ', submission.id, ', as blacklisted. Root blacklisted submission: ', await lastSubmission.id);
-    const permalink = 'https://www.reddit.com/' + await lastSubmission.permalink;
+    const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
     const removalReason = outdent
         `Your post has been removed because it is a repost of [this image](${await lastSubmission.url}) posted [here](${permalink}), and that post was removed because:
 
