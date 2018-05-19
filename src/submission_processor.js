@@ -107,6 +107,7 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
     log.debug(chalk.yellow('Found existing submission for dhash, matched: ' + existingMagicSubmission._id));
     const lastSubmission = await reddit.getSubmission(existingMagicSubmission.reddit_id);
     const lastSubmissionRemoved = await lastSubmission.removed;
+    const lastSubmissionDeleted = await lastSubmission.author.name == '[deleted]';
 
     existingMagicSubmission.highest_score = Math.max(existingMagicSubmission.highest_score, await lastSubmission.score);
     existingMagicSubmission.duplicates.push(submission.id);
@@ -127,7 +128,7 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
     const lastIsRemovedAsRepost = await isRepostRemoval(modComment); // We missed detecting a valid repost so a mod manually removed it. That image is reposted but we don't know the approved submission.   
     const recentRepost = await isRecentRepost(submission, lastSubmission, existingMagicSubmission.highest_score);
     const topRepost = isTopRepost(existingMagicSubmission.highest_score);
-    const sameUserForBothSubmissions = await lastSubmission.author.name == await submission.author.name;
+    const sameUserForBothSubmissions = lastSubmissionDeleted || await lastSubmission.author.name == await submission.author.name;
     const imageIsBlacklisted = lastSubmissionRemoved && !lastIsRemovedAsRepost;
 
     if (lastIsRepostOnlyByUser && sameUserForBothSubmissions) {
@@ -146,7 +147,7 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
     } else if (topRepost) {
         removeAsTopRepost(reddit, submission, lastSubmission);
     } else if (recentRepost) {
-        removeAsRepost(reddit, submission, lastSubmission, lastIsRemovedAsRepost);
+        removeAsRepost(reddit, submission, lastSubmission, lastIsRemovedAsRepost, lastSubmissionDeleted);
     } else if (!lastSubmissionRemoved) {
         log.info('Found matching hash for submission ', submission.id, ', matched,', existingMagicSubmission.reddit_id,' re-approving as it is over the repost limit.');
         submission.approve();
@@ -251,7 +252,7 @@ async function removeAsTopRepost(reddit, submission, lastSubmission){
     removePost(reddit, submission, removalReason + removalFooter);
 }
 
-async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubmission){
+async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubmission, lastSubmissionDeleted){
     log.info('Found matching hash for submission: ', submission.id, ', removing as repost of:', await lastSubmission.id);
     if (submission.id == await lastSubmission.id) {
         log.error('Duplicate detection error, ignoring but this indicates a real issue.');
@@ -262,6 +263,8 @@ async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubm
         `Good hmmm but unfortunately your post has been removed because it has been posted recently [here](${permalink}) by another user. ([direct link](${ await lastSubmission.url})).`;
     if (noOriginalSubmission) {
         removalReason += ` That submission was also removed by a moderator as a repost, so it will have been posted in the last week or so.`;
+    } else if (lastSubmissionDeleted) {
+        removalReason += ` **Note:** Users may not delete and resubmit images without a good reason.`;
     }
     removePost(reddit, submission, removalReason + removalFooter);
 }
