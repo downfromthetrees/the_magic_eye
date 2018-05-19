@@ -111,9 +111,15 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
 
     existingMagicSubmission.highest_score = Math.max(existingMagicSubmission.highest_score, await lastSubmission.score);
     existingMagicSubmission.duplicates.push(submission.id);
-    
+
     let modComment;
     if (lastSubmissionRemoved) {
+        if (await lastSubmission.banned_by.name == 'AutoModerator') {
+            log.info('Ignoring automoderator removal.: ', submission.id); // can happen in cases where automod is slow for some reason
+            saveMagicSubmission(existingMagicSubmission);
+            return;            
+        }
+
         log.debug('Last submission removed, getting mod comment');
         modComment = await getModComment(reddit, existingMagicSubmission.reddit_id);
         const magicIgnore = await isMagicIgnore(modComment);
