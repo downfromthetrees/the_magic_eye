@@ -3,18 +3,6 @@
 
 #TODO
 
-
-- special repost case
-- automod case - ignore automod removals
-- redesugb feedback
-
-
-- REMOVAL BUG - I think the issue is that it's not approved
-
-- dhash test https://www.reddit.com/r/hmmm/comments/8ix19u/hmmm/
-
-- increase the repost range, introduce more complexity in the algorithm
-
 - switch to BIT_COUNT in mongodb
     - convert to _id to binary
     - { $bit: { _id: { or: dhashToCompare } } }
@@ -22,7 +10,7 @@
     - Error R14 (Memory quota exceeded) - sooner we get off the array the better. We get 512 which should be enough but need to log in and see how much it's actually using.
     - db.mycollection.find( { $where: "this.a ^ this.b" } );
 
-- Duplicates are pretty fucked. Suggest regenerating the database once we know what's happening with incorrect duplicates.
+- Duplicates:
    - `wrong` should make it so in the future it won't false positive.
    - Potentially should not approve any posts.
 

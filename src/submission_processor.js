@@ -154,13 +154,13 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
         removeAsTopRepost(reddit, submission, lastSubmission);
     } else if (recentRepost) {
         removeAsRepost(reddit, submission, lastSubmission, lastIsRemovedAsRepost, lastSubmissionDeleted);
-    } else if (!lastSubmissionRemoved) {
+    } else if (!lastSubmissionRemoved || lastIsRemovedAsRepost) {
         log.info('Found matching hash for submission ', submission.id, ', matched,', existingMagicSubmission.reddit_id,' re-approving as it is over the repost limit.');
         submission.approve();
         submission.assignFlair({'text': await lastSubmission.link_flair_text}); // reflair with same flair
         existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
     }  else {
-        log.error('Could not process submission - old unnapproved link? Ignoring submission:', submission.id);
+        log.error('Could not process submission. Ignoring submission:', submission.id); // old submission? Investigate why it wasn't caught by cases above.
     }
 
     await saveMagicSubmission(existingMagicSubmission);
