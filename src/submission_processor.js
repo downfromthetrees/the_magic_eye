@@ -114,10 +114,10 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
 
     let modComment;
     if (lastSubmissionRemoved) {
-        if (await lastSubmission.banned_by.name == 'AutoModerator') {
+        if (await lastSubmission.banned_by == 'AutoModerator') {
             log.info('Ignoring automoderator removal.: ', submission.id); // can happen in cases where automod is slow for some reason
             saveMagicSubmission(existingMagicSubmission);
-            return;            
+            return;
         }
 
         log.debug('Last submission removed, getting mod comment');
