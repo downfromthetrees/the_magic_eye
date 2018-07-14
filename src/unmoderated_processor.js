@@ -13,7 +13,7 @@ async function processUnmoderated(submissions) {
 
     for (const submission of submissions) {
         let alreadyReported = submission.mod_reports && submission.mod_reports.length > 0;
-        if (!alreadyReported && submission.score > process.env.UNMODERATED_REPORT_SCORE) {
+        if (!submission.approved && !alreadyReported && submission.score > process.env.UNMODERATED_REPORT_SCORE) {
             submission.report({'reason': 'Unmoderated post - check for rules'});
         }
         processedCount++;
