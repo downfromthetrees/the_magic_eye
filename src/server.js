@@ -80,7 +80,7 @@ async function main() {
 
         // report unmoderated
         const topSubmissionsDay = await subreddit.getTop({time: 'day'}).fetchAll({amount: 100});
-        await processUnmoderated(topSubmissionsDay);
+        //await processUnmoderated(topSubmissionsDay);
 
         // done
         log.debug(chalk.green('Finished processing, running again soon.'));
