@@ -25,6 +25,7 @@ const snoowrap = require('snoowrap');
 const { setMagicProperty, getMagicProperty, initDb } = require('./mongodb_data.js');
 const { processOldSubmissions, processSubmission, } = require('./submission_processor.js');
 const { processInboxReply, processInboxMessage, } = require('./inbox_processor.js');
+const { processUnmoderated } = require('./unmoderated_processor.js');
 const { generateDHash } = require('./image_utils.js');
 
 
@@ -76,6 +77,10 @@ async function main() {
         }
         for (let message of unreadMessages) { await processInboxMessage(message, moderators, reddit) };
         log.debug(chalk.blue('Processed', unreadMessages.length, ' new inbox messages'));
+
+        // report unmoderated
+        const topSubmissionsDay = await subreddit.getTop({time: 'day'}).fetchAll({amount: 100});
+        await processUnmoderated(topSubmissionsDay);
 
         // done
         log.debug(chalk.green('Finished processing, running again soon.'));
