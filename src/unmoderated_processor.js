@@ -8,7 +8,7 @@ const cliProgress = require('cli-progress');
 log.setLevel(process.env.LOG_LEVEL);
 
 async function processUnmoderated(submissions) {
-    log.info('Retrived', submissions.length, ' top daily posts. Beginning to check for unmoderated.');
+    log.debug('Retrived', submissions.length, ' top daily posts. Beginning to check for unmoderated.');
     let processedCount = 0;
 
     for (const submission of submissions) {
