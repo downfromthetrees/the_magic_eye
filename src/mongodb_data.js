@@ -9,7 +9,20 @@ const hammingDistance = require("hamming");
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL);
 
+
 const collectionPrefix = (process.env.NODE_ENV == 'production' ? '' : process.env.NODE_ENV + ':') + process.env.SUBREDDIT_NAME + ':';
+
+const usersCollectionName = collectionPrefix + 'users';
+class User {
+    _id;
+    count; // successful post
+
+    constructor(name) {
+        this._id = name;
+        this.count = 0;
+    }
+}
+
 const magicPropertyName = collectionPrefix + 'properties';
 class MagicProperty {
     _id;
@@ -68,6 +81,10 @@ async function initDb(cb) {
 }
 
 
+async function getUserCollection() {
+    return database.collection(usersCollectionName);
+}
+
 async function getSubmissionCollection() {
     return database.collection(magicSubmissionName);
 }
@@ -75,6 +92,43 @@ async function getSubmissionCollection() {
 async function getPropertyCollection() {
     return database.collection(magicPropertyName);
 }
+
+async function addUser(name) {
+    try {
+        log.debug(chalk.yellow("inserting user. name:"), name);
+        const collection = await getUserCollection();
+        await collection.save(new User(name));
+    } catch (err) {
+        log.error(chalk.red('MongoDb error:'), err);
+        return null;
+    }
+}
+
+async function setUser(user) {
+    try {
+        log.debug(chalk.yellow("updating user.:"), user);
+        const collection = await getUserCollection();
+        await collection.save(user);
+    } catch (err) {
+        log.error(chalk.red('MongoDb error:'), err);
+        return null;
+    }
+}
+
+export async function getUser(name) {
+    if (name == null) {
+        return null;
+    }
+
+    try {
+        const collection = await getUserCollection();
+        return (await collection.findOne({'_id': name}));
+    } catch (err) {
+        log.error(chalk.red('MongoDb error:'), err);
+    }
+    return null;
+}
+
 
 async function saveMagicSubmission(submission, addToCache) {
     if (submission._id == null) {
@@ -149,7 +203,7 @@ async function deleteMagicSubmission(submission) {
 }
 
 
-export async function setMagicProperty(key, value) {
+async function setMagicProperty(key, value) {
     try {
         log.debug(chalk.yellow("inserting property. key:"), key, Array.isArray(value) ? (chalk.yellow('size: ') + value.length) : (chalk.yellow('value: ') + value));
         const collection = await getPropertyCollection();
@@ -161,7 +215,7 @@ export async function setMagicProperty(key, value) {
 }
 
 
-export async function getMagicProperty(key) {
+async function getMagicProperty(key) {
     try {
         const collection = await getPropertyCollection();
         const property = (await collection.findOne({'_id': key}));
@@ -195,4 +249,7 @@ module.exports = {
     initDb,
     setMagicProperty,
     getMagicProperty,
+    addUser,
+    setUser,
+    getUser
 };

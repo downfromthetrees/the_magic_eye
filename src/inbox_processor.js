@@ -18,7 +18,11 @@ const { sliceSubmissionId } = require('./reddit_utils.js');
 
 async function processInboxMessage(inboxMessage, moderators, reddit) {
     if (!inboxMessage.was_comment) {
-        inboxMessage.reply(`I WAS CREATED TO WATCH, NOT TO THINK OR FEEL.... I am a bot, perhaps you want to contact the moderators of the subreddit instead.`);
+        inboxMessage.reply(outdent`I am a robot so I cannot answer your question.
+
+        But it's almost certainly answered in our detailed rules faq:
+        
+        https://www.reddit.com/r/hmmm/wiki/rules#wiki_individual_rule_details`);
         log.info('Processed inbox private message:', inboxMessage.id);
         return;
     }

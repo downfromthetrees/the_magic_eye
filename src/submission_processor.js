@@ -9,7 +9,7 @@ log.setLevel(process.env.LOG_LEVEL);
 
 // magic eye modules
 const { getImageDetails } = require('./image_utils.js');
-const { MagicSubmission, getMagicSubmission, saveMagicSubmission, deleteMagicSubmission } = require('./mongodb_data.js');
+const { MagicSubmission, getMagicSubmission, saveMagicSubmission, deleteMagicSubmission, addUser, getUser, setUser } = require('./mongodb_data.js');
 const { getModComment, isRepostOnlyByUserRemoval, isRepostRemoval, getRemovalReason, sliceSubmissionId, isMagicIgnore, } = require('./reddit_utils.js');
 
 
@@ -97,7 +97,7 @@ async function processSubmission(submission, reddit) {
     if (existingMagicSubmission != null) {
         await processExistingSubmission(submission, existingMagicSubmission, reddit);
     } else {
-        await processNewSubmission(submission, imageDetails);
+        await processNewSubmission(submission, imageDetails, reddit);
     }
 
 }
@@ -166,10 +166,34 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
     await saveMagicSubmission(existingMagicSubmission);
 }
 
-async function processNewSubmission(submission, imageDetails) {
+async function processNewSubmission(submission, imageDetails, reddit) {
     log.info(chalk.green('Processing new submission: ' + submission.id));
     const newMagicSubmission = new MagicSubmission(imageDetails.dhash, submission, await submission.score);
     await saveMagicSubmission(newMagicSubmission, true);
+
+    // reply to user
+    let userName = (await submission.author) ? (await submission.author.name) : null;
+    let user = await getUser(userName);
+    if (user) {
+        user.count++
+        await setUser(user);
+    } else {
+        await addUser(userName);
+        await reddit.composeMessage({
+            to: userName,
+            subject: "Rules check",
+            text: outdent`
+            Thanks for your hmmm!
+    
+            A reminder of our #1 rule: **Posts cannot contain text** (except normal logos).
+            
+            If your post has text in it, do us a favour and delete it.
+            
+            (I am a bot. See our [rules faq](https://www.reddit.com/r/hmmm/wiki/rules#wiki_individual_rule_details) for details.)`
+          })
+    }
+
+    
 }
 
 

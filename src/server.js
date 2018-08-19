@@ -53,7 +53,7 @@ async function main() {
         log.debug(chalk.blue("Starting Magic processing cycle"));
         const subreddit = await reddit.getSubreddit(process.env.SUBREDDIT_NAME);
         
-        // // submissions
+        // submissions
         const submissions = await subreddit.getNew({'limit': 25});
         if (!submissions) {
             log.error(chalk.red('Cannot get new submissions to process - api is probably down for maintenance.'));
