@@ -275,7 +275,7 @@ async function removeAsUncropped(reddit, submission){
 
 async function removeAsHavingText(reddit, submission, words){
     const removalReason = 
-        `This image has been removed because the following text was automatically detected: \n\n>` + words + `\n\n See [Rule 1: No text (except normal logos + packaging text)](https://www.reddit.com/r/hmmm/wiki/rules#wiki_1._no_text).`;
+        `This image has been removed because text was automatically detected in it: \n\n>` + words + `\n\n See [Rule 1: No text (except normal logos + packaging text)](https://www.reddit.com/r/hmmm/wiki/rules#wiki_1._no_text).`;
     removePost(reddit, submission, removalReason + removalFooter);
 }
 
