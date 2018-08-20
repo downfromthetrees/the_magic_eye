@@ -85,7 +85,7 @@ async function getImageDetails(submission) {
         log.error('failed to generate phash for ', submission.id);
     }
 
-    imageDetails.words = await getWordsInImage(imagePath);
+    imageDetails.words = await getWordsInImage(imagePath, imagePHash.height);
 
     try {
         const trimmedPath = imagePath + '_trimmed';
@@ -97,7 +97,7 @@ async function getImageDetails(submission) {
         } else {
             log.error('failed to generate trimmed phash for ', submission.id);
         }
-        await deleteImage(trimmedPath);    
+        await deleteImage(trimmedPath);
     } catch (e) {
         log.error(chalk.red('Could not trim submission:'), await submission.url, ' - imagemagick error: ', e);
     }
@@ -106,17 +106,30 @@ async function getImageDetails(submission) {
     return imageDetails;
 }
 
-async function getWordsInImage(imagePath) {
+async function getWordsInImage(originalImagePath, height) {
     try {
+        // resize it first, issues with large images
+        let imagePath = originalImagePath;
+        const resizeImageFirst = height > 500;
+        if (resizeImageFirst) {
+            imagePath = originalImagePath + '-reduced';
+            await promisify(imageMagick.convert)([originalImagePath, '-resize', '500', imagePath]); // maintains dimensions over exact size
+        }
+
         const startTime = new Date().getTime();
         let result;
+        log.debug(chalk.blue("Begin text detection in image:", imagePath));
         await tesseract.recognize(imagePath).then(data => result = data);
         const detectedStrings = result.words.map(word => stripchar.RSExceptUnsAlpNum(word.text));
         const detectedWords = detectedStrings.filter(item => (item.length > 2 && commonWords.includes(item)));
         log.debug(chalk.blue("Text detected in image:"), detectedWords);
         const endTime = new Date().getTime();
         log.debug(chalk.red('End text detection, took: '), (endTime - startTime) / 1000, 's to load ');
-        ;
+
+        if (resizeImageFirst) {
+            await deleteImage(imagePath);
+        }
+
         return detectedWords; 
     } catch (e) {
         log.error(chalk.red("Text detection error:"), e);
