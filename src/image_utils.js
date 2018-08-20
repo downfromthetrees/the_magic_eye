@@ -112,7 +112,7 @@ async function getWordsInImage(imagePath) {
         let result;
         await tesseract.recognize(imagePath).then(data => result = data);
         const detectedStrings = result.words.map(word => stripchar.RSExceptUnsAlpNum(word.text));
-        const detectedWords = detectedStrings.filter(item => (item.length > 1 && commonWords.includes(item)));
+        const detectedWords = detectedStrings.filter(item => (item.length > 2 && commonWords.includes(item)));
         log.debug(chalk.blue("Text detected in image:"), detectedWords);
         const endTime = new Date().getTime();
         log.debug(chalk.red('End text detection, took: '), (endTime - startTime) / 1000, 's to load ');
