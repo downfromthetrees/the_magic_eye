@@ -60,32 +60,38 @@ async function processSubmission(submission, reddit) {
     log.debug('starting processing for ', submission.id, 'submitted:', new Date(submission.created_utc));
 
     if (await submission.approved) {
-        log.debug("Submission is already approved, - ignoring submission: https://www.reddit.com" + await submission.permalink);
+        log.info("Submission is already approved, - ignoring submission: https://www.reddit.com" + await submission.permalink);
         return;
     }
 
     log.debug(chalk.yellow('Starting process for submission by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
     if (!await submission.url.endsWith('.jpg') && !await submission.url.endsWith('.png'))
         {
-        log.debug("Image was not a jpg/png - ignoring submission: https://www.reddit.com" + await submission.permalink);
+        log.info("Image was not a jpg/png - ignoring submission: https://www.reddit.com" + await submission.permalink);
         return null;
         }
 
     const imageDetails = await getImageDetails(submission);
     if (imageDetails == null){
-        log.debug("Could not download image (probably deleted) - removing submission: https://www.reddit.com" + await submission.permalink);
+        log.info("Could not download image (probably deleted) - removing submission: https://www.reddit.com" + await submission.permalink);
         removeAsBroken(reddit, submission);
         return;
     }
 
+    if (imageDetails.words.length > 2) {
+        log.info("Text detected, removing - removing submission: https://www.reddit.com" + await submission.permalink);
+        removeAsHavingText(reddit, submission, imageDetails.words);
+        return;
+    }
+
     if (isImageTooSmall(imageDetails)) {
-        log.debug("Image is too small, removing - removing submission: https://www.reddit.com" + await submission.permalink);
+        log.info("Image is too small, removing - removing submission: https://www.reddit.com" + await submission.permalink);
         removeAsTooSmall(reddit, submission);
         return;
     }
 
     if (isImageUncropped(imageDetails)) {
-        log.debug("Image is uncropped, removing - removing submission: https://www.reddit.com" + await submission.permalink);
+        log.info("Image is uncropped, removing - removing submission: https://www.reddit.com" + await submission.permalink);
         removeAsUncropped(reddit, submission);
         return;
     }
@@ -185,7 +191,7 @@ async function processNewSubmission(submission, imageDetails, reddit) {
             text: outdent`
             Thanks for your hmmm!
     
-            A reminder of our #1 rule: **Posts cannot contain text** (except normal logos).
+            A quick reminder of our #1 rule: **Posts cannot contain text** (except normal logos).
             
             If your post has text in it, do us a favour and delete it.
             
@@ -264,6 +270,12 @@ async function removeAsBroken(reddit, submission){
 async function removeAsUncropped(reddit, submission){
     const removalReason = 
         `This image appears to be uncropped (i.e. black/white bars at the top and bottom). Images must be cropped before posting (or post the original).`;
+    removePost(reddit, submission, removalReason + removalFooter);
+}
+
+async function removeAsHavingText(reddit, submission, words){
+    const removalReason = 
+        `This image has been removed because the following text was automatically detected: \n\n>` + words + `\n\n See [Rule 1: No text (except normal logos + packaging text)](https://www.reddit.com/r/hmmm/wiki/rules#wiki_1._no_text).`;
     removePost(reddit, submission, removalReason + removalFooter);
 }
 
