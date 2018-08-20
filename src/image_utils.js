@@ -124,7 +124,7 @@ async function getWordsInImage(originalImagePath, height) {
         const detectedWords = detectedStrings.filter(item => (item.length > 2 && commonWords.includes(item)));
         log.debug(chalk.blue("Text detected in image:"), detectedWords);
         const endTime = new Date().getTime();
-        log.debug(chalk.red('End text detection, took: '), (endTime - startTime) / 1000, 's to load ');
+        log.info(chalk.red('End text detection, took: '), (endTime - startTime) / 1000, 's to load ');
 
         if (resizeImageFirst) {
             await deleteImage(imagePath);
