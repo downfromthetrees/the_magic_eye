@@ -78,7 +78,7 @@ async function processSubmission(submission, reddit) {
         return;
     }
 
-    if (imageDetails.words.length > 2) {
+    if (imageDetails.words.length > 2 || imageDetails.words.includes('hmmm')) {
         log.info("Text detected, removing - removing submission: https://www.reddit.com" + await submission.permalink);
         removeAsHavingText(reddit, submission, imageDetails.words);
         return;
