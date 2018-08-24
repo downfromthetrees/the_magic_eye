@@ -119,7 +119,7 @@ async function getWordsInImage(originalImagePath, height) {
         await tesseract.recognize(imagePath).then(data => result = data);
         const detectedStrings = result.words.map(word => stripchar.RSExceptUnsAlpNum(word.text.toLowerCase()));
         log.debug(chalk.blue("Strings detected in image:"), detectedStrings);
-        const detectedWords = detectedStrings.filter(item => (item.length > 2 && commonWords.has(item)));
+        const detectedWords = detectedStrings.filter(item => (item.length > 3 && commonWords.has(item)));
         log.debug(chalk.blue("Text detected in image:"), detectedWords);
         const endTime = new Date().getTime();
         const timeTaken = (endTime - startTime) / 1000;
@@ -131,7 +131,7 @@ async function getWordsInImage(originalImagePath, height) {
             await deleteImage(imagePath);
         }
 
-        return detectedWords; 
+        return detectedWords;
     } catch (e) {
         log.error(chalk.red("Text detection error:"), e);
     }
