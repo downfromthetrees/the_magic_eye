@@ -28,6 +28,14 @@ const { processInboxReply, processInboxMessage, } = require('./inbox_processor.j
 const { processUnmoderated } = require('./unmoderated_processor.js');
 const { generateDHash } = require('./image_utils.js');
 
+const details = {
+    userAgent: 'THE_MAGIC_EYE:v1.0.0:' + process.env.SUBREDDIT_NAME,
+    clientId: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    username: process.env.ACCOUNT_USERNAME,
+    password: process.env.PASSWORD
+  };
+log.info("details: ", details);
 
 // Create a new snoowrap requester with OAuth credentials
 // See here: https://github.com/not-an-aardvark/reddit-oauth-helper
@@ -196,19 +204,6 @@ async function startServer() {
     }
 }
 initDb(startServer); // requires callback
-
-
-app.get('/stop', async function(req, res) {
-    await setMagicProperty('online', false);
-    log.info('Setting online mode FALSE');
-    res.send('THE_MAGIC_EYE has been set in offline mode.');
-});
-
-app.get('/start', async function(req, res) {
-    await setMagicProperty('online', true);
-    log.info('Setting online mode TRUE');
-    res.send('THE_MAGIC_EYE has been set in online mode.');
-});
 
 app.get('/keepalive', async function(req, res) {
     res.setHeader('Content-Type', 'application/json');
