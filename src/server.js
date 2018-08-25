@@ -11,7 +11,7 @@ const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL);
 
 
-// webpack middleware to serve react files
+// unused webpack middleware to serve react files
 const webpack = require('webpack');
 const webpackMiddleware = require('webpack-dev-middleware');
 const webpackConfig = require('../webpack.config.js');
@@ -32,12 +32,14 @@ const { generateDHash } = require('./image_utils.js');
 // Create a new snoowrap requester with OAuth credentials
 // See here: https://github.com/not-an-aardvark/reddit-oauth-helper
 const reddit = new snoowrap({
-    userAgent: 'THE_MAGIC_EYE:v1.0.0',
+    userAgent: 'THE_MAGIC_EYE:v1.0.0:' + process.env.SUBREDDIT_NAME,
     clientId: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
-    refreshToken: process.env.REFRESH_TOKEN
+    username: process.env.ACCOUNT_USERNAME,
+    password: process.env.PASSWORD
   });
   
+
 if (process.env.LOG_LEVEL == 'debug') {
     reddit.config({debug: true})
 }
