@@ -28,23 +28,15 @@ const { processInboxReply, processInboxMessage, } = require('./inbox_processor.j
 const { processUnmoderated } = require('./unmoderated_processor.js');
 const { generateDHash } = require('./image_utils.js');
 
-const details = {
-    userAgent: 'THE_MAGIC_EYE:v1.0.0:' + process.env.SUBREDDIT_NAME,
-    clientId: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
-    username: process.env.ACCOUNT_USERNAME,
-    password: process.env.PASSWORD
-  };
-log.info("details: ", details);
-
 // Create a new snoowrap requester with OAuth credentials
 // See here: https://github.com/not-an-aardvark/reddit-oauth-helper
 const reddit = new snoowrap({
     userAgent: 'THE_MAGIC_EYE:v1.0.0:' + process.env.SUBREDDIT_NAME,
     clientId: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
-    username: process.env.ACCOUNT_USERNAME,
-    password: process.env.PASSWORD
+    refreshToken: process.env.REFRESH_TOKEN
+    // username: process.env.ACCOUNT_USERNAME,
+    // password: process.env.PASSWORD
   });
   
 
