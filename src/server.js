@@ -34,9 +34,8 @@ const reddit = new snoowrap({
     userAgent: 'THE_MAGIC_EYE:v1.0.0:' + process.env.SUBREDDIT_NAME,
     clientId: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
-    refreshToken: process.env.REFRESH_TOKEN
-    // username: process.env.ACCOUNT_USERNAME,
-    // password: process.env.PASSWORD
+    username: process.env.ACCOUNT_USERNAME,
+    password: process.env.PASSWORD
   });
   
 
