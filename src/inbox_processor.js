@@ -9,7 +9,7 @@ const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL);
 
 const { ImageDetails, getImageDetails } = require('./image_utils.js');
-const { MagicSubmission, getMagicSubmission, saveMagicSubmission, deleteMagicSubmission } = require('./mongodb_data.js');
+const { MagicSubmission, getMagicSubmission, saveMagicSubmission, deleteMagicSubmission, setMagicProperty } = require('./mongodb_data.js');
 
 // magic eye modules
 const { sliceSubmissionId } = require('./reddit_utils.js');
@@ -17,30 +17,32 @@ const { sliceSubmissionId } = require('./reddit_utils.js');
 
 
 async function processInboxMessage(inboxMessage, moderators, reddit) {
-    if (!inboxMessage.was_comment) {
-        inboxMessage.reply(outdent`I am a robot so I cannot answer your question.
+    const isMod = moderators.find((moderator) => moderator.name === inboxMessage.author.name);
 
-        But it's almost certainly answered in our detailed rules faq:
-        
-        https://www.reddit.com/r/hmmm/wiki/rules#wiki_individual_rule_details`);
-        log.info('Processed inbox private message:', inboxMessage.id);
-        return;
+    if (isMod) {
+        if (!inboxMessage.was_comment) {
+            processModPrivateMessage(inboxMessage);
+        } else {
+            processModComment(inboxMessage);
+        }    
+    } else {
+        if (!inboxMessage.was_comment) {
+            processUserPrivateMessage(inboxMessage);
+        } else {
+            processUserComment(inboxMessage);
+        }    
     }
+}
 
+
+async function processModComment(inboxMessage) {
     if (inboxMessage.subject == "username mention") {
         log.info('Username mention:', inboxMessage.id);
         return;
     }
-
-    const isMod = moderators.find((moderator) => moderator.name === inboxMessage.author.name);
-    if (!isMod) {
-        inboxMessage.report({'reason': 'Moderator requested'});
-        log.info('User requesting assistance:', inboxMessage.id);
-        return;
-    }
     
     // moderator commands
-    switch (inboxMessage.body) {
+    switch (inboxMessage.body.toLowerCase()) {
         case 'help':  
             printHelp(inboxMessage);
             break;    
@@ -59,10 +61,38 @@ async function processInboxMessage(inboxMessage, moderators, reddit) {
     }
 }
 
+function isCommand(inboxMessage, command) {
+    return inboxMessage.body.toLowerCase().includes(command);
+}
+
+async function processModPrivateMessage(inboxMessage) {
+    inboxMessage.reply(outdent`I am a bot, I only support replies made in the thread. If you have an issue try r/the_magic_eye or ask other mods in your team.`);
+    log.info('Processed inbox private message from a moderator:', inboxMessage.id);
+}
+
+async function processUserComment(inboxMessage) {
+    if (inboxMessage.subject == "username mention") {
+        log.info('Username mention:', inboxMessage.id);
+        return;
+    }
+
+    inboxMessage.report({'reason': 'Moderator requested'});
+    log.info('User requesting assistance:', inboxMessage.id);
+}
+
+async function processUserPrivateMessage(inboxMessage) {
+    inboxMessage.reply(outdent`I am a robot so I cannot answer your question.
+
+    But it's almost certainly answered in our detailed rules faq:
+    
+    https://www.reddit.com/r/hmmm/wiki/rules#wiki_individual_rule_details`);
+    log.info('Processed inbox private message:', inboxMessage.id);
+}
+
 
 async function printHelp(inboxMessage) {
     const helpMessage = outdent`
-    Here are the commands I support (root image is the one linked, current image is from this thread): 
+    Here are the commands I support as replies in a thread (root image is the one linked, current image is from this thread): 
 
     * \`wrong\`: Removes the current image as a duplicate of the root. (future feature wanted here so that the two images won't match again.)
     * \`avoid\`: Only match identical images with the root the future. Helps with root images that keep matching wrong (commonly because they are dark).
@@ -79,14 +109,16 @@ async function runCommand(inboxMessage, reddit, commandFunction) {
 
     const imageDetails = await getImageDetails(submission);
     if (imageDetails == null){
-        log.debug("Could not download image for clear (probably deleted) - removing submission: https://www.reddit.com" + await submission.permalink);
+        log.warn("Could not download image for clear (probably deleted) - removing submission: https://www.reddit.com" + await submission.permalink);
+        inboxMessage.reply("I couldn't do that that... image deleted or something?").distinguish();
         return false;
     }
 
     const existingMagicSubmission = await getMagicSubmission(imageDetails.dhash);
     log.debug('Existing submission for dhash:', chalk.blue(imageDetails.dhash), chalk.yellow(JSON.stringify(existingMagicSubmission)));
     if (existingMagicSubmission == null) {
-        log.debug('No magic submission found for clear, ignoring. dhash: ', await submission._id);
+        log.info('No magic submission found for clear, ignoring. dhash: ', await submission._id);
+        inboxMessage.reply("No info for this found, so consider it already gone.").distinguish();
         return true; // already cleared
     }
 
