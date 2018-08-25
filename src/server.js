@@ -45,14 +45,15 @@ if (process.env.LOG_LEVEL == 'debug') {
 
 async function main() {
     try {
-        const onlineMode = await getMagicProperty('online');
-        if (!onlineMode) {
+        log.debug(chalk.blue("Starting Magic processing cycle"));
+        const subreddit = await reddit.getSubreddit(process.env.SUBREDDIT_NAME);
+        const moderators = await subreddit.getModerators();
+        const isMod = moderators.find((moderator) => moderator.name === process.env.ACCOUNT_USERNAME);
+        if (!isMod) {
+            log.info(chalk.blue("I'm not a moderator, so I'm sleeping"));
             setTimeout(main, 30 * 1000); // run again in 30 seconds
             return;
         }
-
-        log.debug(chalk.blue("Starting Magic processing cycle"));
-        const subreddit = await reddit.getSubreddit(process.env.SUBREDDIT_NAME);
         
         // submissions
         const submissions = await subreddit.getNew({'limit': 25});
@@ -67,7 +68,6 @@ async function main() {
 
         // inbox
         const unreadMessages = await reddit.getUnreadMessages();
-        const moderators = await subreddit.getModerators();
         if (!unreadMessages || !moderators) {
             log.error(chalk.red('Cannot get new inbox items to process - api is probably down for maintenance.'));
             setTimeout(main, 30 * 1000); // run again in 30 seconds
@@ -186,7 +186,6 @@ async function startServer() {
             fs.mkdirSync(tempDir);
         }
 
-        await setMagicProperty('online', true);
         log.info('The magic eye is ONLINE.');
         main();
 
