@@ -187,15 +187,13 @@ async function processNewSubmission(submission, imageDetails, reddit) {
         await addUser(userName);
         await reddit.composeMessage({
             to: userName,
-            subject: "Rules check",
+            subject: "Reminder!",
             text: outdent`
-            Thanks for your hmmm!
-    
-            A quick reminder of our #1 rule: **Posts cannot contain text** (except normal logos).
+            A quick reminder of #1 rule in r/hmmm: **Posts cannot contain text** (except normal logos).
             
-            If your post has text in it, do us a favour and delete it.
+            Since lots of people break this rule, I'm just giving you a heads up in case it's relevant (I'm a bot so can't actually tell).
             
-            (I am a bot. See our [rules faq](https://www.reddit.com/r/hmmm/wiki/rules#wiki_individual_rule_details) for details.)`
+            (Thanks! Our [rules faq](https://www.reddit.com/r/hmmm/wiki/rules#wiki_individual_rule_details) answers all questions about our rules.)`
           })
     }
 
