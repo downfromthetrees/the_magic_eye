@@ -23,7 +23,7 @@ async function processInboxMessage(inboxMessage, moderators, reddit) {
         if (!inboxMessage.was_comment) {
             processModPrivateMessage(inboxMessage);
         } else {
-            processModComment(inboxMessage);
+            processModComment(inboxMessage, reddit);
         }    
     } else {
         if (!inboxMessage.was_comment) {
@@ -35,7 +35,7 @@ async function processInboxMessage(inboxMessage, moderators, reddit) {
 }
 
 
-async function processModComment(inboxMessage) {
+async function processModComment(inboxMessage, reddit) {
     if (inboxMessage.subject == "username mention") {
         log.info('Username mention:', inboxMessage.id);
         return;
