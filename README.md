@@ -69,7 +69,7 @@ Things to know beforehand:
 		* Check one American location
 		* Set the schedule to 1 minute
 
-Your bot is now up and running, try it out. You can use Papetrail any time you want to see what it's up to.
+Your bot is now up and running, try it out. You can use Papetrail any time you want to see what it's up to (filter out the keepalive calls first).
 
 ## General info
 
