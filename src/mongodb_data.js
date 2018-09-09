@@ -1,14 +1,9 @@
-var parseDbUrl = require("parse-database-url");
-var redis = require("redis");
-const { promisify } = require('util');
 require('dotenv').config();
-var parseDbUrl = require("parse-database-url");
 const chalk = require('chalk');
 const MongoClient = require('mongodb').MongoClient;
 const hammingDistance = require("hamming");
 const log = require('loglevel');
-log.setLevel(process.env.LOG_LEVEL);
-
+log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 const collectionPrefix = (process.env.NODE_ENV == 'production' ? '' : process.env.NODE_ENV + ':') + process.env.SUBREDDIT_NAME + ':';
 
@@ -16,10 +11,12 @@ const usersCollectionName = collectionPrefix + 'users';
 class User {
     _id;
     count; // successful post
+    posts;
 
     constructor(name) {
         this._id = name;
         this.count = 0;
+        this.posts = [];
     }
 }
 
@@ -106,7 +103,7 @@ async function addUser(name) {
 
 async function setUser(user) {
     try {
-        log.debug(chalk.yellow("updating user.:"), user);
+        log.debug(chalk.yellow("updating user:"), user);
         const collection = await getUserCollection();
         await collection.save(user);
     } catch (err) {
@@ -148,7 +145,8 @@ async function saveMagicSubmission(submission, addToCache) {
 
 async function getMagicSubmission(inputDHash) {
     function isMatch(cachedHashKey) {
-        return hammingDistance(cachedHashKey, inputDHash) < process.env.HAMMING_THRESHOLD;
+        const hammingThreshold = process.env.HAMMING_THRESHOLD ? process.env.HAMMING_THRESHOLD : 9;
+        return hammingDistance(cachedHashKey, inputDHash) < hammingThreshold;
     }
     const canonicalHashKey = database_cache.find(isMatch);
 

@@ -2,11 +2,10 @@ export {}
 
 // standard modules
 require('dotenv').config();
-const moment = require('moment');
 const outdent = require('outdent');
 const chalk = require('chalk');
 const log = require('loglevel');
-log.setLevel(process.env.LOG_LEVEL);
+log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 const { ImageDetails, getImageDetails } = require('./image_utils.js');
 const { MagicSubmission, getMagicSubmission, saveMagicSubmission, deleteMagicSubmission, setMagicProperty } = require('./mongodb_data.js');
@@ -66,7 +65,7 @@ function isCommand(inboxMessage, command) {
 }
 
 async function processModPrivateMessage(inboxMessage) {
-    inboxMessage.reply(outdent`I am a bot, I only support replies made in the thread. If you have an issue try r/the_magic_eye or ask other mods in your team.`);
+    inboxMessage.reply("I am a bot, I only support replies made in the thread. If you have an issue try r/the_magic_eye or ask other mods in your team.");
     log.info('Processed inbox private message from a moderator:', inboxMessage.id);
 }
 
@@ -81,11 +80,7 @@ async function processUserComment(inboxMessage) {
 }
 
 async function processUserPrivateMessage(inboxMessage) {
-    inboxMessage.reply(outdent`I am a robot so I cannot answer your question.
-
-    But it's almost certainly answered in our detailed rules faq:
-    
-    https://www.reddit.com/r/hmmm/wiki/rules#wiki_individual_rule_details`);
+    inboxMessage.reply("I am a robot so I cannot answer your question. Try reading the sidebar for information about the rules of this subreddit.");
     log.info('Processed inbox private message:', inboxMessage.id);
 }
 
@@ -107,7 +102,7 @@ async function runCommand(inboxMessage, reddit, commandFunction) {
     const submission = await reddit.getSubmission(sliceSubmissionId(await comment.link_id));
     await submission.fetch();
 
-    const imageDetails = await getImageDetails(submission);
+    const imageDetails = await getImageDetails(await submission.url, false);
     if (imageDetails == null){
         log.warn("Could not download image for clear (probably deleted) - removing submission: https://www.reddit.com" + await submission.permalink);
         inboxMessage.reply("I couldn't do that that... image deleted or something?").distinguish();

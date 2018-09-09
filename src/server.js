@@ -1,16 +1,24 @@
 // standard server modules
-const babel = require("babel-core/register");
 const express = require('express');
 const app = express();
-const favicon = require('serve-favicon');
 const chalk = require('chalk');
 const fs = require('fs');
 require('dotenv').config();
-
 const log = require('loglevel');
-log.setLevel(process.env.LOG_LEVEL);
+log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
+const babel = require("babel-core/register");
 
+ 
+if (!process.env.ACCOUNT_USERNAME ||
+    !process.env.PASSWORD ||
+    !process.env.CLIENT_ID ||
+    !process.env.CLIENT_SECRET ||
+    !process.env.NODE_ENV ||
+    !process.env.SUBREDDIT_NAME) {
+        throw "Missing essential config. See documentation for required config variables."
+}
 
+// const favicon = require('serve-favicon');
 // unused webpack middleware to serve react files in the future
 // const webpack = require('webpack');
 // const webpackMiddleware = require('webpack-dev-middleware');
@@ -23,10 +31,10 @@ const snoowrap = require('snoowrap');
 
 // magic eye modules
 const { setMagicProperty, getMagicProperty, initDb } = require('./mongodb_data.js');
-const { processOldSubmissions, processSubmission, } = require('./submission_processor.js');
-const { processInboxReply, processInboxMessage, } = require('./inbox_processor.js');
+const { processSubmission, } = require('./submission_processor.js');
+const { processInboxMessage, } = require('./inbox_processor.js');
 const { processUnmoderated } = require('./unmoderated_processor.js');
-const { generateDHash } = require('./image_utils.js');
+const { firstTimeInit } = require('./first_time_init.js');
 
 // Create a new snoowrap requester with OAuth credentials
 // See here: https://github.com/not-an-aardvark/reddit-oauth-helper
@@ -42,6 +50,8 @@ const reddit = new snoowrap({
 if (process.env.LOG_LEVEL == 'debug') {
     reddit.config({debug: true})
 }
+
+reddit.config({requestDelay: 1000, continueAfterRatelimitError: true});
 
 async function main() {
     try {
@@ -63,7 +73,7 @@ async function main() {
             return;
         }
         const unprocessedSubmissions = await getUnprocessedSubmissions(submissions);
-        for (let submission of unprocessedSubmissions) { await processSubmission(submission, reddit) };
+        for (let submission of unprocessedSubmissions) { await processSubmission(submission, reddit, true) };
         log.debug(chalk.blue('Processed', unprocessedSubmissions.length, ' new submissions'));
 
         // inbox
@@ -79,7 +89,7 @@ async function main() {
         for (let message of unreadMessages) { await processInboxMessage(message, moderators, reddit) };
         log.debug(chalk.blue('Processed', unreadMessages.length, ' new inbox messages'));
 
-        // report unmoderated
+        // unmoderated
         const topSubmissionsDay = await subreddit.getTop({time: 'day'}).fetchAll({amount: 100});
         await processUnmoderated(topSubmissionsDay);
 
@@ -99,7 +109,7 @@ async function getUnprocessedSubmissions(latestItems) {
     // 100 posts per hour, 25 posts at a time - fairly safe. For edge cases like unspammed submissions.
     const maxCheck = 25;
     if (latestItems.length > maxCheck) {
-        log.info('Passed more than maxCheck items:', latestItems.length,', - empty subreddit?');
+        log.info('Passed more than maxCheck items:', latestItems.length,', - empty subreddit/turned back online case.');
         latestItems = latestItems.slice(latestItems.length - maxCheck, latestItems.length);
     }
 
@@ -126,69 +136,20 @@ async function getUnprocessedSubmissions(latestItems) {
 }
 
 
-async function firstTimeInit() {
-    const subreddit = await reddit.getSubreddit(process.env.SUBREDDIT_NAME);
-    
-    const firstTimeInitComplete = await getMagicProperty('first_time_init');
-    if (firstTimeInitComplete) {
-        return;
-    }
-
-    log.info(chalk.blue('Beginning first time initialisation. Retrieving top posts...'));
-    
-    const postAmount = 1000; // not sure if required, but it's reddits current limit
-    const alreadyProcessed = [];
-    const startTime = new Date().getTime();
-
-    const topSubmissionsAll = await subreddit.getTop({time: 'all'}).fetchAll({amount: postAmount});
-    await processOldSubmissions(topSubmissionsAll, alreadyProcessed, 'all time top');
-    const topSubmissionsYear = await subreddit.getTop({time: 'year'}).fetchAll({amount: postAmount});
-    await processOldSubmissions(topSubmissionsYear, alreadyProcessed, 'year top');
-    const topSubmissionsMonth = await subreddit.getTop({time: 'month'}).fetchAll({amount: postAmount});
-    await processOldSubmissions(topSubmissionsMonth, alreadyProcessed, 'month top');
-    const topSubmissionsWeek = await subreddit.getTop({time: 'week'}).fetchAll({amount: postAmount});
-    await processOldSubmissions(topSubmissionsWeek, alreadyProcessed, 'week top');
-    const newSubmissions = await subreddit.getNew().fetchAll({amount: postAmount});
-    await processOldSubmissions(newSubmissions, alreadyProcessed, 'new');
-
-    const endTime = new Date().getTime();
-    log.info(chalk.blue('Top and new posts successfully processed. Took: '), (endTime - startTime) / 1000, 's');
-
-    // sets current items as processed/read, starting from this point
-    const submissions = await subreddit.getNew();
-    const moderators = await subreddit.getModerators();
-    const unreadMessages = await reddit.getUnreadMessages();
-
-    if (!submissions || !moderators || !unreadMessages) {
-        log.error(chalk.red('Error: Cannot get new items to process for first time init. Initialisation failed.'));
-        return;
-    }
-
-    await getUnprocessedSubmissions(submissions); 
-    if (unreadMessages.length > 0) {
-        reddit.markMessagesAsRead(unreadMessages);
-    }
-
-    await setMagicProperty('first_time_init', true);
-    log.info(chalk.green('Initialisation processing complete.'));
-}
-
-
 // server
 async function startServer() {   
     try {
         app.listen(process.env.PORT || 3000, () => log.info(chalk.bgGreenBright('Magic Eye listening on port 3000')));
-
-        await firstTimeInit();
 
         const tempDir = './tmp';
         if (!fs.existsSync(tempDir)) {
             fs.mkdirSync(tempDir);
         }
 
-        log.info('The magic eye is ONLINE.');
-        main();
+        await firstTimeInit(reddit);
 
+        log.info('The magic eye is ONLINE.');
+        main(); // start mains loop
     } catch (e) {
         log.error(chalk.red(e));
     }

@@ -11,12 +11,13 @@ const imageDownloader = require('image-downloader');
 const imageMagick = require('imagemagick');
 const tesseract = require('tesseract.js');
 const stripchar = require('stripchar').StripChar;
+const fetch = require("node-fetch");
 
 const commonWords = require('./common_words.js').getCommonWords();
 
 require('dotenv').config();
 const log = require('loglevel');
-log.setLevel(process.env.LOG_LEVEL);
+log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 
 export async function generateDHash(imagePath, logUrl) {
@@ -37,9 +38,9 @@ export async function generatePHash(imagePath, logUrl) {
     }
 }
 
-export async function downloadImage(submission) {
+export async function downloadImage(submissionUrl) {
     const options = {
-        url: await submission.url,
+        url: submissionUrl,
         dest: './tmp'
       }
 
@@ -60,43 +61,110 @@ export function deleteImage(imagePath) {
     });
 }
 
-async function getImageDetails(submission) {
-    const imagePath = await downloadImage(submission);
+export async function getImageUrl(submissionUrl) {
+    let imageUrl = submissionUrl;
+    if (imageUrl.endsWith('/')) {
+        imageUrl = imageUrl.slice(0, imageUrl.length - 1);
+    }
+
+    const suffix = imageUrl.split('.')[imageUrl.split('.').length-1].split('?')[0];  // http://imgur.com/a/liD3a.gif?horrible=true
+    const images = ['png', 'jpg', 'jpeg', 'bmp'];
+    if (images.includes(suffix)) {
+        return imageUrl;
+    }
+
+    const notImages = ['gif', 'gifv', 'mp4', 'mp4', 'webm', 'tiff', 'pdf', 'mov', 'mov', 'bmp']; 
+    if (notImages.includes(suffix)) {
+        return null; // fail fast
+    }
+
+    // http://i.imgur.com/f7VXJQF
+    // http://imgur.com/mLkJuXP/
+    // http://imgur.com/a/liD3a
+    // http://imgur.com/gallery/HFoOCeg single image
+    // https://imgur.com/gallery/5l71D album
+
+    const isImgur = imageUrl.includes('imgur.com');
+    if (isImgur) {
+        let imgurHash = imageUrl.split('/')[imageUrl.split('/').length-1];  // http://imgur.com/S1dZBPm.weird?horrible=true
+        imgurHash = imgurHash.split('.')[0];
+        imgurHash = imgurHash.split('?')[0];
+        const imgurClientId = '1317612995a5ccf';
+        const options = {
+            headers: {
+                "Authorization": `Client-ID ${imgurClientId}`
+            }
+        };
+
+        const isAlbum = imageUrl.includes('imgur.com/a/');
+        const isGallery = imageUrl.includes('imgur.com/gallery/');
+        if (isGallery || isAlbum) { 
+            const galleryResult = await fetch(`https://api.imgur.com/3/gallery/album/${imgurHash}/images`, options); // gallery album
+            const galleryAlbum = await galleryResult.json();
+            if (galleryAlbum.success && galleryAlbum.data[0].type.startsWith('image')) {
+                return galleryAlbum.data[0].link;
+            } else {
+                const imageResult = await fetch(`https://api.imgur.com/3/gallery/image/${imgurHash}`, options); // gallery but only one image
+                const galleryImage = await imageResult.json();                
+                if (galleryImage.success && galleryImage.data.type.startsWith('image')) {
+                    return galleryImage.data.link;
+                } else {
+                    log.warn('Tried to parse this imgur album/gallery url but failed: ', imageUrl);
+                    return null;
+                }
+            }
+        } else {
+            const result = await fetch(`https://api.imgur.com/3/image/${imgurHash}`, options); // single image
+            const singleImage = await result.json();
+            if (singleImage.success && singleImage.data.type.startsWith('image')) {
+                return singleImage.data.link;
+            } else {
+                log.warn('Tried to parse this imgur single image url but failed: ', imageUrl);
+                return null;
+            }
+        }       
+    }
+        
+    return null;
+}
+
+async function getImageDetails(submissionUrl, includeWords) {
+    const imagePath = await downloadImage(submissionUrl);
     if (imagePath == null) {
         log.debug('download image stage failed');
         return null;
     }
     const imageDetails = { dhash: null, height: null, width: null, trimmedHeight: null, trimmedWidth: null, words: null };
-    imageDetails.dhash = await generateDHash(imagePath, await submission.url);
+    imageDetails.dhash = await generateDHash(imagePath, submissionUrl);
 
     if (imageDetails.dhash == null) {
         log.debug('dhash generate stage failed');
         return null; // must generate a dhash to be valid details
     }
 
-    const imagePHash = await generatePHash(imagePath, await submission.url); 
+    const imagePHash = await generatePHash(imagePath, submissionUrl); 
     if (imagePHash != null) {
         imageDetails.height = imagePHash.height; // there are better ways to get image dimensions but I already had phash working
         imageDetails.width = imagePHash.width;
     } else {
-        log.error('failed to generate phash for ', submission.id);
+        log.error('failed to generate phash for ', submissionUrl);
     }
 
-    imageDetails.words = await getWordsInImage(imagePath, imagePHash.height);
+    imageDetails.words = includeWords ? await getWordsInImage(imagePath, imagePHash.height) : [];
 
     try {
         const trimmedPath = imagePath + '_trimmed';
         await promisify(imageMagick.convert)([imagePath, '-trim', trimmedPath]);
-        const trimmedPHash = await generatePHash(trimmedPath, await submission.url);
+        const trimmedPHash = await generatePHash(trimmedPath, submissionUrl);
         if (trimmedPHash != null) {
             imageDetails.trimmedHeight = trimmedPHash.height;
             imageDetails.trimmedWidth = trimmedPHash.width;
         } else {
-            log.error('failed to generate trimmed phash for ', submission.id);
+            log.error('failed to generate trimmed phash for ', submissionUrl);
         }
         await deleteImage(trimmedPath);
     } catch (e) {
-        log.error(chalk.red('Could not trim submission:'), await submission.url, ' - imagemagick error: ', e);
+        log.error(chalk.red('Could not trim submission:'), submissionUrl, ' - imagemagick error: ', e);
     }
 
     await deleteImage(imagePath);
@@ -118,7 +186,7 @@ async function getWordsInImage(originalImagePath, height) {
         log.debug(chalk.blue("Begin text detection in image:", imagePath));
         await tesseract.recognize(imagePath).then(data => result = data);
         const detectedStrings = result.words.map(word => stripchar.RSExceptUnsAlpNum(word.text.toLowerCase()));
-        log.debug(chalk.blue("Strings detected in image:"), detectedStrings);
+        //log.debug(chalk.blue("Strings detected in image:"), detectedStrings);
         const detectedWords = detectedStrings.filter(item => (item.length > 3 && commonWords.has(item)));
         log.debug(chalk.blue("Text detected in image:"), detectedWords);
         const endTime = new Date().getTime();
@@ -139,5 +207,6 @@ async function getWordsInImage(originalImagePath, height) {
 }
 
 module.exports = {
-    getImageDetails: getImageDetails
+    getImageDetails,
+    getImageUrl
 };    

@@ -1,127 +1,112 @@
 // standard modules
 require('dotenv').config();
-const moment = require('moment');
 const outdent = require('outdent');
 const chalk = require('chalk');
 const log = require('loglevel');
-const cliProgress = require('cli-progress');
-log.setLevel(process.env.LOG_LEVEL);
+log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-// magic eye modules
-const { getImageDetails } = require('./image_utils.js');
-const { MagicSubmission, getMagicSubmission, saveMagicSubmission, deleteMagicSubmission, addUser, getUser, setUser } = require('./mongodb_data.js');
-const { getModComment, isRepostOnlyByUserRemoval, isRepostRemoval, getRemovalReason, sliceSubmissionId, isMagicIgnore, } = require('./reddit_utils.js');
+// magic eye general
+const { getImageDetails, getImageUrl } = require('./image_utils.js');
+const { MagicSubmission, getMagicSubmission, saveMagicSubmission, addUser, getUser, setUser } = require('./mongodb_data.js');
+const { getModComment, isMagicIgnore, removePost, printSubmission } = require('./reddit_utils.js');
 
-
-async function processOldSubmissions(submissions, alreadyProcessed, name) {
-    const submissionsToProcess = submissions.filter(submission => !alreadyProcessed.includes(submission.id));
-    log.info('Retrived', submissions.length, name, 'posts.', submissionsToProcess.length, ' are new posts. Beginning processing.');
-    const progressBar = new cliProgress.Bar({}, cliProgress.Presets.shades_classic);
-    progressBar.start(submissionsToProcess.length, 0);
-    let processedCount = 0;
-
-    let startTime = new Date().getTime();
-    for (const submission of submissionsToProcess) {
-        await processOldSubmission(submission);
-        processedCount++;
-        progressBar.update(processedCount);
-        alreadyProcessed.push(submission.id);
-        }
-    let endTime = new Date().getTime();
-
-    progressBar.stop();
-    log.info(chalk.blue('Processed', processedCount, name, ' submissions.'),' Took: ', (endTime - startTime) / 1000, 's.');
-}
-
-async function processOldSubmission(submission) {
-    log.debug(chalk.yellow('Starting process for old submission by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
-    if (!await submission.url.endsWith('.jpg') && !await submission.url.endsWith('.png'))
-        {
-        log.debug("Image was not a jpg/png - ignoring submission: https://www.reddit.com" + await submission.permalink);
-        return null;
-        }
-
-    const imageDetails = await getImageDetails(submission);
-    if (imageDetails == null){
-        log.debug("Could not download image (probably deleted) - submission: https://www.reddit.com" + await submission.permalink);
-        return;
-    }
-
-    const existingMagicSubmission = await getMagicSubmission(imageDetails.dhash);
-    log.debug('Existing old submission for dhash:', chalk.blue(imageDetails.dhash), chalk.yellow(JSON.stringify(existingMagicSubmission)));
-    
-    if (existingMagicSubmission == null) {
-        await processNewSubmission(submission, imageDetails);
-    }
-}
+// precheck modules
+const { messageFirstTimeUser } = require('./processing_modules/submission_modules/image/precheck/messageFirstTimeUser.js');
+const { removeImagesWithText } = require('./processing_modules/submission_modules/image/precheck/removeImagesWithText.js');
+const { removeSmallImages } = require('./processing_modules/submission_modules/image/precheck/removeSmallImages.js');
+const { removeUncroppedImages } = require('./processing_modules/submission_modules/image/precheck/removeUncroppedImages.js');
+// modules
+const { allowRepostsOnlyByUser } = require('./processing_modules/submission_modules/image/existing_submission/allowRepostOnlyByUser.js');
+const { removeBlacklisted } = require('./processing_modules/submission_modules/image/existing_submission/removeBlacklisted.js');
+const { removeReposts } = require('./processing_modules/submission_modules/image/existing_submission/removeReposts.js');
 
 
-async function processSubmission(submission, reddit) {
+async function processSubmission(submission, reddit, activeMode) {
     log.debug('starting processing for ', submission.id, 'submitted:', new Date(submission.created_utc));
 
-    if (await submission.approved) {
-        log.info("Submission is already approved, - ignoring submission: https://www.reddit.com" + await submission.permalink);
+    // record details about user up front
+    let username = (await submission.author) ? (await submission.author.name) : null;
+    if (username && username != '[deleted]') {
+        let user = await getUser(username);
+        if (user) {
+            user.count++;
+            if (!user.posts) {
+                user.posts = [];
+            }
+            user.posts.push(await submission.id);
+            await setUser(user);
+        } else {
+            await addUser(username);
+            if (activeMode) {
+                messageFirstTimeUser(reddit, submission);
+            }
+        }
+    }
+
+    // ignore approved submissions
+    if (await submission.approved && activeMode) {
+        log.info("Submission is already approved, - ignoring submission:", await printSubmission(submission));
         return;
     }
 
     log.debug(chalk.yellow('Starting process for submission by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
-    if (!await submission.url.endsWith('.jpg') && !await submission.url.endsWith('.png'))
+
+    const imageUrl = await getImageUrl(await submission.url)
+    if (!imageUrl)
         {
-        log.info("Image was not a jpg/png - ignoring submission: https://www.reddit.com" + await submission.permalink);
-        return null;
+        log.info("Submission was not an image - ignoring submission:", await printSubmission(submission));
+        return;
         }
 
-    const imageDetails = await getImageDetails(submission);
+    const imageDetails = await getImageDetails(imageUrl, process.env.REMOVE_IMAGES_WITH_TEXT && activeMode);
     if (imageDetails == null){
-        log.info("Could not download image (probably deleted) - removing submission: https://www.reddit.com" + await submission.permalink);
-        removeAsBroken(reddit, submission);
+        log.info("Could not download image (probably deleted): ", await printSubmission(submission));
+        const removeBrokenImages = process.env.REMOVE_BROKEN_IMAGES == 'true' || process.env.STANDARD_SETUP == 'true';
+        if (activeMode && removeBrokenImages) {
+            removePost(reddit, submission, `It looks like your link is broken or deleted. You will need to fix it and resubmit.`);
+        }
         return;
     }
 
-    if (imageDetails.words.length > 2 || imageDetails.words.includes('hmmm')) {
-        log.info("Text detected, removing - removing submission: https://www.reddit.com" + await submission.permalink);
-        removeAsHavingText(reddit, submission, imageDetails.words);
-        return;
+    if (activeMode) {
+        // run the precheck processors
+        const precheckProcessors = [ 
+            removeImagesWithText,
+            removeSmallImages,
+            removeUncroppedImages,
+        ];
+    
+        for (const processor of precheckProcessors) {
+            const shouldContinue = await processor(reddit, submission, imageDetails);
+            if (!shouldContinue) {
+                return;
+            }
+        }
     }
-
-    if (isImageTooSmall(imageDetails)) {
-        log.info("Image is too small, removing - removing submission: https://www.reddit.com" + await submission.permalink);
-        removeAsTooSmall(reddit, submission);
-        return;
-    }
-
-    if (isImageUncropped(imageDetails)) {
-        log.info("Image is uncropped, removing - removing submission: https://www.reddit.com" + await submission.permalink);
-        removeAsUncropped(reddit, submission);
-        return;
-    }
-
 
     const existingMagicSubmission = await getMagicSubmission(imageDetails.dhash);
     log.debug('Existing submission for dhash:', chalk.blue(imageDetails.dhash), chalk.yellow(JSON.stringify(existingMagicSubmission)));
-    
-    if (existingMagicSubmission != null) {
+ 
+    if (existingMagicSubmission == null) {
+        await processNewSubmission(submission, imageDetails);
+    } else if (activeMode) {
         await processExistingSubmission(submission, existingMagicSubmission, reddit);
-    } else {
-        await processNewSubmission(submission, imageDetails, reddit);
-    }
-
+    } 
 }
-
 
 async function processExistingSubmission(submission, existingMagicSubmission, reddit) {
     log.debug(chalk.yellow('Found existing submission for dhash, matched: ' + existingMagicSubmission._id));
     const lastSubmission = await reddit.getSubmission(existingMagicSubmission.reddit_id);
     const lastSubmissionRemoved = await lastSubmission.removed;
-    const lastSubmissionDeleted = await lastSubmission.author.name == '[deleted]';
 
     existingMagicSubmission.highest_score = Math.max(existingMagicSubmission.highest_score, await lastSubmission.score);
     existingMagicSubmission.duplicates.push(submission.id);
 
     let modComment;
     if (lastSubmissionRemoved) {
-        if (await lastSubmission.banned_by == 'AutoModerator') {
-            log.info('Ignoring automoderator removal.: ', submission.id); // can happen in cases where automod is slow for some reason
+        const modWhoRemoved = await lastSubmission.banned_by;
+        if (modWhoRemoved == 'AutoModerator') { // can happen in cases where automod is slow for some reason
+            log.info('Ignoring automoderator removal for: ', await printSubmission(submission)); 
             saveMagicSubmission(existingMagicSubmission);
             return;
         }
@@ -130,197 +115,37 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
         modComment = await getModComment(reddit, existingMagicSubmission.reddit_id);
         const magicIgnore = await isMagicIgnore(modComment);
         if (modComment == null || magicIgnore) {
-            log.info('Found repost of removed submission, but no relevant removal message exists. Ignoring submission: ', submission.id);
+            log.info('Found repost of removed submission, but no relevant removal message exists. Ignoring submission: ', await printSubmission(submission), 'magicIgnore: ', magicIgnore);
+            existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
             saveMagicSubmission(existingMagicSubmission);
             return;
         }
     }
 
-    const lastIsRepostOnlyByUser = await isRepostOnlyByUserRemoval(modComment); // mod has told them to resubmit an altered/cropped version
-    const lastIsRemovedAsRepost = await isRepostRemoval(modComment); // We missed detecting a valid repost so a mod manually removed it. That image is reposted but we don't know the approved submission.   
-    const recentRepost = await isRecentRepost(submission, lastSubmission, existingMagicSubmission.highest_score);
-    const topRepost = isTopRepost(existingMagicSubmission.highest_score);
-    const sameUserForBothSubmissions = lastSubmissionDeleted || await lastSubmission.author.name == await submission.author.name;
-    const imageIsBlacklisted = lastSubmissionRemoved && !lastIsRemovedAsRepost;
+    // run the submission processors
+    const imageProcessors = [ 
+        allowRepostsOnlyByUser,
+        removeBlacklisted,
+        removeReposts,
+    ];
 
-    if (lastIsRepostOnlyByUser && sameUserForBothSubmissions) {
-        log.info('Found matching hash for submission', submission.id, ', but approving as special user only repost of submission: ', existingMagicSubmission.reddit_id);
-        existingMagicSubmission.approve = true; // just auto-approve as this is almost certainly the needed action
-        existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
-        submission.approve();
-    } else if (imageIsBlacklisted) {
-        const removalReason = await getRemovalReason(modComment);
-        if (removalReason == null) {
-            log.info(chalk.red("Ignoring submission because couldn't read the last removal message. Submission: ", submission.id, ", removal message thread: ", existingMagicSubmission.reddit_id));
-            existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
-        } else {
-            removeAsBlacklisted(reddit, submission, lastSubmission, removalReason);
+    for (const processor of imageProcessors) {
+        const shouldContinue = await processor(reddit, modComment, submission, lastSubmission, existingMagicSubmission);
+        if (!shouldContinue) {
+            break;
         }
-    } else if (topRepost) {
-        removeAsTopRepost(reddit, submission, lastSubmission);
-    } else if (recentRepost) {
-        removeAsRepost(reddit, submission, lastSubmission, lastIsRemovedAsRepost, lastSubmissionDeleted);
-    } else if (!lastSubmissionRemoved || lastIsRemovedAsRepost) {
-        log.info('Found matching hash for submission ', submission.id, ', matched,', existingMagicSubmission.reddit_id,' re-approving as it is over the repost limit.');
-        submission.approve();
-        submission.assignFlair({'text': await lastSubmission.link_flair_text}); // reflair with same flair
-        existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
-    }  else {
-        log.error('Could not process submission. Ignoring submission:', submission.id); // old submission? Investigate why it wasn't caught by cases above.
     }
 
     await saveMagicSubmission(existingMagicSubmission);
 }
 
-async function processNewSubmission(submission, imageDetails, reddit) {
-    log.info(chalk.green('Processing new submission: ' + submission.id));
+async function processNewSubmission(submission, imageDetails) {
+    log.info(chalk.green('Processing new submission: ', await printSubmission(submission)));
     const newMagicSubmission = new MagicSubmission(imageDetails.dhash, submission, await submission.score);
     await saveMagicSubmission(newMagicSubmission, true);
-
-    // reply to user
-    let userName = (await submission.author) ? (await submission.author.name) : null;
-    let user = await getUser(userName);
-    if (user) {
-        user.count++
-        await setUser(user);
-    } else {
-        await addUser(userName);
-        await reddit.composeMessage({
-            to: userName,
-            subject: "Reminder!",
-            text: outdent`
-            A quick reminder of #1 rule in r/hmmm: **Posts cannot contain text** (except normal logos).
-            
-            Since lots of people break this rule, I'm just giving you a heads up in case it's relevant (I'm a bot so can't actually tell).
-            
-            (Thanks! Our [rules faq](https://www.reddit.com/r/hmmm/wiki/rules#wiki_individual_rule_details) answers all questions about our rules.)`
-          })
-    }
-
-    
-}
-
-
-function isImageTooSmall(imageDetails) {
-    if (imageDetails.height == null || imageDetails.width == null) { return false; }
-
-    return (imageDetails.height * imageDetails.width) < (330 * 330); // https://i.imgur.com/xLRZOF5.png
-}
-
-function isImageUncropped(imageDetails) {
-    const isSquarish = imageDetails.height < imageDetails.width * 1.2;
-    
-    if (isSquarish || imageDetails.trimmedHeight == null || imageDetails.trimmedHeight == null) {
-        log.debug(chalk.blue('Image is squarish, not checking for crop'));
-        return false;
-    }
-
-    log.debug(chalk.blue('(imageDetails.trimmedHeight / imageDetails.height) < 0.75', (imageDetails.trimmedHeight / imageDetails.height)));
-    log.debug(chalk.blue('imageDetails.trimmedHeight', imageDetails.trimmedHeight));
-    log.debug(chalk.blue('imageDetails.height', imageDetails.height));
-    return (imageDetails.trimmedHeight / imageDetails.height) < 0.81; // https://i.imgur.com/tfDO06G.png
-}
-
-function isTopRepost(highestScore) {
-    return highestScore > +process.env.TOP_SCORE_THRESHOLD;
-}
-
-async function isRecentRepost(currentSubmission, lastSubmission, highest_score) {
-    const currentDate = moment(await currentSubmission.created_utc * 1000);
-    const lastPosted = moment(await lastSubmission.created_utc * 1000);
-
-    const lastScore = await lastSubmission.score;
-    let daysLimit = process.env.SMALL_SCORE_REPOST_DAYS;
-
-    if (highest_score > +process.env.LARGE_SCORE) {
-        daysLimit = process.env.LARGE_SCORE_REPOST_DAYS;
-    } else if (lastScore > +process.env.MEDIUM_SCORE) {
-        daysLimit = process.env.MEDIUM_SCORE_REPOST_DAYS;
-    }
-
-    const daysSincePosted = currentDate.diff(lastPosted, 'days');   
-    return daysSincePosted < daysLimit;
-}
-
-async function removePost(reddit, submission, removalReason) {
-    submission.remove();
-    const replyable = await submission.reply(removalReason);
-    replyable.distinguish();
-}
-
-
-// ==================================== Removal messages =====================================
-
-const removalFooter = 
-    outdent`
-    
-
-    -----------------------
-
-    *I'm a bot so if I was wrong, reply to me and a moderator will check it. ([rules faq](https://www.reddit.com/r/${process.env.SUBREDDIT_NAME}/wiki/rules))*`;
-
-async function removeAsBroken(reddit, submission){
-    const removalReason = 
-        `It looks like your link is broken or deleted? I've removed it so you will need to fix it and resubmit.`;
-    removePost(reddit, submission, removalReason + removalFooter);
-}
-
-async function removeAsUncropped(reddit, submission){
-    const removalReason = 
-        `This image appears to be uncropped (i.e. black/white bars at the top and bottom). Images must be cropped before posting (or post the original).`;
-    removePost(reddit, submission, removalReason + removalFooter);
-}
-
-async function removeAsHavingText(reddit, submission, words){
-    const removalReason = 
-        `This image has been removed because text was automatically detected in it: \n\n>` + words + `\n\n See [Rule 1: No text (except normal logos + packaging text)](https://www.reddit.com/r/hmmm/wiki/rules#wiki_1._no_text).`;
-    removePost(reddit, submission, removalReason + removalFooter);
-}
-
-async function removeAsTooSmall(reddit, submission){
-    const removalReason = 
-        `This image is too small (images must be larger than 330px*330px). Try drag the image into [google image search](https://www.google.com/imghp?sbi=1) and look for a bigger version.`;
-    removePost(reddit, submission, removalReason + removalFooter);
-}
-
-async function removeAsTopRepost(reddit, submission, lastSubmission){
-    log.info('Found matching hash for submission: ', submission.id, ', removing as repost of all time top post:', await lastSubmission.id);
-    const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
-    let removalReason = 
-        `Good hmmm but unfortunately your post has been removed because it is one of our all time top posts. You can see it [here](${permalink}), ([direct link](${ await lastSubmission.url})).`;
-
-    removePost(reddit, submission, removalReason + removalFooter);
-}
-
-async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubmission, lastSubmissionDeleted){
-    log.info('Found matching hash for submission: ', submission.id, ', removing as repost of:', await lastSubmission.id);
-    if (submission.id == await lastSubmission.id) {
-        log.error('Duplicate detection error, ignoring but this indicates a real issue.');
-        return;
-    }
-    const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
-    let removalReason = 
-        `Good hmmm but unfortunately your post has been removed because it has been posted recently [here](${permalink}) by another user. ([direct link](${ await lastSubmission.url})).`;
-    if (noOriginalSubmission) {
-        removalReason += ` That submission was also removed by a moderator as a repost, so it will have been posted in the last week or so.`;
-    } else if (lastSubmissionDeleted) {
-        removalReason += ` **Note:** Users may not delete and resubmit images without a good reason.`;
-    }
-    removePost(reddit, submission, removalReason + removalFooter);
-}
-
-async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklistReason){
-    log.info('Removing ', submission.id, ', as blacklisted. Root blacklisted submission: ', await lastSubmission.id);
-    const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
-    const removalReason = outdent
-        `Your post has been removed because it is a repost of [this image](${await lastSubmission.url}) posted [here](${permalink}), and that post was removed because:
-
-        ${blacklistReason}`;
-    removePost(reddit, submission, removalReason + removalFooter);
 }
 
 
 module.exports = {
-    processOldSubmissions,
     processSubmission,
 };
