@@ -1,7 +1,7 @@
 
 Magic Eye is an image detection bot that detects reposts in subreddits, as well as several other image processing features.
 
-##Features:
+## Features
 
 Magic Eye can:
 
@@ -83,7 +83,7 @@ If it ever causes an issue with false removals, you can reply to Magic Eye with 
 
 You can configure the bot by setting differnet config variables. 
 
-###Standard setup
+### Standard setup
 
 Enable/disable: 
  * `STANDARD_SETUP`=`true`
@@ -98,7 +98,7 @@ By default this will:
 
 You can use this setting and override features by using `false` in the config below, or optionally start from scratch wtihout it. It's a good starting point. All defaults are as below.
 
-###Remove reposts
+### Remove reposts
 
 (Included in `STANDARD_SETUP`)
 
@@ -123,7 +123,7 @@ Deleted posts:
 
 Removes reposts even if the previous post was deleted.
 
-###Remove blacklisted images
+### Remove blacklisted images
 
 (Included in `STANDARD_SETUP`)
 
@@ -147,7 +147,7 @@ If you want to allow a user to repost a similar submission and don't want the bo
 
 If the last moderators post is removed, it'll ignore the blacklisting.
 
-###Remove broken image links
+### Remove broken image links
 
 Enable/disable:
 * `REMOVE_BROKEN_IMAGES`: `true` by
@@ -155,7 +155,7 @@ Enable/disable:
 If Magic Eye can't download the image, it will remove it as broken and ask the user to fix the link. This is commonly when the user posts a deleted reddit link.
 
 
-###Remove small images
+### Remove small images
 
 (Included in `STANDARD_SETUP`)
 
@@ -168,7 +168,7 @@ Custom size:
 * `MINIMUM_SIZE`: 330 by default. pixels size, MINIMUM_SIZE by MINIMUM_SIZE. Example of 330 image: https://i.imgur.com/7jTFozp.png
 
 
-###Remove uncropped images
+### Remove uncropped images
 
 (Included in `STANDARD_SETUP`)
 
@@ -177,7 +177,7 @@ Removes images with [black bars](https://i.imgur.com/6a4SCcw.png) at the bottom 
 Enable/disable:
 * `REMOVE_UNCROPPED_IMAGES`: `true` by default
 
-###Message first time submitters
+### Message first time submitters
 
 Private messages users the first time they make a submission to the subreddit.
 
@@ -188,7 +188,7 @@ Config:
 * `FIRST_TIME_USER_MESSAGE_TITLE`: No default, this is a mandatory field. PM title.
 * `FIRST_TIME_USER_MESSAGE`: No default, this is a mandatory field. Contents of PM.
 
-###Report unmoderated posts
+### Report unmoderated posts
 
 Report posts over a certain threshold that are not yet moderated.
 
