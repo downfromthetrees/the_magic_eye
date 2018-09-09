@@ -1,9 +1,8 @@
 
 Magic Eye is an image detection bot that detects reposts in subreddits, as well as several other image processing features.
 
-## Features
 
-Magic Eye can:
+## Features
 
 * Remove reposts
 * Remove blacklisted images and repeat the removal reason to the user (requires toolbox)
@@ -13,20 +12,17 @@ Magic Eye can:
 * Private message first time posters with a custom message
 * Report posts over a certain threshold
 
-It supports normal image urls as well as imgur posts. No gif/media/link support.
+Magic Eye supports normal image urls as well as imgur posts. No gif/media/link support.
 
+## Things to know before setting it up
+
+* The hosting service requires a credit card number for validation. [No charges](https://devcenter.heroku.com/articles/free-dyno-hours#free-dyno-hour-pool) can or will ever be made by setting up Magic Eye, but a suitable mod must create the hosting account.
+* You must set up a new bot and new hosting account for each subreddit.
+* You need a github account [create one here](http://github.com/)
 
 
 ## Setup
 
-Things to know beforehand:
-
-* The hosting service requires a credit card number for validation. [No charges](https://devcenter.heroku.com/articles/free-dyno-hours#free-dyno-hour-pool) can or will ever be made by setting up Magic Eye, but a suitable mod must create the hosting account.
-* You must set up a new bot and new hosting account for each subreddit.
-* You need a github account
-
-
-### Instructions:
 * Login to github
 * Go to https://github.com/downfromthetrees/the_magic_eye
 * Hit the fork button
