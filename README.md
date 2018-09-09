@@ -20,34 +20,36 @@ It supports normal image urls as well as imgur posts. No gif/media/link support.
 ## Setup
 
 Things to know beforehand:
+
 * The hosting service requires a credit card number for validation. [No charges](https://devcenter.heroku.com/articles/free-dyno-hours#free-dyno-hour-pool) can or will ever be made by setting up Magic Eye, but a suitable mod must create the hosting account.
 * You must set up a new bot and new hosting account for each subreddit.
 * You need a github account
 
 
+### Instructions:
 * Login to github
 * Go to https://github.com/downfromthetrees/the_magic_eye
 * Hit the fork button
-
+----
 * Create an account for your bot
 * While logged in as your bot go to https://www.reddit.com/prefs/apps
 * Create an app
    * Choose `script`
    * Enter this as the redirect uri: `https://not-an-aardvark.github.io/reddit-oauth-helper/`
    * Record the client id ([under the name](https://i.imgur.com/dcl8EY8.png)), and secret. You'll need them in a momment.
-
+----
 * Create a new account on https://www.heroku.com (pick node.js)
 * Create new app (give it a name like my-bot-name)
 * Add a credit card number: https://dashboard.heroku.com/account/billing
 * In **Settings** hit **Reveal Config Vars** and add the essential ones:
-	* ACCOUNT_USERNAME=<your bots username>
+    * ACCOUNT_USERNAME=<your bots username>
     * PASSWORD=<your bots password>
     * CLIENT_ID=<generated above>
     * CLIENT_SECRET=<generated above>
     * NODE_ENV=production
     * SUBREDDIT_NAME=<rarepuppers>
     * STANDARD_SETUP=true
-
+----
 * Click the **Resources** tab and use the search bar to search and add these (free tier) add-ons:
 	* mLab MongoDB
 	* Papertrail 
@@ -58,16 +60,17 @@ Things to know beforehand:
 * Under **Automatic deploys**, choose **Enable Automatic Deploys**
 * Deploy it for the first time by selecting **Deploy Branch** under **Manual Deploy**
 * Go back to **Resources**, click on Papertrail and you should see logs coming out that the bot is successfully initializing by processing old posts before it starts running normally.
-
+----
 * Setup a ping to keep the app alive: 
     * Click on **New Relic APM** in the list
 	* Click the **Synthetics** tab
 	* Create new monitor
-		* Choose **Ping** (should be the default)
-		* Set url to: `https://<your-app-name>.herokuapp.com/keepalive` (open it in a browser to test it works)
-		* Set the validation string to: `{"status":"ok"}`
-		* Check one American location
-		* Set the schedule to 1 minute
+        * Choose **Ping** (should be the default)
+        * Set url to: `https://<your-app-name>.herokuapp.com/keepalive` (open it in a browser to test it works)
+        * Set the validation string to: `{"status":"ok"}`
+        * Check one American location
+        * Set the schedule to 1 minute
+----
 
 Your bot is now up and running, try it out. You can use Papetrail any time you want to see what it's up to (filter out the keepalive calls first).
 
