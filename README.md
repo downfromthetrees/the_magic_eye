@@ -102,6 +102,8 @@ You can use this setting and override features by using `false` in the config be
 
 (Included in `STANDARD_SETUP`)
 
+Additionally this setting will auto approve reposts over the limit, and reflair them with the same flair.
+
 Enable/disable:
 * `REMOVE_IMAGE_REPOSTS`: `true` by default
 
