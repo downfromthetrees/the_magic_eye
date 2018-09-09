@@ -28,7 +28,6 @@
     "babel-preset-react": "^6.24.1",
     "chalk": "^2.4.0",
     "cli-progress": "^1.8.0",
-    "css-loader": "^0.28.11",
     "dhash": "0.0.4",
     "dotenv": "^5.0.1",
     "express": "^4.16.3",

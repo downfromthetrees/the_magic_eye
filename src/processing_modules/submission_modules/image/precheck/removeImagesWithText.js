@@ -11,6 +11,8 @@ const { removePost, printSubmission } = require('../../../../reddit_utils.js');
 
 //=====================================
 
+// Custom processor for r/hmmm
+
 const enabled = process.env.REMOVE_IMAGES_WITH_TEXT == 'true';
 
 async function removeImagesWithText(reddit, submission, imageDetails) {
