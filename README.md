@@ -1,6 +1,24 @@
 
 Magic Eye is an image detection bot that detects reposts in subreddits, as well as several other image processing features.
 
+<!-- TOC -->
+
+- [Features](#features)
+- [Things to know before setting it up](#things-to-know-before-setting-it-up)
+- [Setup](#setup)
+- [General info](#general-info)
+- [Settings](#settings)
+    - [Standard setup](#standard-setup)
+    - [Remove reposts](#remove-reposts)
+    - [Remove blacklisted images](#remove-blacklisted-images)
+    - [Remove broken image links](#remove-broken-image-links)
+    - [Remove small images](#remove-small-images)
+    - [Remove uncropped images](#remove-uncropped-images)
+    - [Message first time submitters](#message-first-time-submitters)
+    - [Report unmoderated posts](#report-unmoderated-posts)
+
+<!-- /TOC -->
+
 
 ## Features
 
