@@ -90,11 +90,13 @@ Your bot is now up and running, try it out. You can use Papetrail any time you w
 
 ## General info
 
-Magic Eye sometimes gets detection wrong, most often that means missing reposts but occasionally it's false positives.
+* Magic Eye runs every 30 seconds, so if you want it to pick up a post then avoid moderating posts in the /new queue that are under a minute old.
 
-Just keep in mind, the bot doesn't *see* images like we do. Slightly different crops/quality are the reason most detections are missed.
+* Magic Eye sometimes gets detection wrong, most often that means missing reposts but occasionally it's false positives. Just keep in mind, the bot doesn't *see* images like we do. Slightly different crops/quality are the reason most detections are missed.
 
-If it ever causes an issue with false removals, you can reply to Magic Eye with `clear` and it'll remove the image from it's database.
+* If it ever causes an issue with false removals, you can reply to Magic Eye with `clear` and it'll remove the image from it's database.
+
+
 
 ## Settings 
 
@@ -162,7 +164,7 @@ If you want to allow a user to repost a similar submission and don't want the bo
 * `[](#repost_only_by_user)`: Ignore the removal if it's posted by the same user
 * `[](#magic_ignore)`: Ignore the removal altogether
 
-If the last moderators post is removed, it'll ignore the blacklisting.
+If the last moderators post is removed, or if there is no removal message, Magic Eye will just ignore the post and let you deal with it.
 
 ### Remove broken image links
 
