@@ -56,13 +56,13 @@ Magic Eye supports normal image urls as well as imgur posts. No gif/media/link s
 * Create new app (give it a name like my-bot-name)
 * Add a credit card number: https://dashboard.heroku.com/account/billing
 * In **Settings** hit **Reveal Config Vars** and add the essential ones:
-    * ACCOUNT_USERNAME=<your bots username>
-    * PASSWORD=<your bots password>
-    * CLIENT_ID=<generated above>
-    * CLIENT_SECRET=<generated above>
-    * NODE_ENV=production
-    * SUBREDDIT_NAME=<rarepuppers>
-    * STANDARD_SETUP=true
+    * `ACCOUNT_USERNAME`=your bots username (no u/), example: `MyCoolBot`
+    * `PASSWORD`=your bots password
+    * `CLIENT_ID`=generated above
+    * `CLIENT_SECRET`=generated above
+    * `NODE_ENV`=`production`
+    * `SUBREDDIT_NAME`=your subreddit name (no r/), as in `rarepuppers`
+    * `STANDARD_SETUP`=`true`
 ----
 * Click the **Resources** tab and use the search bar to search and add these (free tier) add-ons:
 	* mLab MongoDB
@@ -73,7 +73,12 @@ Magic Eye supports normal image urls as well as imgur posts. No gif/media/link s
 * Search for the_magic_eye and connect
 * Under **Automatic deploys**, choose **Enable Automatic Deploys**
 * Deploy it for the first time by selecting **Deploy Branch** under **Manual Deploy**
-* Go back to **Resources**, click on Papertrail and you should see logs coming out that the bot is successfully initializing by processing old posts before it starts running normally.
+* Go back to **Resources**, click on Papertrail and you should see logs coming out that the bot is successfully initializing by processing old posts before it starts running normally. You can use Papetrail any time you want to see what it's up to (filter out the keepalive calls first).
+
+Your bot is now up and running. The initialisation period may take some time as it goes through the last/top 1000 posts.
+
+Heroku apps need interaction to keep running, so follow the last step below:
+
 ----
 * Setup a ping to keep the app alive: 
     * Click on **New Relic APM** in the list
@@ -86,7 +91,6 @@ Magic Eye supports normal image urls as well as imgur posts. No gif/media/link s
         * Set the schedule to 1 minute
 ----
 
-Your bot is now up and running, try it out. You can use Papetrail any time you want to see what it's up to (filter out the keepalive calls first).
 
 ## General info
 
