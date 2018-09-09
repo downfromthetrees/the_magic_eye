@@ -9,7 +9,7 @@ const { printSubmission } = require('../../../../reddit_utils.js');
 
 //=====================================
 
-const enabled = process.env.ALLOW_REPOST_ONLY_BY_USER ? process.env.ALLOW_REPOST_ONLY_BY_USER == 'true' : process.env.STANDARD_SETUP == 'true';
+const enabled = process.env.REMOVE_BLACKLISTED ? process.env.REMOVE_BLACKLISTED == 'true' : process.env.STANDARD_SETUP == 'true';
 
 async function allowRepostsOnlyByUser(reddit, modComment, submission, lastSubmission, existingMagicSubmission) {
     if (!enabled) {
