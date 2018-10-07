@@ -164,7 +164,6 @@ async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
     }
 
     // submissions
-    //const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
     if (unprocessedSubmissions.length > 0) {
         const database = await initDatabase(subredditName, masterSettings.config.databaseUrl);
         if (database) {
