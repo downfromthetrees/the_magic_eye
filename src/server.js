@@ -13,9 +13,16 @@ if (!process.env.ACCOUNT_USERNAME ||
     !process.env.PASSWORD ||
     !process.env.CLIENT_ID ||
     !process.env.CLIENT_SECRET ||
-    !process.env.NODE_ENV) {
+    !process.env.NODE_ENV ||
+    !process.env.HAMMING_THRESHOLD ||
+    !process.env.MONGODB_URI ||
+    !process.env.NODE_ENV ||
+    !process.env.DAYS_EXPIRY ||
+    !process.env.EXTERNAL_DATABASES
+    ) {
         throw "Missing essential config. Fatal error."
 }
+
 
 // magic eye modules
 const { initDatabase } = require('./mongodb_data.js');
