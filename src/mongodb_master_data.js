@@ -51,7 +51,7 @@ class SubredditSettings {
 }
 
 function getCollectionName(collection) {
-    const collectionPrefix = (process.env.NODE_ENV == 'production' ? '' : process.env.NODE_ENV + ':') + ':';
+    const collectionPrefix = (process.env.NODE_ENV == 'production' ? '' : process.env.NODE_ENV + ':');
     return collectionPrefix + collection;
 }
 
