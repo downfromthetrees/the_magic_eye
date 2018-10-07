@@ -26,7 +26,7 @@ class SubredditSettings {
         this._id = subredditName;
 
         this.config = {
-            firstTimeInit: false,
+            firstTimeInit: true,
             databaseUrl: null,
             reportUnmoderatedTime: 0,
         }
