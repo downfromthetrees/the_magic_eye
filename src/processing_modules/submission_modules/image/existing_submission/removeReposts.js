@@ -83,10 +83,10 @@ async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubm
     }
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
     let removalReason = 
-        `Good post but unfortunately it has been removed because it has been posted recently by another user.
-        
-        * [Submission link](${permalink})
-        * [Direct image link](${await lastSubmission.url})`;
+`Good post but unfortunately it has been removed because it has been posted recently by another user.
+
+* [Submission link](${permalink})
+* [Direct image link](${await lastSubmission.url})`;
     if (noOriginalSubmission) {
         removalReason += ` 
         
