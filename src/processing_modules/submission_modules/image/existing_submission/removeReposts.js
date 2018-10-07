@@ -3,6 +3,7 @@ require('dotenv').config();
 const moment = require('moment');
 const chalk = require('chalk');
 const log = require('loglevel');
+const outdent = require('outdent');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 // magic eye modules
@@ -82,17 +83,16 @@ async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubm
         return;
     }
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
-    let removalReason = 
-`Good post but unfortunately it has been removed because it has been posted recently by another user.
+    let removalReason = outdent`Good post but unfortunately it has been removed because it has been posted recently by another user.
 
-* [Submission link](${permalink})
-* [Direct image link](${await lastSubmission.url})`;
+        * [Submission link](${permalink})
+        * [Direct image link](${await lastSubmission.url})`;
     if (noOriginalSubmission) {
-        removalReason += ` 
-        
+        removalReason += outdent` 
+
         That submission was also removed by a moderator as a repost, so it will have been posted by another user recently.`;
     } else if (warnAboutDeletedReposts) {
-        removalReason += `
+        removalReason += outdent`
         
         **Note:** Users may not delete and resubmit images without a good reason.`;
     }
