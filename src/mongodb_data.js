@@ -5,22 +5,23 @@ const hammingDistance = require("hamming");
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-const collectionPrefix = (process.env.NODE_ENV == 'production' ? '' : process.env.NODE_ENV + ':') + process.env.SUBREDDIT_NAME + ':';
 
-const usersCollectionName = collectionPrefix + 'users';
+let databaseConnectionList = {};
+
 class User {
     _id;
+    createdAt; // automatic expiry indicator
     count; // successful post
     posts;
 
     constructor(name) {
         this._id = name;
+        this.createdAt = new Date();
         this.count = 0;
         this.posts = [];
     }
 }
 
-const magicPropertyName = collectionPrefix + 'properties';
 class MagicProperty {
     _id;
     value;
@@ -31,9 +32,9 @@ class MagicProperty {
     }
 }
 
-const magicSubmissionName = collectionPrefix + 'submissions';
 class MagicSubmission {
     _id; // dhash of the original
+    createdAt; // automatic expiry indicator
     reddit_id; // the last reddit id that matched the dhash (dhash within hamming distance)
     duplicates; // array of reddit ids, includes removed and approved posts
     exactMatchOnly; // boolean value
@@ -41,6 +42,7 @@ class MagicSubmission {
 
     constructor(dhash, redditSubmission, highestScore) {
         this._id = dhash;
+        this.createdAt = new Date();
         this.reddit_id = redditSubmission.id;
         this.duplicates = [];
         this.exactMatchOnly = null;
@@ -48,206 +50,203 @@ class MagicSubmission {
     }
 }
 
-let database = null; // access object
-let database_cache = null; // entire database of dhashes in array
 
-async function initDb(cb) {
-    try {
-        await MongoClient.connect(process.env.MONGODB_URI, async function (err, client) {
-            if (err) {
-              log.error(chalk.red('Fatal MongoDb connection error: '), err);
-              throw err;
-            }
-          
-            database = await client.db();
-
-            log.info(chalk.blue('Loading database cache...'));
-            const startTime = new Date().getTime();
-            const magicCollection = await database.collection(magicSubmissionName);
-            magicCollection.ensureIndex( { "creationDate": 1 }, { expireAfterSeconds: 60 * 60 * 24 * 365 * 5 } ); // expire after 5 years. 
-            database_cache = await magicCollection.find().project({_id: 1}).map(x => x._id).toArray();
-            const endTime = new Date().getTime();
-            log.info(chalk.green('Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', database_cache.length, 'entries');
-
-            cb();
-          });                 
-    } catch (err) {
-        log.error(chalk.red('Fatal MongoDb connection error: '), err);
-        throw err;
-    }
+function getCollectionName(collection, subredditName) {
+    const collectionPrefix = (process.env.NODE_ENV == 'production' ? '' : process.env.NODE_ENV + ':') + subredditName + ':';
+    return collectionPrefix + collection;
 }
 
-
-async function getUserCollection() {
-    return database.collection(usersCollectionName);
+async function getUserCollection(database) {
+    return database.connection.collection(getCollectionName('users', database.subredditName));
 }
 
-async function getSubmissionCollection() {
-    return database.collection(magicSubmissionName);
+async function getSubmissionCollection(database) {
+    return database.connection.collection(getCollectionName('submissions', database.subredditName));
 }
 
-async function getPropertyCollection() {
-    return database.collection(magicPropertyName);
+async function getPropertyCollection(database) {
+    return database.connection.collection(getCollectionName('properties', database.subredditName));
 }
 
-async function addUser(name) {
-    try {
-        log.debug(chalk.yellow("inserting user. name:"), name);
-        const collection = await getUserCollection();
-        await collection.save(new User(name));
-    } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
-        return null;
-    }
-}
-
-async function setUser(user) {
-    try {
-        log.debug(chalk.yellow("updating user:"), user);
-        const collection = await getUserCollection();
-        await collection.save(user);
-    } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
-        return null;
-    }
-}
-
-export async function getUser(name) {
-    if (name == null) {
-        return null;
-    }
-
-    try {
-        const collection = await getUserCollection();
-        return (await collection.findOne({'_id': name}));
-    } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
-    }
-    return null;
-}
-
-
-async function saveMagicSubmission(submission, addToCache) {
-    if (submission._id == null) {
-        throw new Error('Cannot create magic submission with null _id');
-    }
-    try {
-        log.debug(chalk.yellow("INSERTING submission:" + JSON.stringify(submission)));
-        const collection = await getSubmissionCollection();
-        await collection.save(submission);
-        if (addToCache) {
-            database_cache.push(submission._id);
-        }
-    } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
-    }
-}
-
-async function getMagicSubmission(inputDHash) {
-    function isMatch(cachedHashKey) {
-        const hammingThreshold = process.env.HAMMING_THRESHOLD ? process.env.HAMMING_THRESHOLD : 9;
-        return hammingDistance(cachedHashKey, inputDHash) < hammingThreshold;
-    }
-    const canonicalHashKey = database_cache.find(isMatch);
-
-    if (canonicalHashKey == undefined) {
-        log.debug('No cache hit for hashKey:', inputDHash);
-        return null;
-    }
-
-    log.debug(chalk.blue('Cached hamming match, hamming distance is: ',  hammingDistance(canonicalHashKey, inputDHash)));
+class MagicDatabase {
+    subredditName;
+    connection; 
+    dhash_cache;
     
-    try {
-        const collection = await getSubmissionCollection();
-        const magicSubmission = await collection.findOne({'_id' : canonicalHashKey});
-        chalk.yellow('hashKey:', canonicalHashKey, 'value:', JSON.stringify(magicSubmission));
-        chalk.yellow(magicSubmission);
+    constructor(subredditName, connection, dhash_cache) {
+        this.subredditName = subredditName;
+        this.connection = connection;
+        this.dhash_cache = dhash_cache;
+    }
 
-        if (magicSubmission.exactMatchOnly == true && magicSubmission.dhash != inputDHash) {
-            log.debug('cache hit, but ignoring because exactMatchOnly is set for image');
+    async addUser(name) {
+        try {
+            log.debug(chalk.yellow("inserting user. name:"), name);
+            const collection = await getUserCollection(this);
+            await collection.save(new User(name));
+        } catch (err) {
+            log.error(chalk.red('MongoDb error:'), err);
+        }
+    }
+    
+    async setUser(user, database) {
+        try {
+            log.debug(chalk.yellow("updating user:"), user);
+            const collection = await getUserCollection(this);
+            await collection.save(user);
+        } catch (err) {
+            log.error(chalk.red('MongoDb error:'), err);
+        }
+    }
+    
+    async getUser(name) {
+        if (name == null) {
             return null;
         }
-
-        return magicSubmission;
-    } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
-        return null;
-    }
-}
-
-async function getMagicSubmissionById(submission_id) {
-    try {
-        const collection = await getSubmissionCollection();
-        return await collection.findOne({'reddit_id' : submission_id});
-    } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
-        return null;
-    }
-}
-
-async function deleteMagicSubmission(submission) {
-    try {
-        log.debug(chalk.yellow("DELETING:" + submission));
-        const collection = await getSubmissionCollection();
-        await collection.remove({'_id': submission._id});
-
-        const index = database_cache.indexOf(submission._id);
-        if (index > -1) {
-            database_cache.splice(index, 1);
+    
+        try {
+            const collection = await getUserCollection(this);
+            return (await collection.findOne({'_id': name}));
+        } catch (err) {
+            log.error(chalk.red('MongoDb error:'), err);
         }
-    } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
-    }
-}
-
-
-async function setMagicProperty(key, value) {
-    try {
-        log.debug(chalk.yellow("inserting property. key:"), key, Array.isArray(value) ? (chalk.yellow('size: ') + value.length) : (chalk.yellow('value: ') + value));
-        const collection = await getPropertyCollection();
-        await collection.save(new MagicProperty(key, value));
-    } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
         return null;
     }
-}
-
-
-async function getMagicProperty(key) {
-    try {
-        const collection = await getPropertyCollection();
-        const property = (await collection.findOne({'_id': key}));
-        if (property != null) {
-            return property.value;
+    
+    async saveMagicSubmission(submission, addToCache) {
+        if (submission._id == null) {
+            throw new Error('Cannot create magic submission with null _id');
         }
-    } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
+
+        submission.createdAt = new Date(); // reset expiry date
+        try {
+            log.debug(chalk.yellow("INSERTING submission:" + JSON.stringify(submission)));
+            const collection = await getSubmissionCollection(this);
+            await collection.save(submission);
+            if (addToCache) {
+                this.dhash_cache.push(submission._id);
+            }
+        } catch (err) {
+            log.error(chalk.red('MongoDb error:'), err);
+        }
     }
-    return null;
+    
+    async getMagicSubmission(inputDHash) {
+        function isMatch(cachedHashKey) {
+            const hammingThreshold = process.env.HAMMING_THRESHOLD ? process.env.HAMMING_THRESHOLD : 9;
+            return hammingDistance(cachedHashKey, inputDHash) < hammingThreshold;
+        }
+        const canonicalHashKey = this.dhash_cache.find(isMatch);
+    
+        if (canonicalHashKey == undefined) {
+            log.debug('No cache hit for hashKey:', inputDHash);
+            return null;
+        }
+    
+        log.debug(chalk.blue('Cached hamming match, hamming distance is: ',  hammingDistance(canonicalHashKey, inputDHash)));
+        
+        try {
+            const collection = await getSubmissionCollection(this);
+            const magicSubmission = await collection.findOne({'_id' : canonicalHashKey});
+            chalk.yellow('hashKey:', canonicalHashKey, 'value:', JSON.stringify(magicSubmission));
+            chalk.yellow(magicSubmission);
+    
+            if (magicSubmission.exactMatchOnly == true && magicSubmission.dhash != inputDHash) {
+                log.debug('cache hit, but ignoring because exactMatchOnly is set for image');
+                return null;
+            }
+    
+            return magicSubmission;
+        } catch (err) {
+            log.error(chalk.red('MongoDb error:'), err);
+            return null;
+        }
+    }
+    
+    async getMagicSubmissionById(submission_id) {
+        try {
+            const collection = await getSubmissionCollection(this);
+            return await collection.findOne({'reddit_id' : submission_id});
+        } catch (err) {
+            log.error(chalk.red('MongoDb error:'), err);
+            return null;
+        }
+    }
+    
+    async deleteMagicSubmission(submission) {
+        try {
+            log.debug(chalk.yellow("DELETING:" + submission));
+            const collection = await getSubmissionCollection(this);
+            await collection.remove({'_id': submission._id});
+    
+            const index = dhash_cache.indexOf(submission._id);
+            if (index > -1) {
+                dhash_cache.splice(index, 1);
+            }
+        } catch (err) {
+            log.error(chalk.red('MongoDb error:'), err);
+        }
+    }
+    
+    
+    async setMagicProperty(key, value) {
+        try {
+            log.debug(chalk.yellow("inserting property. key:"), key, Array.isArray(value) ? (chalk.yellow('size: ') + value.length) : (chalk.yellow('value: ') + value));
+            const collection = await getPropertyCollection(this);
+            await collection.save(new MagicProperty(key, value));
+        } catch (err) {
+            log.error(chalk.red('MongoDb error:'), err);
+            return null;
+        }
+    }
+       
+    async getMagicProperty(key) {
+        try {
+            const collection = await getPropertyCollection(this);
+            const property = (await collection.findOne({'_id': key}));
+            if (property != null) {
+                return property.value;
+            }
+        } catch (err) {
+            log.error(chalk.red('MongoDb error:'), err);
+        }
+        return null;
+    }
+
 }
 
-async function resetDuplicates() {
-    try {
-        log.info(chalk.yellow("resetting all duplicates"));
-        const collection = await getSubmissionCollection();
-        await collection.updateMany({}, {$set: {'duplicates': []}});
-    } catch (err) {
-        log.error(chalk.red('MongoDb error resetting duplicates:'), err);
+async function initDatabase(name, connectionUrl) {
+    if (!databaseConnectionList[name]) {
+        log.debug(chalk.blue('Connecting to database...', name, '-', connectionUrl));
+        try {
+            const client = await MongoClient.connect(connectionUrl, { useNewUrlParser: true });
+            databaseConnectionList[name] = await client.db();
+        } catch (err) {
+            log.error(chalk.red('Fatal MongoDb connection error for: '), name, err);
+            return null;
+        }
     }
+
+    const connection = databaseConnectionList[name];
+    log.debug(chalk.blue('Loading database cache for '), name);
+    const startTime = new Date().getTime();
+
+    const submissionCollection = await connection.collection(getCollectionName('submissions', name));
+    submissionCollection.ensureIndex( { "createdAt": 1 }, { expireAfterSeconds: 60 * 60 * 24 * process.env.DAYS_EXPIRY } );
+   
+    const userCollection = await connection.collection(getCollectionName('users', name));
+    userCollection.ensureIndex( { "createdAt": 1 }, { expireAfterSeconds: 60 * 60 * 24 * process.env.DAYS_EXPIRY } );
+
+    const dhash_cache = await submissionCollection.find().project({_id: 1}).map(x => x._id).toArray();
+    const endTime = new Date().getTime();
+    log.debug(chalk.green('Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', dhash_cache.length, 'entries for ', name);
+
+    return new MagicDatabase(name, connection, dhash_cache);
 }
 
 
 
 module.exports = {
     MagicSubmission,
-    getMagicSubmission,
-    saveMagicSubmission,
-    deleteMagicSubmission,
-    getMagicSubmissionById,
-    initDb,
-    setMagicProperty,
-    getMagicProperty,
-    addUser,
-    setUser,
-    getUser
+    initDatabase,
 };

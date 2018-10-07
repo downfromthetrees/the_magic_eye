@@ -25,16 +25,15 @@ function sliceSubmissionId(submissionId) {
     return submissionId.slice(3, submissionId.length); // id is prefixed with "id_"
 }
 
-
-async function removePost(reddit, submission, removalReason) {
-    const customFooterSection = process.env.CUSTOM_FOOTER ? process.env.CUSTOM_FOOTER : "";
+async function removePost(reddit, submission, removalReason, subSettings) {
+    const customFooterSection = subSettings.customFooter ? subSettings.customFooter : "";
     const removalFooter = 
     outdent`
     
 
     -----------------------
 
-    *I'm a bot so if I was wrong, reply to me and a moderator will check it. ${process.env.CUSTOM_FOOTER}*`;
+    *I'm a bot so if I was wrong, reply to me and a moderator will check it. ${customFooterSection}*`;
     
     submission.remove();
     const replyable = await submission.reply(removalReason + removalFooter);

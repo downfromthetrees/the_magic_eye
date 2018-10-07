@@ -10,25 +10,26 @@ const { removePost, printSubmission } = require('../../../../reddit_utils.js');
 
 //=====================================
 
-const enabled = process.env.REMOVE_SMALL_IMAGES ? process.env.REMOVE_SMALL_IMAGES == 'true' : process.env.STANDARD_SETUP == 'true';
-const smallDimension = process.env.MINIMUM_SIZE ? process.env.MINIMUM_SIZE : 330;  // https://i.imgur.com/7jTFozp.png
+// 330px https://i.imgur.com/7jTFozp.png
 
-async function removeSmallImages(reddit, submission, imageDetails) {
-    if (!enabled) {
+async function removeSmallImages(reddit, submission, imageDetails, subSettings) {
+    if (!subSettings.removeSmallImages) {
         return true;
     }   
 
-    if (isImageTooSmall(imageDetails)) {
+    const smallDimension = subSettings.removeSmallImages.smallDimension;
+
+    if (isImageTooSmall(imageDetails, smallDimension)) {
         log.info("Image is too small, removing - removing submission: ", await printSubmission(submission));
         const removalReason = `This image is too small (images must be larger than ${smallDimension}px*${smallDimension}px). Try drag the image into [google image search](https://www.google.com/imghp?sbi=1) and look for a bigger version.`;
-        removePost(reddit, submission, removalReason);
+        removePost(reddit, submission, removalReason, subSettings);
         return false;
     }   
 
     return true;
 }
 
-function isImageTooSmall(imageDetails) {
+function isImageTooSmall(imageDetails, smallDimension) {
     if (imageDetails.height == null || imageDetails.width == null) {
         return false;
     }

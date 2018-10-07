@@ -9,10 +9,8 @@ const { printSubmission } = require('../../../../reddit_utils.js');
 
 //=====================================
 
-const enabled = process.env.REMOVE_BLACKLISTED ? process.env.REMOVE_BLACKLISTED == 'true' : process.env.STANDARD_SETUP == 'true';
-
-async function allowRepostsOnlyByUser(reddit, modComment, submission, lastSubmission, existingMagicSubmission) {
-    if (!enabled) {
+async function allowRepostsOnlyByUser(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings) {
+    if (!subSettings.removeBlacklisted) { // rely on blacklisted instead
         return true;
     }
 

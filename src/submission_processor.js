@@ -7,7 +7,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 // magic eye general
 const { getImageDetails, getImageUrl } = require('./image_utils.js');
-const { MagicSubmission, getMagicSubmission, saveMagicSubmission, addUser, getUser, setUser } = require('./mongodb_data.js');
+const { MagicSubmission } = require('./mongodb_data.js');
 const { getModComment, isMagicIgnore, removePost, printSubmission } = require('./reddit_utils.js');
 
 // precheck modules
@@ -21,24 +21,24 @@ const { removeBlacklisted } = require('./processing_modules/submission_modules/i
 const { removeReposts } = require('./processing_modules/submission_modules/image/existing_submission/removeReposts.js');
 
 
-async function processSubmission(submission, reddit, activeMode) {
+async function processSubmission(submission, masterSettings, database, reddit, activeMode) {
     log.debug('starting processing for ', submission.id, 'submitted:', new Date(submission.created_utc));
 
     // record details about user up front
     let username = (await submission.author) ? (await submission.author.name) : null;
     if (username && username != '[deleted]') {
-        let user = await getUser(username);
+        let user = await database.getUser(username);
         if (user) {
             user.count++;
             if (!user.posts) {
                 user.posts = [];
             }
             user.posts.push(await submission.id);
-            await setUser(user);
+            await database.setUser(user);
         } else {
-            await addUser(username);
+            await database.addUser(username);
             if (activeMode) {
-                messageFirstTimeUser(reddit, submission);
+                messageFirstTimeUser(reddit, submission, masterSettings.settings);
             }
         }
     }
@@ -58,12 +58,11 @@ async function processSubmission(submission, reddit, activeMode) {
         return;
         }
 
-    const imageDetails = await getImageDetails(imageUrl, process.env.REMOVE_IMAGES_WITH_TEXT && activeMode);
+    const imageDetails = await getImageDetails(imageUrl, activeMode && masterSettings.settings.removeImagesWithText);
     if (imageDetails == null){
         log.info("Could not download image (probably deleted): ", await printSubmission(submission));
-        const removeBrokenImages = process.env.REMOVE_BROKEN_IMAGES == 'true' || process.env.STANDARD_SETUP == 'true';
-        if (activeMode && removeBrokenImages) {
-            removePost(reddit, submission, `It looks like your link is broken or deleted. You will need to fix it and resubmit.`);
+        if (activeMode && masterSettings.settings.removeBrokenImages) {
+            removePost(reddit, submission, `It looks like your link is broken or deleted. You will need to fix it and resubmit.`, masterSettings.settings);
         }
         return;
     }
@@ -77,24 +76,25 @@ async function processSubmission(submission, reddit, activeMode) {
         ];
     
         for (const processor of precheckProcessors) {
-            const shouldContinue = await processor(reddit, submission, imageDetails);
+            const shouldContinue = await processor(reddit, submission, imageDetails, masterSettings.settings);
             if (!shouldContinue) {
                 return;
             }
         }
     }
 
-    const existingMagicSubmission = await getMagicSubmission(imageDetails.dhash);
+    const existingMagicSubmission = await database.getMagicSubmission(imageDetails.dhash);
     log.debug('Existing submission for dhash:', chalk.blue(imageDetails.dhash), chalk.yellow(JSON.stringify(existingMagicSubmission)));
  
     if (existingMagicSubmission == null) {
-        await processNewSubmission(submission, imageDetails);
+        await processNewSubmission(submission, imageDetails, database);
     } else if (activeMode) {
-        await processExistingSubmission(submission, existingMagicSubmission, reddit);
+        await processExistingSubmission(submission, existingMagicSubmission, masterSettings, reddit);
+        await database.saveMagicSubmission(existingMagicSubmission); // save here to cover all updates
     } 
 }
 
-async function processExistingSubmission(submission, existingMagicSubmission, reddit) {
+async function processExistingSubmission(submission, existingMagicSubmission, masterSettings, reddit) {
     log.debug(chalk.yellow('Found existing submission for dhash, matched: ' + existingMagicSubmission._id));
     const lastSubmission = await reddit.getSubmission(existingMagicSubmission.reddit_id);
     const lastSubmissionRemoved = await lastSubmission.removed;
@@ -107,7 +107,6 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
         const modWhoRemoved = await lastSubmission.banned_by;
         if (modWhoRemoved == 'AutoModerator') { // can happen in cases where automod is slow for some reason
             log.info('Ignoring automoderator removal for: ', await printSubmission(submission)); 
-            saveMagicSubmission(existingMagicSubmission);
             return;
         }
 
@@ -117,7 +116,6 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
         if (modComment == null || magicIgnore) {
             log.info('Found repost of removed submission, but no relevant removal message exists. Ignoring submission: ', await printSubmission(submission), 'magicIgnore: ', magicIgnore);
             existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
-            saveMagicSubmission(existingMagicSubmission);
             return;
         }
     }
@@ -130,19 +128,17 @@ async function processExistingSubmission(submission, existingMagicSubmission, re
     ];
 
     for (const processor of imageProcessors) {
-        const shouldContinue = await processor(reddit, modComment, submission, lastSubmission, existingMagicSubmission);
+        const shouldContinue = await processor(reddit, modComment, submission, lastSubmission, existingMagicSubmission, masterSettings.settings);
         if (!shouldContinue) {
             break;
         }
     }
-
-    await saveMagicSubmission(existingMagicSubmission);
 }
 
-async function processNewSubmission(submission, imageDetails) {
+async function processNewSubmission(submission, imageDetails, database) {
     log.info(chalk.green('Processing new submission: ', await printSubmission(submission)));
     const newMagicSubmission = new MagicSubmission(imageDetails.dhash, submission, await submission.score);
-    await saveMagicSubmission(newMagicSubmission, true);
+    await database.saveMagicSubmission(newMagicSubmission, true);
 }
 
 

@@ -7,66 +7,52 @@ const chalk = require('chalk');
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-const { ImageDetails, getImageDetails } = require('./image_utils.js');
-const { MagicSubmission, getMagicSubmission, saveMagicSubmission, deleteMagicSubmission, setMagicProperty } = require('./mongodb_data.js');
+const { getImageDetails } = require('./image_utils.js');
 
 // magic eye modules
 const { sliceSubmissionId } = require('./reddit_utils.js');
 
 
-
-async function processInboxMessage(inboxMessage, moderators, reddit) {
-    const isMod = moderators.find((moderator) => moderator.name === inboxMessage.author.name);
-
-    if (isMod) {
-        if (!inboxMessage.was_comment) {
-            processModPrivateMessage(inboxMessage);
+async function processInboxMessage(inboxMessage, reddit, database) {
+    const subredditName = await inboxMessage.subreddit.display_name;
+    const subreddit = await reddit.getSubreddit(subredditName);
+    if (inboxMessage.was_comment) {
+        const moderators = await subreddit.getModerators();
+        const isMod = moderators.find((moderator) => moderator.name === inboxMessage.author.name);
+        if (isMod) {
+            await processModComment(inboxMessage, reddit, database);
         } else {
-            processModComment(inboxMessage, reddit);
-        }    
+            await processUserComment(inboxMessage);
+        }
     } else {
-        if (!inboxMessage.was_comment) {
-            processUserPrivateMessage(inboxMessage);
-        } else {
-            processUserComment(inboxMessage);
-        }    
+        await processUserPrivateMessage(inboxMessage, subreddit);
     }
 }
 
-
-async function processModComment(inboxMessage, reddit) {
+async function processModComment(inboxMessage, reddit, database) {
     if (inboxMessage.subject == "username mention") {
         log.info('Username mention:', inboxMessage.id);
         return;
     }
-    
+
     // moderator commands
     switch (inboxMessage.body.toLowerCase()) {
-        case 'help':  
+        case 'help':
             printHelp(inboxMessage);
-            break;    
-        case 'clear':  
-            runCommand(inboxMessage, reddit, clearSubmission);
+            break;
+        case 'clear':
+            runCommand(inboxMessage, reddit, database, command_clearSubmission);
             break;
         case 'wrong':
-            runCommand(inboxMessage, reddit, removeDuplicate);
+            runCommand(inboxMessage, reddit, database, command_removeDuplicate);
             break;
         case 'avoid':
-            runCommand(inboxMessage, reddit, setExactMatchOnly);
+            runCommand(inboxMessage, reddit, database, command_setExactMatchOnly);
             break;
         default:
-            await inboxMessage.reply("Not sure what that command is. See my subreddit r/THE_MAGIC_EYE for documentation.").distinguish();
+            await inboxMessage.reply("Not sure what that command is. Try `help` to see the commands I support.").distinguish();
             break;
     }
-}
-
-function isCommand(inboxMessage, command) {
-    return inboxMessage.body.toLowerCase().includes(command);
-}
-
-async function processModPrivateMessage(inboxMessage) {
-    inboxMessage.reply("I am a bot, I only support replies made in the thread. If you have an issue try r/the_magic_eye or ask other mods in your team.");
-    log.info('Processed inbox private message from a moderator:', inboxMessage.id);
 }
 
 async function processUserComment(inboxMessage) {
@@ -79,15 +65,25 @@ async function processUserComment(inboxMessage) {
     log.info('User requesting assistance:', inboxMessage.id);
 }
 
-async function processUserPrivateMessage(inboxMessage) {
-    inboxMessage.reply("I am a robot so I cannot answer your question. Try reading the sidebar for information about the rules of this subreddit.");
+async function processUserPrivateMessage(inboxMessage, subreddit) {
+    if (inboxMessage.subject.includes('invitation to moderate')) {
+        try {
+            log.info('Accepting mod invite for: ', await subreddit.display_name);
+            await subreddit.acceptModeratorInvite();
+        } catch (e) {
+            log.error('Error accepting mod invite: ', inboxMessage.id, e);
+        }
+        return;
+    }
+
+inboxMessage.reply("I am a robot so I cannot answer your question. Try reading the sidebar for information about the rules of this subreddit.");
     log.info('Processed inbox private message:', inboxMessage.id);
 }
 
 
 async function printHelp(inboxMessage) {
     const helpMessage = outdent`
-    Here are the commands I support as replies in a thread (root image is the one linked, current image is from this thread): 
+    Here are the commands I support as replies in a thread (root image is the one linked, current image is from this thread):
 
     * \`wrong\`: Removes the current image as a duplicate of the root. (future feature wanted here so that the two images won't match again.)
     * \`avoid\`: Only match identical images with the root the future. Helps with root images that keep matching wrong (commonly because they are dark).
@@ -96,7 +92,7 @@ async function printHelp(inboxMessage) {
     await inboxMessage.reply(helpMessage).distinguish();
 }
 
-async function runCommand(inboxMessage, reddit, commandFunction) {
+async function runCommand(inboxMessage, reddit, database, commandFunction) {
     const comment = await reddit.getComment(inboxMessage.id);
     await comment.fetch();
     const submission = await reddit.getSubmission(sliceSubmissionId(await comment.link_id));
@@ -109,7 +105,7 @@ async function runCommand(inboxMessage, reddit, commandFunction) {
         return false;
     }
 
-    const existingMagicSubmission = await getMagicSubmission(imageDetails.dhash);
+    const existingMagicSubmission = await database.getMagicSubmission(imageDetails.dhash);
     log.debug('Existing submission for dhash:', chalk.blue(imageDetails.dhash), chalk.yellow(JSON.stringify(existingMagicSubmission)));
     if (existingMagicSubmission == null) {
         log.info('No magic submission found for clear, ignoring. dhash: ', await submission._id);
@@ -117,33 +113,33 @@ async function runCommand(inboxMessage, reddit, commandFunction) {
         return true; // already cleared
     }
 
-    const success = await commandFunction(submission, existingMagicSubmission);
+    const success = await commandFunction(submission, existingMagicSubmission, database);
     inboxMessage.reply(success ? 'Thanks, all done.' : "I couldn't do that that... image deleted or something?").distinguish();
 }
 
 
-async function clearSubmission(submission, existingMagicSubmission) {
+async function command_clearSubmission(submission, existingMagicSubmission, database) {
     log.debug(chalk.yellow('Clearing magic submission by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
-    await deleteMagicSubmission(existingMagicSubmission);
+    await database.deleteMagicSubmission(existingMagicSubmission);
     return true; 
 }
 
-async function removeDuplicate(submission, existingMagicSubmission) {
+async function command_removeDuplicate(submission, existingMagicSubmission, database) {
     log.debug(chalk.yellow('Starting process for remove duplicate by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
     const duplicateIndex = existingMagicSubmission.duplicates.indexOf(await submission.id);
     existingMagicSubmission.duplicates.splice(duplicateIndex, 1);
-    await saveMagicSubmission(existingMagicSubmission);
+    await database.saveMagicSubmission(existingMagicSubmission);
     return true; 
 }
 
-async function setExactMatchOnly(submission, existingMagicSubmission) {
+async function command_setExactMatchOnly(submission, existingMagicSubmission, database) {
     log.debug(chalk.yellow('Setting exact match only for submission by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
     existingMagicSubmission.exactMatchOnly = true;
-    await saveMagicSubmission(existingMagicSubmission);
+    await database.saveMagicSubmission(existingMagicSubmission);
     return true; 
 }
 
 
 module.exports = {
-    processInboxMessage,
+    processInboxMessage
 };

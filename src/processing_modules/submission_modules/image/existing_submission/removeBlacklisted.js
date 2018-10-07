@@ -10,10 +10,8 @@ const { isRepostRemoval, removePost, printSubmission } = require('../../../../re
 
 //=====================================
 
-const enabled = process.env.REMOVE_BLACKLISTED ? process.env.REMOVE_BLACKLISTED == 'true' : process.env.STANDARD_SETUP == 'true';
-
-async function removeBlacklisted(reddit, modComment, submission, lastSubmission, existingMagicSubmission) {
-    if (!enabled) {
+async function removeBlacklisted(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings) {
+    if (!subSettings.removeBlacklisted) {
         return true;
     }
 
@@ -27,7 +25,7 @@ async function removeBlacklisted(reddit, modComment, submission, lastSubmission,
             log.info(chalk.red("Ignoring submission because couldn't read the last removal message. Submission: ", await printSubmission(submission), ", removal message thread: http://redd.it/", existingMagicSubmission.reddit_id));
             existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
         } else {
-            removeAsBlacklisted(reddit, submission, lastSubmission, removalReason);
+            removeAsBlacklisted(reddit, submission, lastSubmission, removalReason, subSettings);
         }
     
         return false;
@@ -36,14 +34,14 @@ async function removeBlacklisted(reddit, modComment, submission, lastSubmission,
     return true;
 }
 
-async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklistReason){
+async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklistReason, subSettings){
     log.info('Removing as blacklisted:', await printSubmission(submission), ', as blacklisted. Root blacklisted submission: ', await printSubmission(lastSubmission));
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
     const removalReason = outdent
         `Your post has been removed because it is a repost of [this image](${await lastSubmission.url}) posted [here](${permalink}), and that post was removed because:
 
         ${blacklistReason}`;
-    removePost(reddit, submission, removalReason);
+    removePost(reddit, submission, removalReason, subSettings);
 }
 
 
