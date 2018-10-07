@@ -83,11 +83,18 @@ async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubm
     }
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
     let removalReason = 
-        `Good post but unfortunately it has been removed because it has been posted recently by another user. ([submission link](${permalink}), [direct image link](${await lastSubmission.url})).`;
+        `Good post but unfortunately it has been removed because it has been posted recently by another user.
+        
+        * [Submission link](${permalink})
+        * [Direct image link](${await lastSubmission.url})`;
     if (noOriginalSubmission) {
-        removalReason += ` That submission was also removed by a moderator as a repost, so it will have been posted by another user recently.`;
+        removalReason += ` 
+        
+        That submission was also removed by a moderator as a repost, so it will have been posted by another user recently.`;
     } else if (warnAboutDeletedReposts) {
-        removalReason += ` **Note:** Users may not delete and resubmit images without a good reason.`;
+        removalReason += `
+        
+        **Note:** Users may not delete and resubmit images without a good reason.`;
     }
     removePost(reddit, submission, removalReason, subSettings);
 }
