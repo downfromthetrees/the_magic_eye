@@ -32,7 +32,7 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
         return false;
     }
     
-    const topRepost = existingMagicSubmission.highest_score > +processorSettings.topScoreThreshold;
+    const topRepost = existingMagicSubmission.highest_score > +processorSettings.topScore;
     if (topRepost) {
         removeAsTopRepost(reddit, submission, lastSubmission, subSettings);
         return false;
@@ -83,7 +83,7 @@ async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubm
         return;
     }
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
-    let removalReason = outdent`Good post but unfortunately it has been removed because it has been posted recently by another user.
+    let removalReason = outdent`Good post but unfortunately it has been removed because it has been posted recently by another user:
 
         * [Submission link](${permalink})
         * [Direct image link](${await lastSubmission.url})`;
