@@ -33,7 +33,7 @@ async function removePost(reddit, submission, removalReason, subSettings) {
 
     -----------------------
 
-    *I'm a bot so if I was wrong, reply to me and a moderator will check it. ${customFooterSection}*`;
+    *I'm a bot so if I was wrong, reply to me and a moderator will check it.${customFooterSection}*`;
     
     submission.remove();
     const replyable = await submission.reply(removalReason + removalFooter);
