@@ -40,12 +40,13 @@ class SubredditSettings {
                 mediumScoreRepostDays: 25,
                 largeScore: 50,
                 largeScoreRepostDays: 10000,
-                topScoreThreshold: 999999999,
+                topScore: 999999999,
             },
             removeSmallImages: {
                 smallDimension: 330,
             },
-            removeUncroppedImages: {}
+            removeUncroppedImages: {},
+            removeBrokenImages: {}
         }
     }
 }
