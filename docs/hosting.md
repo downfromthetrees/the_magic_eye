@@ -31,7 +31,7 @@ This was initially intended for an audience when the bot was "if you can set it 
     * `ACCOUNT_USERNAME`=your bots username (no u/), example: `MyCoolBot`
     * `CLIENT_ID`=generated above
     * `CLIENT_SECRET`=generated above
-    * `HAMMING_THRESHOLD`=9    
+    * `HAMMING_THRESHOLD`=6
     * `NODE_ENV`=`production`
     * `PASSWORD`=your bots password    
     * `MONGODB_URI`=your database (will be auto-generated in next step)

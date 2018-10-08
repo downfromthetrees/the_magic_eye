@@ -91,7 +91,7 @@ It's a good starting point for most image subs. Features are listed individually
         "mediumScoreRepostDays": 25,
         "largeScore": 50,
         "largeScoreRepostDays": 10000,
-        "topScore": 999999
+        "topScore": 999999999
     },
 
 Aside from removing reposts, this setting will auto approve reposts over the limit, and reflair them with the same flair.

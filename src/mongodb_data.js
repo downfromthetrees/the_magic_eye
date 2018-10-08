@@ -133,7 +133,7 @@ class MagicDatabase {
     
     async getMagicSubmission(inputDHash) {
         function isMatch(cachedHashKey) {
-            const hammingThreshold = process.env.HAMMING_THRESHOLD ? process.env.HAMMING_THRESHOLD : 9;
+            const hammingThreshold = process.env.HAMMING_THRESHOLD ? process.env.HAMMING_THRESHOLD : 6;
             return hammingDistance(cachedHashKey, inputDHash) < hammingThreshold;
         }
         const canonicalHashKey = this.dhash_cache.find(isMatch);
