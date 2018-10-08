@@ -20,6 +20,18 @@ if (!process.env.ACCOUNT_USERNAME ||
     !process.env.DAYS_EXPIRY ||
     !process.env.EXTERNAL_DATABASES
     ) {
+        log.error(
+            process.env.ACCOUNT_USERNAME,
+            process.env.PASSWORD,
+            process.env.CLIENT_ID,
+            process.env.CLIENT_SECRET,
+            process.env.NODE_ENV,
+            process.env.HAMMING_THRESHOLD,
+            process.env.MONGODB_URI,
+            process.env.NODE_ENV,
+            process.env.DAYS_EXPIRY,
+            process.env.EXTERNAL_DATABASES
+        );
         throw "Missing essential config. Fatal error."
 }
 
