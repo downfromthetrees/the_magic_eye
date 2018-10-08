@@ -31,8 +31,6 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
         submission.approve();
         return false;
     }
-    
-    log.info('DEBUG: existingMagicSubmission.highest_score:', existingMagicSubmission.highest_score, ', +processorSettings.topScore', +processorSettings.topScore);
 
     const topRepost = existingMagicSubmission.highest_score > +processorSettings.topScore;
     if (topRepost) {
@@ -64,9 +62,7 @@ async function isRecentRepost(currentSubmission, lastSubmission, processorSettin
     const lastPosted = moment(await lastSubmission.created_utc * 1000);
 
     const lastScore = await lastSubmission.score;
-    let daysLimit = processorSettings.smallScoreRepostDays;
-
-    log.info('DEBUG: lastScore:', lastScore);
+    let daysLimit = +processorSettings.smallScoreRepostDays;
 
     if (lastScore > +processorSettings.largeScore) {
         daysLimit = processorSettings.largeScoreRepostDays;
@@ -77,8 +73,6 @@ async function isRecentRepost(currentSubmission, lastSubmission, processorSettin
     }
 
     const daysSincePosted = currentDate.diff(lastPosted, 'days');   
-
-    log.info('DEBUG: daysSincePosted:', daysSincePosted, ', daysLimit', processorSettings.daysLimit);
     return daysSincePosted < daysLimit;
 }
 
