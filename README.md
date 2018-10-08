@@ -1,10 +1,10 @@
 
-Magic Eye is an image detection bot that detects reposts in subreddits, as well as several other image processing features.
+Magic Eye is an image detection bot for reddit that detects reposts, as well as several other image processing and moderation features.
 
 <!-- TOC -->
 
-- [Features](#features)
-- [Things to know before setting it up](#things-to-know-before-setting-it-up)
+- [Current features](#current-features)
+- [Prerequisites](#prerequisites)
 - [Setup](#setup)
 - [General info](#general-info)
 - [Settings](#settings)
@@ -15,12 +15,14 @@ Magic Eye is an image detection bot that detects reposts in subreddits, as well 
     - [Remove small images](#remove-small-images)
     - [Remove uncropped images](#remove-uncropped-images)
     - [Message first time submitters](#message-first-time-submitters)
+    - [Custom footer](#custom-footer)
     - [Report unmoderated posts](#report-unmoderated-posts)
+- [Thanks](#thanks)
 
 <!-- /TOC -->
 
 
-## Features
+## Current features
 
 * Remove reposts
 * Remove blacklisted images and repeat the removal reason to the user (requires toolbox)
@@ -30,88 +32,43 @@ Magic Eye is an image detection bot that detects reposts in subreddits, as well 
 * Private message first time posters with a custom message
 * Report posts over a certain threshold
 
-Magic Eye supports normal image urls as well as imgur posts. No gif/media/link support.
+Magic Eye supports normal image urls as well as imgur posts. No gif/media/link support yet.
 
-## Things to know before setting it up
 
-* The hosting service requires a credit card number for validation. [No charges](https://devcenter.heroku.com/articles/free-dyno-hours#free-dyno-hour-pool) can or will ever be made by setting up Magic Eye, but a suitable mod must create the hosting account.
-* You must set up a new bot and new hosting account for each subreddit.
-* You need a github account [create one here](http://github.com/)
+## Prerequisites
 
+* You must have wikis enabled for your sub (i.e. in your sub settings, wiki should be set to mod editing)
+* If you intend to use the blacklisting feature, you must remove images with the [Toolbox extension](http://www.reddit.com/r/toolbox)
 
 ## Setup
 
-* Login to github
-* Go to https://github.com/downfromthetrees/the_magic_eye
-* Hit the fork button
-----
-* Create an account for your bot
-* While logged in as your bot go to https://www.reddit.com/prefs/apps
-* Create an app
-   * Choose `script`
-   * Enter this as the redirect uri: `https://not-an-aardvark.github.io/reddit-oauth-helper/`
-   * Record the client id ([under the name](https://i.imgur.com/dcl8EY8.png)), and secret. You'll need them in a momment.
-----
-* Create a new account on https://www.heroku.com (pick node.js)
-* Create new app (give it a name like my-bot-name)
-* Add a credit card number: https://dashboard.heroku.com/account/billing
-* In **Settings** hit **Reveal Config Vars** and add the essential ones:
-    * `ACCOUNT_USERNAME`=your bots username (no u/), example: `MyCoolBot`
-    * `PASSWORD`=your bots password
-    * `CLIENT_ID`=generated above
-    * `CLIENT_SECRET`=generated above
-    * `NODE_ENV`=`production`
-    * `SUBREDDIT_NAME`=your subreddit name (no r/), as in `rarepuppers`
-    * `STANDARD_SETUP`=`true`
-----
-* Click the **Resources** tab and use the search bar to search and add these (free tier) add-ons:
-	* mLab MongoDB
-	* Papertrail 
-	* New Relic APM
-* Click the **Deploy** tab and select **GitHub** under **Deployment Method**
-* Login to github
-* Search for the_magic_eye and connect
-* Under **Automatic deploys**, choose **Enable Automatic Deploys**
-* Deploy it for the first time by selecting **Deploy Branch** under **Manual Deploy**
-* Go back to **Resources**, click on Papertrail and you should see logs coming out that the bot is successfully initializing by processing old posts before it starts running normally. You can use Papetrail any time you want to see what it's up to (filter out the keepalive calls first).
-
-Your bot is now up and running. The initialisation period may take some time as it goes through the last/top 1000 posts.
-
-Heroku apps need interaction to keep running, so follow the last step below:
-
-----
-* Setup a ping to keep the app alive: 
-    * Click on **New Relic APM** in the list
-	* Click the **Synthetics** tab
-	* Create new monitor
-        * Choose **Ping** (should be the default)
-        * Set url to: `https://<your-app-name>.herokuapp.com/keepalive` (open it in a browser to test it works)
-        * Set the validation string to: `{"status":"ok"}`
-        * Check one American location
-        * Set the schedule to 1 minute
-----
-
+* Invite www.reddit.com/u/MAGIC\_EYE\_BOT as a moderator to your subreddit
+    * It needs `flair`, `posts` and `wiki` permissions
+* The bot will create a settings page in your wiki at: http://www.reddit.com/r/YOUR\_SUB\_NAME/wiki/magic\_eye
+* The bot will then trawl through all the top/new posts in your sub it can, this will take some time
+* When it's done it will send you a modmail and it'll start operating.
+* If you want to blacklist images using toolbox (recommended) follow the steps [here](#remove-blacklisted-images).
 
 ## General info
 
-* Magic Eye runs every 30 seconds, so if you want it to pick up a post then avoid moderating posts in the /new queue that are under a minute old.
+* Magic Eye sometimes gets detection wrong. Normally that means missing reposts, but occasionally (under 1%) it's false positives. Just keep in mind: the bot doesn't *see* images like we do, so what's obviously to your eyes as a repost/not the same image is not how the bot works ([algorithm info](http://www.hackerfactor.com/blog/?/archives/529-Kind-of-Like-That.html)).
 
-* Magic Eye sometimes gets detection wrong, most often that means missing reposts but occasionally it's false positives. Just keep in mind, the bot doesn't *see* images like we do. Slightly different crops/quality are the reason most detections are missed.
+* Magic Eye runs every 30s or so, so if you want it to pick up a post then avoid moderating posts in the /new queue that are under a minute old.
 
-* If it ever causes an issue with false removals, you can reply to Magic Eye with `clear` and it'll remove the image from it's database.
-
+* You can reply to MAGIC\_EYE\_BOT with `clear` and it'll remove the image from it's database. This is handy if one image is ever causing a problem.
 
 
 ## Settings 
 
-You can configure the bot by setting differnet config variables. 
+You can configure the bot by editing the magic\_eye wiki page. The settings are in JSON format.
+
+http://www.reddit.com/r/YOUR\_SUB\_NAME/wiki/magic\_eye
+
+MAGIC\_EYE\_BOT will let you know if your updates are sucessful. If you're having trouble with it you can use [this JSON validator](https://jsonformatter.curiousconcept.com/) for help.
 
 ### Standard setup
 
-Enable/disable: 
- * `STANDARD_SETUP`=`true`
-
-By default this will:
+By default Magic Eye will:
 
 * Remove reposts
 * Remove blacklisted images and repeat the removal reason to the user (requires toolbox configuration, see below)
@@ -119,109 +76,120 @@ By default this will:
 * Remove small images
 * Remove uncropped images
 
-You can use this setting and override features by using `false` in the config below, or optionally start from scratch wtihout it. It's a good starting point. All defaults are as below.
+It's a good starting point for most image subs. Features are listed individually below.
 
 ### Remove reposts
 
-(Included in `STANDARD_SETUP`)
+**(Included in default settings)**
 
-Additionally this setting will auto approve reposts over the limit, and reflair them with the same flair.
+    "removeReposts": {
+        "removeRepostsIfDeleted": true,
+        "smallScore": 0,
+        "smallScoreRepostDays": 15,
+        "mediumScore": 400,
+        "mediumScoreRepostDays": 25,
+        "largeScore": 50,
+        "largeScoreRepostDays": 10000,
+        "topScore": 999999
+    },
 
-Enable/disable:
-* `REMOVE_IMAGE_REPOSTS`: `true` by default
+Aside from removing reposts, this setting will auto approve reposts over the limit, and reflair them with the same flair.
 
-Scores thresholds:
-* `SMALL_SCORE`: 0 (if set higher it will auto-approve anything that gets under this score)
-* `SMALL_SCORE_REPOST_DAYS`: 15
-* `MEDIUM_SCORE`: 400
-* `MEDIUM_SCORE_REPOST_DAYS`: 25
-* `LARGE_SCORE`: 10000
-* `LARGE_SCORE_REPOST_DAYS`: 50
-* `TOP_SCORE_THRESHOLD`: 100000000 (if set lower it will remove any post over this threshold permanently)
-
-These are intemediary thresholds for reposts. i.e. if the previous image got MEDIUM_SCORE, it'll be removed if it's under MEDIUM_SCORE_REPOST_DAYS:
-
-Deleted posts:
-* `REMOVE_REPOSTS_IF_DELETED`: `true` by default
-
-Removes reposts even if the previous post was deleted.
+Details:
+* `removeRepostsIfDeleted`: Removes reposts even if the previous post was deleted. (`true`/`false`)
+* Scores thresholds: These are intemediary thresholds for reposts. i.e. if the previous image got `mediumScore`, it'll be removed if it's under `mediumScoreRepostDays`.
+    * If `smallScore` if set higher than 0 it will auto-approve anything that gets under this score
+    * If `topScore` is set lower it will remove any post over this threshold permanently, with a message saying it's an all time subreddit top post.
 
 ### Remove blacklisted images
 
-(Included in `STANDARD_SETUP`)
+**(Included in default settings)**
 
-Enable/disable:
-* `REMOVE_IMAGE_REPOSTS`: `true` by default
+    "removeBlacklisted": {},
 
-This requires toolbox removal reasons in order to read the last moderator post. Without these fields, Magic Eye will ignore the post. These are special invisible tags that won't show up to the user, but Magic Eye will use to pull out the removal message that's in between.
+Removes images permanently. This feature requires the [Toolbox extension](http://www.reddit.com/r/toolbox)  and toolbox removal reasons.
 
-In the toolbox removal reason settings, add:
+In the toolbox removal reason settings, add these special links (invisible to the user):
 * `[](#start_removal)` to the end of the header
 * `[](#end_removal)` to the start of the footer
 
-If you have a manual repost removal you'll want Magic Eye not to blacklist those images, so add this to it:
+If these don't exist, or the last moderators post is removed, or there is no removal message, Magic Eye will just ignore the post and let you deal with it.
+
+If you have a toolbox repost removal you'll want Magic Eye not to blacklist those images, so add this to it:
 
 * `[](#repost)`
 
-If you want to allow a user to repost a similar submission and don't want the bot to remove it as a repost:
+If you have a toolbox removal you just want to be ignored altogether::
 
-* `[](#repost_only_by_user)`: Ignore the removal if it's posted by the same user
+* `[](#repost_only_by_user)`: Ignore the removal if it's posted by the same user (i.e. "you had a username visible, please remove it and repost")
 * `[](#magic_ignore)`: Ignore the removal altogether
-
-If the last moderators post is removed, or if there is no removal message, Magic Eye will just ignore the post and let you deal with it.
 
 ### Remove broken image links
 
-Enable/disable:
-* `REMOVE_BROKEN_IMAGES`: `true` by
+**(Included in default settings)**
 
-If Magic Eye can't download the image, it will remove it as broken and ask the user to fix the link. This is commonly when the user posts a deleted reddit link.
+    removeBrokenImages: {},
 
+If the image can't download the image, it will remove it as broken and ask the user to fix the link. This is commonly when the user posts a link to a reddit image that's deleted.
 
 ### Remove small images
 
-(Included in `STANDARD_SETUP`)
+**(Included in default settings)**
 
-Removes images under a threshold. 
+    "removeSmallImages": {
+        "smallDimension": 330
+    },
 
-Enable/disable:
-* `REMOVE_SMALL_IMAGES`: `true` by default
+Removes images under a threshold.
 
-Custom size:
-* `MINIMUM_SIZE`: 330 by default. pixels size, MINIMUM_SIZE by MINIMUM_SIZE. Example of 330 image: https://i.imgur.com/7jTFozp.png
-
+Details:
+* `smallDimension`: pixels size, `smallDimension` by `smallDimension`. Example of 330px*330px image: https://i.imgur.com/7jTFozp.png
 
 ### Remove uncropped images
 
-(Included in `STANDARD_SETUP`)
+**(Included in default settings)**
+
+    "removeUncroppedImages": {},
 
 Removes images with [black bars](https://i.imgur.com/6a4SCcw.png) at the bottom and top typical of cellphone screenshots. Does not support horizontal cropping.
 
-Enable/disable:
-* `REMOVE_UNCROPPED_IMAGES`: `true` by default
+### Message first time submitters 
 
-### Message first time submitters
+**(beta support - may be intermittent)**
+
+    "messageFirstTimeUser": {
+           "firstTimeUserMessageTitle": "RULES REMINDER",
+           "firstTimeUserMessage": "I am an bot to remind new users *posts in r/hmmm cannot contain text*. \n\nIf your post contains text, then delete it."
+    },
 
 Private messages users the first time they make a submission to the subreddit.
 
-Enable/disable:
-* `MESSAGE_FIRST_TIME_USERS`: `false` by default
+Details:
+* Use \n\n to create a new line in your message.
 
-Config:
-* `FIRST_TIME_USER_MESSAGE_TITLE`: No default, this is a mandatory field. PM title.
-* `FIRST_TIME_USER_MESSAGE`: No default, this is a mandatory field. Contents of PM.
+
+### Custom footer
+
+"customFooter": "([rules faq](https://www.reddit.com/r/hmmm/wiki/rules))",
+
+Adds text to the bots footer. See [here](https://www.reddit.com/r/hmmm/comments/9mcwds/hmmm/e7dqm0q/) for an example of the above settings.
 
 ### Report unmoderated posts
 
-Report posts over a certain threshold that are not yet moderated.
+    "reportUnmoderated": {
+           "reportUnmoderatedScore": 50
+    },
 
-Enable/disable:
-* `REPORT_UNMODERATED`: `false` by default
+Report posts over a certain threshold that are not yet moderated (just the top posts of the day).
 
-Config:
-* `UNMODERATED_REPORT_SCORE`: No default, pick a score.
-
+Details:
+* `reportUnmoderatedScore`: karma threshold to report umoderated post
 
 
+
+## Thanks
+
+* u/creesch, u/agentlame, and everyone who works on r/toolbox. Reddit owes you all a salary.
+* u/not_an_aardvark for his awesome [snoowrap](https://github.com/not-an-aardvark/snoowrap) project
 
 
