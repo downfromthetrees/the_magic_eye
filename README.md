@@ -48,8 +48,7 @@ Magic Eye supports normal image urls as well as imgur posts. No gif/media/link s
 * Invite www.reddit.com/u/MAGIC\_EYE\_BOT as a moderator to your subreddit
     * It needs `flair`, `posts` and `wiki` permissions
 * The bot will create a settings page in your wiki at: http://www.reddit.com/r/YOUR\_SUB\_NAME/wiki/magic\_eye
-* The bot will then trawl through all the top/new posts in your sub it can, this will take some time
-* When it's done it will send you a modmail and it'll start operating.
+* The bot will then trawl through all the top/new posts in your sub it can, this will take some time (give it an hour, since it can be several thousand posts)
 * If you want to blacklist images using toolbox (recommended) follow the steps [here](#remove-blacklisted-images).
 
 ## General info / FAQ
