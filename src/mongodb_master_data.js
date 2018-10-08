@@ -38,8 +38,8 @@ class SubredditSettings {
                 smallScoreRepostDays: 15,
                 mediumScore: 400,
                 mediumScoreRepostDays: 25,
-                largeScore: 50,
-                largeScoreRepostDays: 10000,
+                largeScore: 10000,
+                largeScoreRepostDays: 50,
                 topScore: 999999999,
             },
             removeSmallImages: {
