@@ -173,7 +173,7 @@ Details:
 
 ### Custom footer
 
-"customFooter": "([rules faq](https://www.reddit.com/r/hmmm/wiki/rules))",
+    "customFooter": "([rules faq](https://www.reddit.com/r/hmmm/wiki/rules))",
 
 Adds text to the bots footer. See [here](https://www.reddit.com/r/hmmm/comments/9mcwds/hmmm/e7dqm0q/) for an example of the above settings.
 
