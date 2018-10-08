@@ -45,9 +45,9 @@ Magic Eye supports normal image urls as well as imgur posts. No gif/media/link s
 
 ## Setup
 
-* Invite www.reddit.com/u/MAGIC\_EYE\_BOT as a moderator to your subreddit
+* Invite www.reddit.com/u/MAGIC_EYE_BOT as a moderator to your subreddit
     * It needs `flair`, `posts` and `wiki` permissions
-* The bot will create a settings page in your wiki at: http://www.reddit.com/r/YOUR\_SUB\_NAME/wiki/magic\_eye
+* The bot will create a settings page in your wiki at: http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 * The bot will then trawl through all the top/new posts in your sub it can, this will take some time (give it an hour, since it can be several thousand posts)
 * If you want to blacklist images using toolbox (recommended) follow the steps [here](#remove-blacklisted-images).
 
@@ -57,17 +57,17 @@ Magic Eye supports normal image urls as well as imgur posts. No gif/media/link s
 
 * Magic Eye runs every 30s or so, so if you want it to pick up a post then avoid moderating posts in the /new queue that are under a minute old.
 
-* You can reply to MAGIC\_EYE\_BOT with `clear` and it'll remove the image from it's database. This is handy if one image is ever causing a problem.
+* You can reply to MAGIC_EYE_BOT with `clear` and it'll remove the image from it's database. This is handy if one image is ever causing a problem.
 
 * Feature requests should be made in r/MAGIC_EYE_BOT
 
 ## Settings 
 
-You can configure the bot by editing the magic\_eye wiki page. The settings are in JSON format.
+You can configure the bot by editing the magic_eye wiki page. The settings are in JSON format.
 
-http://www.reddit.com/r/YOUR\_SUB\_NAME/wiki/magic\_eye
+http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 
-MAGIC\_EYE\_BOT will let you know if your updates are sucessful. If you're having trouble with it you can use [this JSON validator](https://jsonformatter.curiousconcept.com/) for help.
+MAGIC_EYE_BOT will let you know if your updates are sucessful. If you're having trouble with it you can use [this JSON validator](https://jsonformatter.curiousconcept.com/) for help.
 
 ### Standard setup
 
@@ -173,7 +173,7 @@ Details:
 
 ### Custom footer
 
-"customFooter": "([rules faq](https://www.reddit.com/r/hmmm/wiki/rules))",
+    "customFooter": "([rules faq](https://www.reddit.com/r/hmmm/wiki/rules))",
 
 Adds text to the bots footer. See [here](https://www.reddit.com/r/hmmm/comments/9mcwds/hmmm/e7dqm0q/) for an example of the above settings.
 
