@@ -1,23 +1,26 @@
 
+# Magic Eye
+
 Magic Eye is an image detection bot for reddit that detects reposts, as well as several other image processing and moderation features.
 
 <!-- TOC -->
 
-- [Current features](#current-features)
-- [Prerequisites](#prerequisites)
-- [Setup](#setup)
-- [General info / FAQ](#general-info--faq)
-- [Settings](#settings)
-    - [Standard setup](#standard-setup)
-    - [Remove reposts](#remove-reposts)
-    - [Remove blacklisted images](#remove-blacklisted-images)
-    - [Remove broken image links](#remove-broken-image-links)
-    - [Remove small images](#remove-small-images)
-    - [Remove uncropped images](#remove-uncropped-images)
-    - [Message first time submitters](#message-first-time-submitters)
-    - [Custom footer](#custom-footer)
-    - [Report unmoderated posts](#report-unmoderated-posts)
-- [Thanks](#thanks)
+- [Magic Eye](#magic-eye)
+    - [Current features](#current-features)
+    - [Prerequisites](#prerequisites)
+    - [Setup](#setup)
+    - [General info / FAQ](#general-info--faq)
+    - [Settings](#settings)
+        - [Standard setup](#standard-setup)
+        - [Remove reposts](#remove-reposts)
+        - [Remove blacklisted images](#remove-blacklisted-images)
+        - [Remove broken image links](#remove-broken-image-links)
+        - [Remove small images](#remove-small-images)
+        - [Remove uncropped images](#remove-uncropped-images)
+        - [Message first time submitters](#message-first-time-submitters)
+        - [Custom footer](#custom-footer)
+        - [Report unmoderated posts](#report-unmoderated-posts)
+    - [Thanks](#thanks)
 
 <!-- /TOC -->
 
