@@ -6,7 +6,7 @@ Magic Eye is an image detection bot for reddit that detects reposts, as well as 
 - [Current features](#current-features)
 - [Prerequisites](#prerequisites)
 - [Setup](#setup)
-- [General info](#general-info)
+- [General info / FAQ](#general-info--faq)
 - [Settings](#settings)
     - [Standard setup](#standard-setup)
     - [Remove reposts](#remove-reposts)
@@ -49,14 +49,15 @@ Magic Eye supports normal image urls as well as imgur posts. No gif/media/link s
 * When it's done it will send you a modmail and it'll start operating.
 * If you want to blacklist images using toolbox (recommended) follow the steps [here](#remove-blacklisted-images).
 
-## General info
+## General info / FAQ
 
-* Magic Eye sometimes gets detection wrong. Normally that means missing reposts, but occasionally (under 1%) it's false positives. Just keep in mind: the bot doesn't *see* images like we do, so what's obviously to your eyes as a repost/not the same image is not how the bot works ([algorithm info](http://www.hackerfactor.com/blog/?/archives/529-Kind-of-Like-That.html)).
+* Magic Eye sometimes gets detection wrong. Normally that means missing reposts because it's conservative, but occasionally (under 1%) it's a false positive. Just keep in mind: the bot doesn't *see* images like we do, so what's obviously to your eyes as a repost/not the same image is not how the bot works ([algorithm info](http://www.hackerfactor.com/blog/?/archives/529-Kind-of-Like-That.html)).
 
 * Magic Eye runs every 30s or so, so if you want it to pick up a post then avoid moderating posts in the /new queue that are under a minute old.
 
 * You can reply to MAGIC\_EYE\_BOT with `clear` and it'll remove the image from it's database. This is handy if one image is ever causing a problem.
 
+* Feature requests should be made in r/MAGIC_EYE_BOT
 
 ## Settings 
 
@@ -99,7 +100,7 @@ Details:
 * `removeRepostsIfDeleted`: Removes reposts even if the previous post was deleted. (`true`/`false`)
 * Scores thresholds: These are intemediary thresholds for reposts. i.e. if the previous image got `mediumScore`, it'll be removed if it's under `mediumScoreRepostDays`.
     * If `smallScore` if set higher than 0 it will auto-approve anything that gets under this score
-    * If `topScore` is set lower it will remove any post over this threshold permanently, with a message saying it's an all time subreddit top post.
+    * If `topScore` is set lower it will remove any post that ever got over this threshold permanently, with a message saying it's an all time subreddit top post.
 
 ### Remove blacklisted images
 
