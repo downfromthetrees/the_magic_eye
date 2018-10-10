@@ -1,5 +1,6 @@
 const chalk = require('chalk');
 const log = require('loglevel');
+const outdent = require('outdent');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 const { processSubmission } = require('./submission_processor.js');
@@ -44,6 +45,18 @@ async function firstTimeInit(reddit, subredditName, database, masterSettings) {
 
     masterSettings.config.firstTimeInit = true;
     await setSubredditSettings(subredditName, masterSettings);
+    await reddit.composeMessage({
+        to: await `/r/${subredditName}`,
+        subject: `Initialisation complete.`,
+        text: outdent`
+            Hi team - I'm all set up and processing posts to your subreddit.
+
+            You can find my documentation and features here: https://github.com/downfromthetrees/the_magic_eye
+
+            The settings for your sub are here: r/${subredditName}/wiki/magic_eye
+
+            Any questions, issues or feature requests can be made at r/MAGIC_EYE_BOT`
+      });
 }
 
 async function processOldSubmissions(submissions, alreadyProcessed, name, subredditName, database) {
