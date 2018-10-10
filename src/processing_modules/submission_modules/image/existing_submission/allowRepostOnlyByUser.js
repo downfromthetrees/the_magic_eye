@@ -9,7 +9,7 @@ const { printSubmission } = require('../../../../reddit_utils.js');
 
 //=====================================
 
-async function allowRepostsOnlyByUser(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings) {
+async function allowRepostsOnlyByUser(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings, subredditName) {
     if (!subSettings.removeBlacklisted) { // rely on blacklisted instead
         return true;
     }
@@ -19,7 +19,7 @@ async function allowRepostsOnlyByUser(reddit, modComment, submission, lastSubmis
     const sameUserForBothSubmissions = lastSubmissionDeleted || await lastSubmission.author.name == await submission.author.name;
 
     if (lastIsRepostOnlyByUser && sameUserForBothSubmissions) {
-        log.info('Found matching hash for submission', await printSubmission(submission), ', but approving as special user only repost of submission: http://redd.it/', existingMagicSubmission.reddit_id);
+        log.info(`[${subredditName}]`, 'Found matching hash for submission', await printSubmission(submission), ', but approving as special user only repost of submission: http://redd.it/', existingMagicSubmission.reddit_id);
         existingMagicSubmission.approve = true; // just auto-approve as this is almost certainly the needed action
         existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
         submission.approve();

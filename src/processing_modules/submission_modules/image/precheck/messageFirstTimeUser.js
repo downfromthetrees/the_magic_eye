@@ -7,7 +7,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 //=====================================
 
-async function messageFirstTimeUser(reddit, submission, subSettings) {
+async function messageFirstTimeUser(reddit, submission, subSettings, subredditName) {
     if (!subSettings.messageFirstTimeUser) {
         return true;
     }
@@ -15,7 +15,7 @@ async function messageFirstTimeUser(reddit, submission, subSettings) {
     const processorSettings = subSettings.messageFirstTimeUser;
 
     if (!processorSettings.firstTimeUserMessage || !processorSettings.firstTimeUserMessageTitle) {
-        log.warn("A first time user setting is not configured. Aborting sending first time message.");
+        log.warn(`[${subredditName}]`, "A first time user setting is not configured. Aborting sending first time message.");
         return;
     }
 

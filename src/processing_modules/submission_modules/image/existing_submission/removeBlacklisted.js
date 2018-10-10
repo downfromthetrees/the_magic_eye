@@ -10,7 +10,7 @@ const { isRepostRemoval, removePost, printSubmission } = require('../../../../re
 
 //=====================================
 
-async function removeBlacklisted(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings) {
+async function removeBlacklisted(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings, subredditName) {
     if (!subSettings.removeBlacklisted) {
         return true;
     }
@@ -20,12 +20,12 @@ async function removeBlacklisted(reddit, modComment, submission, lastSubmission,
 
     const imageIsBlacklisted = await lastSubmission.removed && !lastIsRemovedAsRepost;
     if (imageIsBlacklisted) {
-        const removalReason = await getRemovalReason(modComment);
+        const removalReason = await getRemovalReason(modComment, subredditName);
         if (removalReason == null) {
-            log.info(chalk.red("Ignoring submission because couldn't read the last removal message. Submission: ", await printSubmission(submission), ", removal message thread: http://redd.it/", existingMagicSubmission.reddit_id));
+            log.info(`[${subredditName}]`, chalk.red("Ignoring submission because couldn't read the last removal message. Submission: ", await printSubmission(submission), ", removal message thread: http://redd.it/", existingMagicSubmission.reddit_id));
             existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
         } else {
-            removeAsBlacklisted(reddit, submission, lastSubmission, removalReason, subSettings);
+            removeAsBlacklisted(reddit, submission, lastSubmission, removalReason, subSettings, subredditName);
         }
     
         return false;
@@ -34,8 +34,8 @@ async function removeBlacklisted(reddit, modComment, submission, lastSubmission,
     return true;
 }
 
-async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklistReason, subSettings){
-    log.info('Removing as blacklisted:', await printSubmission(submission), ', as blacklisted. Root blacklisted submission: ', await printSubmission(lastSubmission));
+async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklistReason, subSettings, subredditName){
+    log.info(`[${subredditName}]`, 'Removing as blacklisted:', await printSubmission(submission), ', as blacklisted. Root blacklisted submission: ', await printSubmission(lastSubmission));
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
     const removalReason = outdent
         `Your post has been removed because it is a repost of [this image](${await lastSubmission.url}) posted [here](${permalink}), and that post was removed because:
@@ -45,13 +45,13 @@ async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklist
 }
 
 
-async function getRemovalReason(modComment) {
+async function getRemovalReason(modComment, subredditName) {
     const body = await modComment.body;   
     const startRemoval = '[](#start_removal)';
     const endRemoval = '[](#end_removal';
 
     if (!body.includes(startRemoval) || !body.includes(endRemoval) ) {
-        log.info(chalk.magenta("Moderator comment doesn't include correct bookend tags"));
+        log.info(chalk.magenta("Moderator comment doesn't include correct bookend tags", `[${subredditName}]`, ));
         return null;
     }
 

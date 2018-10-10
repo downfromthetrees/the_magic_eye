@@ -48,7 +48,7 @@ export async function downloadImage(submissionUrl) {
         const { filename, image } = await imageDownloader.image(options);
         return filename;
     } catch (err) {
-        log.info("Couldn't download image, error: ", err)
+        log.warn("Couldn't download image, error: ", err)
         return null;
     }
 }

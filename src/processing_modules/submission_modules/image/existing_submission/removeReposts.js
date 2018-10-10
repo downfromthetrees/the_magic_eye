@@ -11,13 +11,13 @@ const { isRepostRemoval, removePost, printSubmission } = require('../../../../re
 
 //=====================================
 
-async function removeReposts(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings) {
+async function removeReposts(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings, subredditName) {
     if (!subSettings.removeReposts) {
         return true;
     }
 
     if (existingMagicSubmission.reddit_id == await submission.id) {
-        log.error('Asked to remove repost of itself - ignoring:', await printSubmission(submission));
+        log.error(`[${subredditName}]`, 'Asked to remove repost of itself - ignoring:', await printSubmission(submission));
         return true;
     }
     
@@ -25,7 +25,7 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
     const lastSubmissionDeleted = await lastSubmission.author.name == '[deleted]';
 
     if (lastSubmissionDeleted && !processorSettings.removeRepostsIfDeleted) {
-        log.info('Found matching hash for submission', await printSubmission(submission), ', but approving as the last submission was deleted: http://redd.it/' + existingMagicSubmission.reddit_id);
+        log.info(`[${subredditName}]`, 'Found matching hash for submission', await printSubmission(submission), ', but approving as the last submission was deleted: http://redd.it/' + existingMagicSubmission.reddit_id);
         existingMagicSubmission.approve = true;
         existingMagicSubmission.reddit_id = await submission.id;
         submission.approve();
@@ -34,7 +34,7 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
 
     const topRepost = existingMagicSubmission.highest_score > +processorSettings.topScore;
     if (topRepost) {
-        removeAsTopRepost(reddit, submission, lastSubmission, subSettings);
+        removeAsTopRepost(reddit, submission, lastSubmission, subSettings, subredditName);
         return false;
     } 
 
@@ -42,13 +42,13 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
 
     const recentRepost = await isRecentRepost(submission, lastSubmission, processorSettings);
     if (recentRepost) {
-        removeAsRepost(reddit, submission, lastSubmission, lastIsRemovedAsRepost, lastSubmissionDeleted && processorSettings.removeRepostsIfDeleted, subSettings);
+        removeAsRepost(reddit, submission, lastSubmission, lastIsRemovedAsRepost, lastSubmissionDeleted && processorSettings.removeRepostsIfDeleted, subSettings, subredditName);
         return false;
     }
 
     const lastSubmissionRemoved = await lastSubmission.removed;
     if (!lastSubmissionRemoved || lastIsRemovedAsRepost) {
-        log.info('Found matching hash for submission ', await printSubmission(submission), ', matched,', existingMagicSubmission.reddit_id,' re-approving as it is over the repost limit.');
+        log.info(`[${subredditName}]`, 'Found matching hash for submission ', await printSubmission(submission), ', matched,', existingMagicSubmission.reddit_id,' re-approving as it is over the repost limit.');
         submission.approve();
         submission.assignFlair({'text': await lastSubmission.link_flair_text}); // reflair with same flair
         existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
@@ -76,10 +76,10 @@ async function isRecentRepost(currentSubmission, lastSubmission, processorSettin
     return daysSincePosted < daysLimit;
 }
 
-async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings){
-    log.info('Found matching hash for submission: ', await printSubmission(submission), ', removing as repost of:', await lastSubmission.id);
+async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, subredditName){
+    log.info(`[${subredditName}]`, 'Found matching hash for submission: ', await printSubmission(submission), ', removing as repost of:', await lastSubmission.id);
     if (submission.id == await lastSubmission.id) {
-        log.error(chalk.red('Duplicate detection error, ignoring but this indicates a real issue.'));
+        log.error(`[${subredditName}]`, chalk.red('Duplicate detection error, ignoring but this indicates a real issue.'));
         return;
     }
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
@@ -99,8 +99,8 @@ async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubm
     removePost(reddit, submission, removalReason, subSettings);
 }
 
-async function removeAsTopRepost(reddit, submission, lastSubmission, subSettings){
-    log.info('Found matching hash for submission: ', await printSubmission(submission), ', removing as repost of all time top post:', await lastSubmission.id);
+async function removeAsTopRepost(reddit, submission, lastSubmission, subSettings, subredditName){
+    log.info(`[${subredditName}]`, 'Found matching hash for submission: ', await printSubmission(submission), ', removing as repost of all time top post:', await lastSubmission.id);
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
     let removalReason = 
         `Good post but unfortunately it has been removed because it is one of our all time top posts. You can see it [here](${permalink}), ([direct link](${ await lastSubmission.url})).`;

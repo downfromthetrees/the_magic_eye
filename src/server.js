@@ -130,7 +130,7 @@ async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
     let masterSettings = await getSubredditSettings(subredditName);
     if (!masterSettings) {
         // find the database with least use
-        log.info(chalk.yellow('No master settings for'), subredditName, ' - searching for least used database');
+        log.info(`[${subredditName}]`, chalk.yellow('No master settings for'), subredditName, ' - searching for least used database');
         const databaseList = await getMasterProperty('databases');
         let selectedDatabase = null;
         let databaseCount = 99999;
@@ -142,7 +142,7 @@ async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
             }
         }
         if (!selectedDatabase) {
-            log.warn('No databases available to house: ', subredditName);
+            log.warn(`[${subredditName}]`, 'No databases available to house: ', subredditName);
             return;            
         }
         masterSettings = new SubredditSettings(subredditName);
@@ -159,9 +159,9 @@ async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
         if (!isInitialising(subredditName)) {
             const database = await initDatabase(subredditName, masterSettings.config.databaseUrl);
             firstTimeInit(reddit, subredditName, database, masterSettings).then(() => {
-                log.info(chalk.green('Initialisation processing complete for ', subredditName));
+                log.info(`[${subredditName}]`, chalk.green('Initialisation processing complete for ', subredditName));
               }, (e) => {
-                log.error(chalk.red('First time init failed for:', subredditName, e));
+                log.error(`[${subredditName}]`, chalk.red('First time init failed for:', subredditName, e));
               });
         }
         return;
@@ -175,7 +175,7 @@ async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
             const topSubmissionsDay = await subForUnmoderated.getTop({time: 'day'}).fetchAll({amount: 100});
             masterSettings.config.reportUnmoderatedTime = 0;
             await setSubredditSettings(subredditName, masterSettings); // set now in case of api error
-            await processUnmoderated(topSubmissionsDay, masterSettings.settings);
+            await processUnmoderated(topSubmissionsDay, masterSettings.settings, subredditName);
         } else {
             masterSettings.config.reportUnmoderatedTime++;
             await setSubredditSettings(subredditName, masterSettings);

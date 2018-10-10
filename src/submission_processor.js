@@ -23,6 +23,7 @@ const { removeReposts } = require('./processing_modules/submission_modules/image
 
 async function processSubmission(submission, masterSettings, database, reddit, activeMode) {
     log.debug('starting processing for ', submission.id, 'submitted:', new Date(submission.created_utc));
+    const subredditName = masterSettings._id;
 
     // record details about user up front
     let username = (await submission.author) ? (await submission.author.name) : null;
@@ -38,14 +39,14 @@ async function processSubmission(submission, masterSettings, database, reddit, a
         } else {
             await database.addUser(username);
             if (activeMode) {
-                messageFirstTimeUser(reddit, submission, masterSettings.settings);
+                messageFirstTimeUser(reddit, submission, masterSettings.settings, subredditName);
             }
         }
     }
 
     // ignore approved submissions
     if (await submission.approved && activeMode) {
-        log.info("Submission is already approved, - ignoring submission:", await printSubmission(submission));
+        log.info(`[${subredditName}]`, "Submission is already approved, - ignoring submission:", await printSubmission(submission));
         return;
     }
 
@@ -54,13 +55,13 @@ async function processSubmission(submission, masterSettings, database, reddit, a
     const imageUrl = await getImageUrl(await submission.url)
     if (!imageUrl)
         {
-        log.info("Submission was not an image - ignoring submission:", await printSubmission(submission));
+        log.info(`[${subredditName}]`, "Submission was not an image - ignoring submission:", await printSubmission(submission));
         return;
         }
 
     const imageDetails = await getImageDetails(imageUrl, activeMode && masterSettings.settings.removeImagesWithText);
     if (imageDetails == null){
-        log.info("Could not download image (probably deleted): ", await printSubmission(submission));
+        log.info(`[${subredditName}]`, "Could not download image (probably deleted): ", await printSubmission(submission));
         if (activeMode && masterSettings.settings.removeBrokenImages) {
             removePost(reddit, submission, `It looks like your link is broken or deleted. You will need to fix it and resubmit.`, masterSettings.settings);
         }
@@ -76,7 +77,7 @@ async function processSubmission(submission, masterSettings, database, reddit, a
         ];
     
         for (const processor of precheckProcessors) {
-            const shouldContinue = await processor(reddit, submission, imageDetails, masterSettings.settings);
+            const shouldContinue = await processor(reddit, submission, imageDetails, masterSettings.settings, subredditName);
             if (!shouldContinue) {
                 return;
             }
@@ -84,18 +85,18 @@ async function processSubmission(submission, masterSettings, database, reddit, a
     }
 
     const existingMagicSubmission = await database.getMagicSubmission(imageDetails.dhash);
-    log.debug('Existing submission for dhash:', chalk.blue(imageDetails.dhash), chalk.yellow(JSON.stringify(existingMagicSubmission)));
+    log.debug(`[${subredditName}]`, 'Existing submission for dhash:', chalk.blue(imageDetails.dhash), chalk.yellow(JSON.stringify(existingMagicSubmission)));
  
     if (existingMagicSubmission == null) {
-        await processNewSubmission(submission, imageDetails, database, activeMode);
+        await processNewSubmission(submission, imageDetails, database, activeMode, subredditName);
     } else if (activeMode) {
-        await processExistingSubmission(submission, existingMagicSubmission, masterSettings, reddit);
+        await processExistingSubmission(submission, existingMagicSubmission, masterSettings, reddit, subredditName);
         await database.saveMagicSubmission(existingMagicSubmission); // save here to cover all updates
     } 
 }
 
-async function processExistingSubmission(submission, existingMagicSubmission, masterSettings, reddit) {
-    log.debug(chalk.yellow('Found existing submission for dhash, matched: ' + existingMagicSubmission._id));
+async function processExistingSubmission(submission, existingMagicSubmission, masterSettings, reddit, subredditName) {
+    log.debug(chalk.yellow(`[${subredditName}]`, 'Found existing submission for dhash, matched: ' + existingMagicSubmission._id));
     const lastSubmission = await reddit.getSubmission(existingMagicSubmission.reddit_id);
     const lastSubmissionRemoved = await lastSubmission.removed;
 
@@ -106,15 +107,15 @@ async function processExistingSubmission(submission, existingMagicSubmission, ma
     if (lastSubmissionRemoved) {
         const modWhoRemoved = await lastSubmission.banned_by;
         if (modWhoRemoved == 'AutoModerator') { // can happen in cases where automod is slow for some reason
-            log.info('Ignoring automoderator removal for: ', await printSubmission(submission)); 
+            log.info(`[${subredditName}]`, 'Ignoring automoderator removal for: ', await printSubmission(submission)); 
             return;
         }
 
-        log.debug('Last submission removed, getting mod comment');
+        log.debug(`[${subredditName}]`, 'Last submission removed, getting mod comment');
         modComment = await getModComment(reddit, existingMagicSubmission.reddit_id);
         const magicIgnore = await isMagicIgnore(modComment);
         if (modComment == null || magicIgnore) {
-            log.info('Found repost of removed submission, but no relevant removal message exists. Ignoring submission: ', await printSubmission(submission), 'magicIgnore: ', magicIgnore);
+            log.info(`[${subredditName}]`, 'Found repost of removed submission, but no relevant removal message exists. Ignoring submission: ', await printSubmission(submission), 'magicIgnore: ', magicIgnore);
             existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
             return;
         }
@@ -137,7 +138,7 @@ async function processExistingSubmission(submission, existingMagicSubmission, ma
 
 async function processNewSubmission(submission, imageDetails, database, activeMode) {
     if (activeMode) {
-        log.info(chalk.green('Processing new submission: ', await printSubmission(submission)));
+        log.info(`[${subredditName}]`, chalk.green('Processing new submission: ', await printSubmission(submission)));
     }
 
     const newMagicSubmission = new MagicSubmission(imageDetails.dhash, submission, await submission.score);

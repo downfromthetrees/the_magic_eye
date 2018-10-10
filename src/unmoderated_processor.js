@@ -5,8 +5,8 @@ const chalk = require('chalk');
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-async function processUnmoderated(submissions, settings) {
-    log.debug('Retrived', submissions.length, ' top daily posts. Beginning to check for unmoderated.');
+async function processUnmoderated(submissions, settings, subredditName) {
+    log.debug(`[${subredditName}]`, 'Retrived', submissions.length, ' top daily posts. Beginning to check for unmoderated.');
     let processedCount = 0;
 
     for (const submission of submissions) {

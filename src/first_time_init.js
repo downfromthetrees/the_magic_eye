@@ -11,7 +11,7 @@ let inProgress = [];
 async function firstTimeInit(reddit, subredditName, database, masterSettings) {
     const subreddit = await reddit.getSubreddit(subredditName);   
 
-    log.info(chalk.blue('Beginning first time initialisation for', subredditName, '. Retrieving top posts...'));
+    log.info(chalk.blue(`[${subredditName}]`, 'Beginning first time initialisation for', subredditName, '. Retrieving top posts...'));
     if (!isInitialising(subredditName)) {
         inProgress.push(subredditName);
     }
@@ -41,7 +41,7 @@ async function firstTimeInit(reddit, subredditName, database, masterSettings) {
     inProgress = inProgress.filter(item => item !== subredditName);
 
     const endTime = new Date().getTime();
-    log.info(chalk.blue('Top and new posts successfully processed for', subredditName, '. Took: '), (endTime - startTime) / 1000, 's');
+    log.info(`[${subredditName}]`, chalk.blue('Top and new posts successfully processed for', subredditName, '. Took: '), (endTime - startTime) / 1000, 's');
 
     masterSettings.config.firstTimeInit = true;
     await setSubredditSettings(subredditName, masterSettings);
@@ -71,7 +71,7 @@ async function processOldSubmissions(submissions, alreadyProcessed, name, subred
         alreadyProcessed.push(submission.id);
         }
     let endTime = new Date().getTime();
-    log.info(chalk.blue('Processed', processedCount, name, ' submissions for ', subredditName),' Took: ', (endTime - startTime) / 1000, 's.');
+    log.info(`[${subredditName}]`, chalk.blue('Processed', processedCount, name, ' submissions for ', subredditName),' Took: ', (endTime - startTime) / 1000, 's.');
 }
 
 function isInitialising(subredditName) {

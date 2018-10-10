@@ -12,24 +12,25 @@ const { sliceSubmissionId } = require('./reddit_utils.js');
 
 
 async function processInboxMessage(inboxMessage, reddit, database) {
-    const subredditName = await inboxMessage.subreddit.display_name;
-    const subreddit = await reddit.getSubreddit(subredditName);
+    const messageSubreddit = await inboxMessage.subreddit;
+    const subredditName = messageSubreddit ? messageSubreddit.display_name : null;
+    const subreddit = messageSubreddit ? await reddit.getSubreddit(subredditName) : null;
     if (inboxMessage.was_comment) {
         const moderators = await subreddit.getModerators();
         const isMod = moderators.find((moderator) => moderator.name === inboxMessage.author.name);
         if (isMod) {
-            await processModComment(inboxMessage, reddit, database);
+            await processModComment(subredditName, inboxMessage, reddit, database);
         } else {
-            await processUserComment(inboxMessage);
+            await processUserComment(subredditName, inboxMessage);
         }
     } else {
         await processUserPrivateMessage(inboxMessage, subreddit);
     }
 }
 
-async function processModComment(inboxMessage, reddit, database) {
+async function processModComment(subredditName, inboxMessage, reddit, database) {
     if (inboxMessage.subject == "username mention") {
-        log.info('Username mention:', inboxMessage.id);
+        log.info(`[${subredditName}]`, 'Username mention:', inboxMessage.id);
         return;
     }
 
@@ -53,32 +54,32 @@ async function processModComment(inboxMessage, reddit, database) {
     }
 }
 
-async function processUserComment(inboxMessage) {
+async function processUserComment(subredditName, inboxMessage) {
     if (inboxMessage.subject == "username mention") {
-        log.info('Username mention:', inboxMessage.id);
+        log.info(`[${subredditName}]`, 'Username mention:', inboxMessage.id);
         return;
     }
 
     inboxMessage.report({'reason': 'Moderator requested'});
-    log.info('User requesting assistance:', inboxMessage.id);
+    log.info(`[${subredditName}]`, 'User requesting assistance:', inboxMessage.id);
 }
 
 async function processUserPrivateMessage(inboxMessage, subreddit) {
     if (inboxMessage.subject.includes('invitation to moderate')) {
         try {
             if (process.env.ALLOW_INVITES) {
-                log.info('Accepting mod invite for: ', await subreddit.display_name);
+                log.info(`[${await subreddit.display_name}]`, 'Accepting mod invite for: ', await subreddit.display_name);
                 await subreddit.acceptModeratorInvite();
             } else {
                 log.warn('User attempted mod invite for: ', await subreddit.display_name, ", but ALLOW_INVITES is not set.");
             }
         } catch (e) {
-            log.error('Error accepting mod invite: ', inboxMessage.id, e);
+            log.error(`[${await subreddit.display_name}]`, 'Error accepting mod invite: ', inboxMessage.id, e);
         }
         return;
     }
 
-inboxMessage.reply("I am a robot so I cannot answer your message.");
+    inboxMessage.reply("I am a robot so I cannot answer your message.");
     log.info('Processed inbox private message:', inboxMessage.id);
 }
 
