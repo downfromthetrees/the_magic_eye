@@ -17,7 +17,7 @@ This was initially intended for an audience when the bot was "if you can set it 
 * Go to https://github.com/downfromthetrees/the_magic_eye
 * Hit the fork button
 ----
-* Create an account for your bot
+* Create a reddit account for your bot
 * While logged in as your bot go to https://www.reddit.com/prefs/apps
 * Create an app
    * Choose `script`
@@ -41,6 +41,7 @@ This was initially intended for an audience when the bot was "if you can set it 
 ----
 * Click the **Resources** tab and use the search bar to search and add these (free tier) add-ons:
 	* mLab MongoDB
+        * Create as many databases as needed - 500,000 submissions is = 100mb so one is plenty. MEB is hosted using 10 free teir databases.
 	* Papertrail 
 	* New Relic APM
 * Click the **Deploy** tab and select **GitHub** under **Deployment Method**
