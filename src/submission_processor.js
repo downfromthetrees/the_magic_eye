@@ -129,14 +129,14 @@ async function processExistingSubmission(submission, existingMagicSubmission, ma
     ];
 
     for (const processor of imageProcessors) {
-        const shouldContinue = await processor(reddit, modComment, submission, lastSubmission, existingMagicSubmission, masterSettings.settings);
+        const shouldContinue = await processor(reddit, modComment, submission, lastSubmission, existingMagicSubmission, masterSettings.settings, subredditName);
         if (!shouldContinue) {
             break;
         }
     }
 }
 
-async function processNewSubmission(submission, imageDetails, database, activeMode) {
+async function processNewSubmission(submission, imageDetails, database, activeMode, subredditName) {
     if (activeMode) {
         log.info(`[${subredditName}]`, chalk.green('Processing new submission: ', await printSubmission(submission)));
     }
