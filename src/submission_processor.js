@@ -87,7 +87,7 @@ async function processSubmission(submission, masterSettings, database, reddit, a
     log.debug('Existing submission for dhash:', chalk.blue(imageDetails.dhash), chalk.yellow(JSON.stringify(existingMagicSubmission)));
  
     if (existingMagicSubmission == null) {
-        await processNewSubmission(submission, imageDetails, database);
+        await processNewSubmission(submission, imageDetails, database, activeMode);
     } else if (activeMode) {
         await processExistingSubmission(submission, existingMagicSubmission, masterSettings, reddit);
         await database.saveMagicSubmission(existingMagicSubmission); // save here to cover all updates
@@ -135,8 +135,11 @@ async function processExistingSubmission(submission, existingMagicSubmission, ma
     }
 }
 
-async function processNewSubmission(submission, imageDetails, database) {
-    log.info(chalk.green('Processing new submission: ', await printSubmission(submission)));
+async function processNewSubmission(submission, imageDetails, database, activeMode) {
+    if (activeMode) {
+        log.info(chalk.green('Processing new submission: ', await printSubmission(submission)));
+    }
+
     const newMagicSubmission = new MagicSubmission(imageDetails.dhash, submission, await submission.score);
     await database.saveMagicSubmission(newMagicSubmission, true);
 }
