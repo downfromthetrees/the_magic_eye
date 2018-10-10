@@ -1,5 +1,3 @@
-export {}
-
 // standard modules
 require('dotenv').config();
 const outdent = require('outdent');
@@ -68,8 +66,12 @@ async function processUserComment(inboxMessage) {
 async function processUserPrivateMessage(inboxMessage, subreddit) {
     if (inboxMessage.subject.includes('invitation to moderate')) {
         try {
-            log.info('Accepting mod invite for: ', await subreddit.display_name);
-            await subreddit.acceptModeratorInvite();
+            if (process.env.ALLOW_INVITES) {
+                log.info('Accepting mod invite for: ', await subreddit.display_name);
+                await subreddit.acceptModeratorInvite();
+            } else {
+                log.warn('User attempted mod invite for: ', await subreddit.display_name, ", but ALLOW_INVITES is not set.");
+            }
         } catch (e) {
             log.error('Error accepting mod invite: ', inboxMessage.id, e);
         }
