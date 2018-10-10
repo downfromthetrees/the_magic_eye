@@ -86,7 +86,7 @@ async function doUpdateSettings(subredditName, change, reddit) {
     try {
         settings = JSON.parse(await wikiPage.content_md);
     } catch (e) {
-        sendFailureReply(change.mod);
+        sendFailureReply(change.mod, reddit);
         log.warn('Failed to update new settings for sub');
     }
 
@@ -98,6 +98,7 @@ async function doUpdateSettings(subredditName, change, reddit) {
         masterSettings.settings = settings;
         await setSubredditSettings(subredditName, masterSettings);
         await sendSuccessReply(change.mod, reddit);
+        log.info('Update settings for successful for ', subredditName);
         return settings;
     } else {
         await sendFailureReply(change.mod, reddit);
