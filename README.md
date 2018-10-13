@@ -33,7 +33,7 @@ Magic Eye is an image detection bot for reddit that detects reposts, as well as 
 * Remove small images
 * Remove uncropped images
 * Private message first time posters with a custom message
-* Report posts over a certain threshold
+* Report unmoderated posts over a certain threshold
 
 Magic Eye supports normal image urls as well as imgur posts. No gif/media/link support yet.
 
