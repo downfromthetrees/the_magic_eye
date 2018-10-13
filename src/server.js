@@ -14,7 +14,6 @@ if (!process.env.ACCOUNT_USERNAME ||
     !process.env.CLIENT_ID ||
     !process.env.CLIENT_SECRET ||
     !process.env.NODE_ENV ||
-    !process.env.HAMMING_THRESHOLD ||
     !process.env.MONGODB_URI ||
     !process.env.NODE_ENV ||
     !process.env.DAYS_EXPIRY ||
@@ -26,7 +25,6 @@ if (!process.env.ACCOUNT_USERNAME ||
             process.env.CLIENT_ID,
             process.env.CLIENT_SECRET,
             process.env.NODE_ENV,
-            process.env.HAMMING_THRESHOLD,
             process.env.MONGODB_URI,
             process.env.NODE_ENV,
             process.env.DAYS_EXPIRY,

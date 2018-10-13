@@ -131,9 +131,9 @@ class MagicDatabase {
         }
     }
     
-    async getMagicSubmission(inputDHash) {
+    async getMagicSubmission(inputDHash, similarityTolerance) {
+        const hammingThreshold = isNaN(similarityTolerance) ? 6 : similarityTolerance;
         function isMatch(cachedHashKey) {
-            const hammingThreshold = process.env.HAMMING_THRESHOLD ? process.env.HAMMING_THRESHOLD : 6;
             return hammingDistance(cachedHashKey, inputDHash) < hammingThreshold;
         }
         const canonicalHashKey = this.dhash_cache.find(isMatch);
@@ -142,7 +142,7 @@ class MagicDatabase {
             log.debug('No cache hit for hashKey:', inputDHash);
             return null;
         }
-    
+        
         log.debug(chalk.blue('Cached hamming match, hamming distance is: ',  hammingDistance(canonicalHashKey, inputDHash)));
         
         try {

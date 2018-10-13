@@ -22,7 +22,6 @@ Magic Eye is pretty simple to develop on and test locally.
     * `CLIENT_SECRET`=client secret above
     * `DAYS_EXPIRY`=number of days before submission/user entries expire
     * `EXTERNAL_DATABASES`=A comma separated list of mongoDB database urls (one is fine, same one as `MONGODB_URI` is fine)
-    * `HAMMING_THRESHOLD`=`6` (can modify if needed)
     * `LOG_LEVEL`=`info` (change to `debug` for more information)
     * `MONGODB_URI`= mongoDB url for master data
     * `NODE_ENV`=`develop`

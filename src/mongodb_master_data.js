@@ -32,6 +32,7 @@ class SubredditSettings {
         }
         
         this.settings = {
+            similarityTolerance: 6,            
             removeReposts: {
                 removeRepostsIfDeleted: true,
                 smallScore: 0,
@@ -45,7 +46,6 @@ class SubredditSettings {
             removeSmallImages: {
                 smallDimension: 330,
             },
-            removeUncroppedImages: {},
             removeBrokenImages: {}
         }
     }

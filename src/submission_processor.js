@@ -84,7 +84,7 @@ async function processSubmission(submission, masterSettings, database, reddit, a
         }
     }
 
-    const existingMagicSubmission = await database.getMagicSubmission(imageDetails.dhash);
+    const existingMagicSubmission = await database.getMagicSubmission(imageDetails.dhash, masterSettings.settings.similarityTolerance);
     log.debug(`[${subredditName}]`, 'Existing submission for dhash:', chalk.blue(imageDetails.dhash), chalk.yellow(JSON.stringify(existingMagicSubmission)));
  
     if (existingMagicSubmission == null) {

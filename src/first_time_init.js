@@ -49,11 +49,11 @@ async function firstTimeInit(reddit, subredditName, database, masterSettings) {
         to: await `/r/${subredditName}`,
         subject: `Initialisation complete.`,
         text: outdent`
-            Hi team - I'm all set up and processing posts to your subreddit.
+            Hi team - I'm all set up and checking new posts made in your subreddit.
 
             You can find my documentation and features here: https://github.com/downfromthetrees/the_magic_eye
 
-            The settings for your sub are here: r/${subredditName}/wiki/magic_eye
+            You can change the settings for your here: r/${subredditName}/wiki/magic_eye
 
             Any questions, issues or feature requests can be made at r/MAGIC_EYE_BOT`
       });

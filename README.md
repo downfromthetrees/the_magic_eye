@@ -13,6 +13,7 @@ Magic Eye is an image detection bot for reddit that detects reposts, as well as 
     - [Settings](#settings)
         - [Standard setup](#standard-setup)
         - [Remove reposts](#remove-reposts)
+        - [Remove reposts](#remove-reposts-1)
         - [Remove blacklisted images](#remove-blacklisted-images)
         - [Remove broken image links](#remove-broken-image-links)
         - [Remove small images](#remove-small-images)
@@ -55,11 +56,14 @@ Magic Eye supports normal image urls as well as imgur posts. No gif/media/link s
 
 * Magic Eye sometimes gets detection wrong. Normally that means missing reposts because it's conservative, but occasionally (under 1%) it's a false positive. Just keep in mind: the bot doesn't *see* images like we do, so what's obviously to your eyes as a repost/not the same image is not how the bot works ([algorithm info](http://www.hackerfactor.com/blog/?/archives/529-Kind-of-Like-That.html)).
 
+* If users reply to MAGIC_EYE_BOT, it will report the comment so you can check it out.
+
 * Magic Eye runs every 30s or so, so if you want it to pick up a post then avoid moderating posts in the /new queue that are under a minute old.
 
 * You can reply to MAGIC_EYE_BOT with `clear` and it'll remove the image from it's database. This is handy if one image is ever causing a problem.
 
 * Feature requests should be made in r/MAGIC_EYE_BOT
+
 
 ## Settings 
 
@@ -80,6 +84,15 @@ By default Magic Eye will:
 * Remove uncropped images
 
 It's a good starting point for most image subs. Features are listed individually below.
+
+### Remove reposts
+
+    "similarityTolerance": 6,
+
+The tolerance to image differences. Low number = match more exact images.
+
+* Set to 0 to only match exact as possible images
+*  Default is 6, if you're a subreddit that deals with similar memes/tweets, try 3 and see how you go
 
 ### Remove reposts
 
@@ -149,8 +162,6 @@ Details:
 * `smallDimension`: pixels size, `smallDimension` by `smallDimension`. Example of 330px*330px image: https://i.imgur.com/7jTFozp.png
 
 ### Remove uncropped images
-
-**(Included in default settings)**
 
     "removeUncroppedImages": {},
 
