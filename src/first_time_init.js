@@ -23,15 +23,15 @@ async function firstTimeInit(reddit, subredditName, database, masterSettings) {
         const alreadyProcessed = [];
     
         const topSubmissionsAll = await subreddit.getTop({time: 'all'}).fetchAll({amount: postAmount});
-        await processOldSubmissions(topSubmissionsAll, alreadyProcessed, 'all time top', subredditName, database);
+        await processOldSubmissions(topSubmissionsAll, alreadyProcessed, 'all time top', subredditName, database, masterSettings);
         const topSubmissionsYear = await subreddit.getTop({time: 'year'}).fetchAll({amount: postAmount});
-        await processOldSubmissions(topSubmissionsYear, alreadyProcessed, 'year top', subredditName, database);
+        await processOldSubmissions(topSubmissionsYear, alreadyProcessed, 'year top', subredditName, database, masterSettings);
         const topSubmissionsMonth = await subreddit.getTop({time: 'month'}).fetchAll({amount: postAmount});
-        await processOldSubmissions(topSubmissionsMonth, alreadyProcessed, 'month top', subredditName, database);
+        await processOldSubmissions(topSubmissionsMonth, alreadyProcessed, 'month top', subredditName, database, masterSettings);
         const topSubmissionsWeek = await subreddit.getTop({time: 'week'}).fetchAll({amount: postAmount});
-        await processOldSubmissions(topSubmissionsWeek, alreadyProcessed, 'week top', subredditName, database);
+        await processOldSubmissions(topSubmissionsWeek, alreadyProcessed, 'week top', subredditName, database, masterSettings);
         const newSubmissions = await subreddit.getNew().fetchAll({amount: postAmount});
-        await processOldSubmissions(newSubmissions, alreadyProcessed, 'new', subredditName, database);           
+        await processOldSubmissions(newSubmissions, alreadyProcessed, 'new', subredditName, database, masterSettings);           
     } catch (e) { 
         log.error(chalk.red('Error first time initialising subreddit:'), subredditName, e);
         inProgress = inProgress.filter(item => item !== subredditName);
@@ -59,14 +59,14 @@ async function firstTimeInit(reddit, subredditName, database, masterSettings) {
       });
 }
 
-async function processOldSubmissions(submissions, alreadyProcessed, name, subredditName, database) {
+async function processOldSubmissions(submissions, alreadyProcessed, name, subredditName, database, masterSettings) {
     const submissionsToProcess = submissions.filter(submission => !alreadyProcessed.includes(submission.id));
     log.info('Retrived', submissions.length, name, 'posts for', subredditName, ',', submissionsToProcess.length, ' are new posts.');
     let processedCount = 0;
 
     let startTime = new Date().getTime();
     for (const submission of submissionsToProcess) {
-        await processSubmission(submission, null, database, null, false);
+        await processSubmission(submission, masterSettings, database, null, false);
         processedCount++;
         alreadyProcessed.push(submission.id);
         }
