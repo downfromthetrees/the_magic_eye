@@ -62,7 +62,7 @@ async function firstTimeInit(reddit, subredditName, database, masterSettings) {
 
 async function processOldSubmissions(submissions, alreadyProcessed, name, subredditName, database, masterSettings) {
     const submissionsToProcess = submissions.filter(submission => !alreadyProcessed.includes(submission.id));
-    log.info('Retrived', submissions.length, name, 'posts for', subredditName, ',', submissionsToProcess.length, ' are new posts.');
+    log.info(`[${subredditName}]`, 'Retrived', submissions.length, name, 'posts for', subredditName, ',', submissionsToProcess.length, ' are new posts.');
     let processedCount = 0;
 
     let startTime = new Date().getTime();
