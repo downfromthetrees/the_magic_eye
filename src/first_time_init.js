@@ -49,7 +49,7 @@ async function firstTimeInit(reddit, subredditName, database, masterSettings) {
         to: await `/r/${subredditName}`,
         subject: `Initialisation complete.`,
         text: outdent`
-            I'm all set up and checking new posts made in your subreddit.
+            I'm all set up and checking new posts made in your subreddit (took me a while but won't happen for future subs!)
 
             You can find my documentation and features here: https://github.com/downfromthetrees/the_magic_eye
 
