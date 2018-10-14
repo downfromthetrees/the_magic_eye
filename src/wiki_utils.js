@@ -26,9 +26,17 @@ async function createDefaultSettings(subredditName, masterSettings, reddit) {
 
     const stringSettings = JSON.stringify(masterSettings.settings, null, 4);
     const indentedSettings = indentString(stringSettings, 4);
-    await wikiPage.edit({text: indentedSettings, reason: 'Create default Magic Eye settings.'});
-    await wikiPage.editSettings({listed: false, permission_level: 2}); // mod only, not listed
-    log.info('Finished creating default settings for', subredditName, '...');
+    try {
+        await wikiPage.edit({text: indentedSettings, reason: 'Create default Magic Eye settings.'});
+        await wikiPage.editSettings({listed: false, permission_level: 2}); // mod only, not listed
+        log.info('Finished creating default settings for', subredditName, '...');
+    } catch (e) {
+        if (e.message && e.message.includes('WIKI_DISABLED')) {
+            throw 'Cannot create settings because WIKI_DISABLED';
+        } else {
+            throw e;
+        }
+    }
 }
 
 async function updateSettings(subredditMulti, reddit) {
