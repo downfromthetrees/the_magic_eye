@@ -39,7 +39,7 @@ const { initDatabase } = require('./mongodb_data.js');
 const { processSubmission, } = require('./submission_processor.js');
 const { processInboxMessage } = require('./inbox_processor.js');
 const { processUnmoderated } = require('./unmoderated_processor.js');
-const { firstTimeInit, isInitialising } = require('./first_time_init.js');
+const { firstTimeInit, isInitialising, isAnythingInitialising } = require('./first_time_init.js');
 const { SubredditSettings, getSubredditSettings, setSubredditSettings, getMasterProperty, setMasterProperty, initMasterDatabase, refreshDatabaseList } = require('./mongodb_master_data.js');
 const { updateSettings, createDefaultSettings } = require('./wiki_utils.js');
 
@@ -154,7 +154,7 @@ async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
     
     // first time init
     if (!masterSettings.config.firstTimeInit) {
-        if (!isInitialising(subredditName)) {
+        if (!isAnythingInitialising()) {
             const database = await initDatabase(subredditName, masterSettings.config.databaseUrl);
             firstTimeInit(reddit, subredditName, database, masterSettings).then(() => {
                 log.info(`[${subredditName}]`, chalk.green('Initialisation processing exited for ', subredditName));

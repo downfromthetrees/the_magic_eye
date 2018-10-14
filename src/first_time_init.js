@@ -79,8 +79,13 @@ function isInitialising(subredditName) {
     return inProgress.includes(subredditName);
 }
 
+function isAnythingInitialising() {
+    return inProgress.length > 0;
+}
+
 
 module.exports = {
     firstTimeInit,
-    isInitialising
+    isInitialising,
+    isAnythingInitialising
 };
