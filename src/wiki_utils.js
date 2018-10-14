@@ -10,18 +10,18 @@ const { getSubredditSettings, setSubredditSettings, getMasterProperty, setMaster
 
 
 async function createDefaultSettings(subredditName, masterSettings, reddit) {
-    log.info('Creating default settings for', subredditName, '...');
+    log.info(`[${subredditName}]`, 'Creating default settings for', subredditName, '...');
     const wikiPage = await reddit.getSubreddit(subredditName).getWikiPage('magic_eye');
 
     try {
         const settings = JSON.parse(await wikiPage.content_md);
         if (settings) {
-            log.info(chalk.magenta('Wiki settings already exist when trying to create defaults. Ignoring and using existing settings for '), subredditName);
+            log.info(chalk.magenta(`[${subredditName}]`, 'Wiki settings already exist when trying to create defaults. Ignoring and using existing settings for '), subredditName);
             masterSettings.settings = settings;
             return;
         }
     } catch (e) {
-        log.info('Creating new settings mode.');
+        log.info(`[${subredditName}]`, 'Creating new settings mode.');
     }
 
     const stringSettings = JSON.stringify(masterSettings.settings, null, 4);
@@ -29,10 +29,10 @@ async function createDefaultSettings(subredditName, masterSettings, reddit) {
     try {
         await wikiPage.edit({text: indentedSettings, reason: 'Create default Magic Eye settings.'});
         await wikiPage.editSettings({listed: false, permission_level: 2}); // mod only, not listed
-        log.info('Finished creating default settings for', subredditName, '...');
+        log.info(`[${subredditName}]`, 'Finished creating default settings for', subredditName, '...');
     } catch (e) {
         if (e.message && e.message.includes('WIKI_DISABLED')) {
-            throw 'Cannot create settings because WIKI_DISABLED';
+            throw `[${subredditName}] Cannot create settings because WIKI_DISABLED`;
         } else {
             throw e;
         }
