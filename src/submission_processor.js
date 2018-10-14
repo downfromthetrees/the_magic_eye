@@ -55,7 +55,9 @@ async function processSubmission(submission, masterSettings, database, reddit, a
     const imageUrl = await getImageUrl(await submission.url)
     if (!imageUrl)
         {
-        log.info(`[${subredditName}]`, "Submission was not an image - ignoring submission:", await printSubmission(submission));
+        if (activeMode) {
+            log.info(`[${subredditName}]`, "Submission was not an image - ignoring submission:", await printSubmission(submission));
+        }
         return;
         }
 
