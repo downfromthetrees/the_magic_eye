@@ -157,7 +157,7 @@ async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
         if (!isInitialising(subredditName)) {
             const database = await initDatabase(subredditName, masterSettings.config.databaseUrl);
             firstTimeInit(reddit, subredditName, database, masterSettings).then(() => {
-                log.info(`[${subredditName}]`, chalk.green('Initialisation processing complete for ', subredditName));
+                log.info(`[${subredditName}]`, chalk.green('Initialisation processing exited for ', subredditName));
               }, (e) => {
                 log.error(`[${subredditName}]`, chalk.red('First time init failed for:', subredditName, e));
               });

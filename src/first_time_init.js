@@ -57,6 +57,7 @@ async function firstTimeInit(reddit, subredditName, database, masterSettings) {
 
             Questions/issues/feature requests can be made at r/MAGIC_EYE_BOT`
       });
+      log.info(`[${subredditName}]`, chalk.blue('Success modmail sent and init set true for', subredditName));
 }
 
 async function processOldSubmissions(submissions, alreadyProcessed, name, subredditName, database, masterSettings) {
