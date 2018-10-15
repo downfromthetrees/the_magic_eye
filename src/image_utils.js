@@ -125,12 +125,6 @@ async function getImageDetails(submissionUrl, includeWords) {
         return null;
     }
     const imageDetails = { dhash: null, height: null, width: null, trimmedHeight: null, trimmedWidth: null, words: null };
-    imageDetails.dhash = await generateDHash(imagePath, submissionUrl);
-
-    if (imageDetails.dhash == null) {
-        log.debug('dhash generate stage failed');
-        return null; // must generate a dhash to be valid details
-    }
 
     const imagePHash = await getImageSize(imagePath); 
     if (imagePHash != null) {
@@ -143,6 +137,13 @@ async function getImageDetails(submissionUrl, includeWords) {
     } else {
         log.error('Failed to generate size for ', submissionUrl);
         return { ignore: true };
+    }
+
+    imageDetails.dhash = await generateDHash(imagePath, submissionUrl);
+
+    if (imageDetails.dhash == null) {
+        log.debug('dhash generate stage failed');
+        return null; // must generate a dhash to be valid details
     }
 
     imageDetails.words = includeWords ? await getWordsInImage(imagePath, imagePHash.height) : [];
