@@ -96,7 +96,7 @@ export async function getImageUrl(submissionUrl) {
             } else {
                 const imageResult = await fetch(`https://api.imgur.com/3/gallery/image/${imgurHash}`, options); // gallery but only one image
                 const galleryImage = await imageResult.json();                
-                if (galleryImage.success && galleryImage.data.type.startsWith('image')) {
+                if (galleryImage.success && galleryImage.data.type.startsWith('image') && !galleryImage.data.animated) {
                     return galleryImage.data.link;
                 } else {
                     log.warn('Tried to parse this imgur album/gallery url but failed: ', imageUrl);
@@ -106,7 +106,7 @@ export async function getImageUrl(submissionUrl) {
         } else {
             const result = await fetch(`https://api.imgur.com/3/image/${imgurHash}`, options); // single image
             const singleImage = await result.json();
-            if (singleImage.success && singleImage.data.type.startsWith('image')) {
+            if (singleImage.success && singleImage.data.type.startsWith('image') && !singleImage.data.animated) {
                 return singleImage.data.link;
             } else {
                 log.warn('Tried to parse this imgur single image url but failed: ', imageUrl);
@@ -128,7 +128,7 @@ async function getImageDetails(submissionUrl, includeWords) {
 
     const imagePHash = await getImageSize(imagePath); 
     if (imagePHash != null) {
-        if (imagePHash.height > 4000 || imagePHash.width > 4000) {
+        if (imagePHash.height > 5000 || imagePHash.width > 5000) {
             return { tooLarge: true };
         }
 
