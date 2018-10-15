@@ -94,6 +94,7 @@ async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubm
     } else if (warnAboutDeletedReposts) {
         removalReason += outdent`
         
+        
         **Note:** Users may not delete and resubmit images without a good reason.`;
     }
     removePost(reddit, submission, removalReason, subSettings);
