@@ -97,7 +97,7 @@ export async function getImageUrl(submissionUrl) {
             if (submissionUrl === 'http://redd.it/6f9umk') {
                 log.info('galleryAlbum:', JSON.stringify(galleryAlbum))
             }            
-            if (galleryAlbum.success && galleryAlbum.data && galleryAlbum.data.images[0].type.startsWith('image')) {
+            if (galleryAlbum.success && galleryAlbum.data && galleryAlbum.data.images && galleryAlbum.data.images[0] && galleryAlbum.data.images[0].type.startsWith('image')) {
                 if (submissionUrl === 'http://redd.it/6f9umk') {
                     log.info('isgallery success')
                 }
