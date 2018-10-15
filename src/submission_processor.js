@@ -57,6 +57,8 @@ async function processSubmission(submission, masterSettings, database, reddit, a
         {
         if (activeMode) {
             log.info(`[${subredditName}]`, "Submission was not an image - ignoring submission:", await printSubmission(submission));
+        } else {
+            log.info(`[${subredditName}][first_time_init]`, "Submission was not an image - ignoring submission:", await printSubmission(submission));
         }
         return;
         }
@@ -94,7 +96,9 @@ async function processSubmission(submission, masterSettings, database, reddit, a
     } else if (activeMode) {
         await processExistingSubmission(submission, existingMagicSubmission, masterSettings, reddit, subredditName);
         await database.saveMagicSubmission(existingMagicSubmission); // save here to cover all updates
-    } 
+    } else {
+        log.info(chalk.yellow(`[${subredditName}][first_time_init]`, 'Ignoring existing submission for dhash, matched: ' + existingMagicSubmission._id));    
+    }
 }
 
 async function processExistingSubmission(submission, existingMagicSubmission, masterSettings, reddit, subredditName) {
@@ -141,6 +145,8 @@ async function processExistingSubmission(submission, existingMagicSubmission, ma
 async function processNewSubmission(submission, imageDetails, database, activeMode, subredditName) {
     if (activeMode) {
         log.info(`[${subredditName}]`, chalk.green('Processing new submission: ', await printSubmission(submission)));
+    } else {
+        log.info(`[${subredditName}][first_time_init]`, chalk.green('Processing new submission: ', await printSubmission(submission)));
     }
 
     const newMagicSubmission = new MagicSubmission(imageDetails.dhash, submission, await submission.score);

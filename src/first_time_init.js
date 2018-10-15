@@ -69,6 +69,9 @@ async function processOldSubmissions(submissions, alreadyProcessed, name, subred
     for (const submission of submissionsToProcess) {
         await processSubmission(submission, masterSettings, database, null, false);
         processedCount++;
+        if (processedCount % 30 == 0) {
+            log.info(`[${subredditName}]`, processedCount, '/', submissionsToProcess.length, name, 'posts for', subredditName, 'completed');
+        }
         alreadyProcessed.push(submission.id);
         }
     let endTime = new Date().getTime();
