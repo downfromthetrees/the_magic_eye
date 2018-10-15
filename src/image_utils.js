@@ -129,13 +129,17 @@ export async function getImageUrl(submissionUrl) {
 }
 
 async function getImageDetails(submissionUrl, includeWords) {
+    log.info('INCLUDE WORDS', includeWords);
+    log.info('Memory before download:', process.memoryUsage().heapUsed);
     const imagePath = await downloadImage(submissionUrl);
+    log.info('Memory after download:', process.memoryUsage().heapUsed);
     if (imagePath == null) {
         log.debug('download image stage failed');
         return null;
     }
     const imageDetails = { dhash: null, height: null, width: null, trimmedHeight: null, trimmedWidth: null, words: null };
     imageDetails.dhash = await generateDHash(imagePath, submissionUrl);
+    log.info('After dhash:', process.memoryUsage().heapUsed);
 
     if (imageDetails.dhash == null) {
         log.debug('dhash generate stage failed');
@@ -143,6 +147,7 @@ async function getImageDetails(submissionUrl, includeWords) {
     }
 
     const imagePHash = await generatePHash(imagePath, submissionUrl); 
+    log.info('After phash:', process.memoryUsage().heapUsed);
     if (imagePHash != null) {
         imageDetails.height = imagePHash.height; // there are better ways to get image dimensions but I already had phash working
         imageDetails.width = imagePHash.width;
@@ -151,6 +156,7 @@ async function getImageDetails(submissionUrl, includeWords) {
     }
 
     imageDetails.words = includeWords ? await getWordsInImage(imagePath, imagePHash.height) : [];
+    log.info('After getWordsInImage:', process.memoryUsage().heapUsed);
 
     try {
         const trimmedPath = imagePath + '_trimmed';
@@ -162,12 +168,15 @@ async function getImageDetails(submissionUrl, includeWords) {
         } else {
             log.error('failed to generate trimmed phash for ', submissionUrl);
         }
+        log.info('After trim:', process.memoryUsage().heapUsed);
         await deleteImage(trimmedPath);
+        log.info('After delete trim:', process.memoryUsage().heapUsed);
     } catch (e) {
         log.error(chalk.red('Could not trim submission:'), submissionUrl, ' - imagemagick error: ', e);
     }
 
     await deleteImage(imagePath);
+    log.info('After delete:', process.memoryUsage().heapUsed);
     return imageDetails;
 }
 
