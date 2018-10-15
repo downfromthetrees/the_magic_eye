@@ -1,10 +1,8 @@
 var parseDbUrl = require("parse-database-url");
 var hammingDistance = require("hamming");
-var dhashLibrary = require("dhash");
-var phashLibrary = require("phash-imagemagick");
+var dhashLibrary = require("./dhash_gen.js");
 const chalk = require('chalk');
 const { promisify } = require('util');
-const phashGet = promisify(phashLibrary.get);
 const dhashGet = promisify(dhashLibrary);
 const fs = require('fs');
 const imageDownloader = require('image-downloader');
@@ -12,6 +10,7 @@ const imageMagick = require('imagemagick');
 const tesseract = require('tesseract.js');
 const stripchar = require('stripchar').StripChar;
 const fetch = require("node-fetch");
+const imageSize = require('image-size');
 
 const commonWords = require('./common_words.js').getCommonWords();
 
@@ -25,15 +24,6 @@ export async function generateDHash(imagePath, logUrl) {
         return await dhashGet(imagePath);
     } catch (e) {
         log.warn('Could not generate dhash for: ', logUrl, ', ', e);
-        return null;
-    }
-}
-
-export async function generatePHash(imagePath, logUrl) {
-    try {
-        return await phashGet(imagePath);
-    } catch (e) {
-        log.warn('Could not generate phash for: ', logUrl, ', ', e);
         return null;
     }
 }
@@ -129,55 +119,55 @@ export async function getImageUrl(submissionUrl) {
 }
 
 async function getImageDetails(submissionUrl, includeWords) {
-    log.info('INCLUDE WORDS', includeWords);
-    log.info('Memory before download:', process.memoryUsage().heapUsed);
     const imagePath = await downloadImage(submissionUrl);
-    log.info('Memory after download:', process.memoryUsage().heapUsed);
     if (imagePath == null) {
         log.debug('download image stage failed');
         return null;
     }
     const imageDetails = { dhash: null, height: null, width: null, trimmedHeight: null, trimmedWidth: null, words: null };
     imageDetails.dhash = await generateDHash(imagePath, submissionUrl);
-    log.info('After dhash:', process.memoryUsage().heapUsed);
 
     if (imageDetails.dhash == null) {
         log.debug('dhash generate stage failed');
         return null; // must generate a dhash to be valid details
     }
 
-    const imagePHash = await generatePHash(imagePath, submissionUrl); 
-    log.info('After phash:', process.memoryUsage().heapUsed);
+    const imagePHash = await getImageSize(imagePath); 
     if (imagePHash != null) {
-        imageDetails.height = imagePHash.height; // there are better ways to get image dimensions but I already had phash working
+        if (imagePHash.height > 4000 || imagePHash.width > 4000) {
+            return { tooLarge: true };
+        }
+
+        imageDetails.height = imagePHash.height;
         imageDetails.width = imagePHash.width;
     } else {
-        log.error('failed to generate phash for ', submissionUrl);
+        log.error('Failed to generate size for ', submissionUrl);
+        return { ignore: true };
     }
 
     imageDetails.words = includeWords ? await getWordsInImage(imagePath, imagePHash.height) : [];
-    log.info('After getWordsInImage:', process.memoryUsage().heapUsed);
 
     try {
         const trimmedPath = imagePath + '_trimmed';
         await promisify(imageMagick.convert)([imagePath, '-trim', trimmedPath]);
-        const trimmedPHash = await generatePHash(trimmedPath, submissionUrl);
+        const trimmedPHash = await getImageSize(trimmedPath);
         if (trimmedPHash != null) {
             imageDetails.trimmedHeight = trimmedPHash.height;
             imageDetails.trimmedWidth = trimmedPHash.width;
         } else {
-            log.error('failed to generate trimmed phash for ', submissionUrl);
+            log.error('Failed to generate trimmed size for ', submissionUrl);
         }
-        log.info('After trim:', process.memoryUsage().heapUsed);
         await deleteImage(trimmedPath);
-        log.info('After delete trim:', process.memoryUsage().heapUsed);
     } catch (e) {
         log.error(chalk.red('Could not trim submission:'), submissionUrl, ' - imagemagick error: ', e);
     }
 
     await deleteImage(imagePath);
-    log.info('After delete:', process.memoryUsage().heapUsed);
     return imageDetails;
+}
+
+async function getImageSize(path) {
+    return imageSize(path);
 }
 
 async function getWordsInImage(originalImagePath, height) {

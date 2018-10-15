@@ -79,6 +79,9 @@ async function processSubmission(submission, masterSettings, database, reddit, a
             removePost(reddit, submission, `It looks like your link is broken or deleted. You will need to fix it and resubmit.`, masterSettings.settings);
         }
         return;
+    } else if (imageDetails.tooLarge || imageDetails.ignore) {
+        log.info(`[${subredditName}]`, "Image is too large/ignore: ", await printSubmission(submission));
+        return;
     }
 
     if (activeMode) {
