@@ -94,7 +94,10 @@ export async function getImageUrl(submissionUrl) {
             }
             const galleryResult = await fetch(`https://api.imgur.com/3/gallery/album/${imgurHash}/images`, options); // gallery album
             const galleryAlbum = await galleryResult.json();
-            if (galleryAlbum.success && galleryAlbum.data.images[0].type.startsWith('image')) {
+            if (submissionUrl === 'http://redd.it/6f9umk') {
+                log.info('galleryAlbum:', JSON.stringify(galleryAlbum))
+            }            
+            if (galleryAlbum.success && galleryAlbum.data && galleryAlbum.data.images[0].type.startsWith('image')) {
                 if (submissionUrl === 'http://redd.it/6f9umk') {
                     log.info('isgallery success')
                 }
@@ -105,7 +108,7 @@ export async function getImageUrl(submissionUrl) {
                 }
                 const imageResult = await fetch(`https://api.imgur.com/3/gallery/image/${imgurHash}`, options); // gallery but only one image
                 const galleryImage = await imageResult.json();                
-                if (galleryImage.success && galleryImage.data.type.startsWith('image') && !galleryImage.data.animated) {
+                if (galleryImage.success && galleryImage.data && galleryImage.data.type.startsWith('image') && !galleryImage.data.animated) {
                     if (submissionUrl === 'http://redd.it/6f9umk') {
                         log.info('isgallery signle image success')
                     }
