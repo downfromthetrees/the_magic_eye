@@ -72,6 +72,7 @@ async function processOldSubmissions(submissions, alreadyProcessed, name, subred
         if (processedCount % 30 == 0) {
             log.info(`[${subredditName}]`, processedCount, '/', submissionsToProcess.length, name, 'posts for', subredditName, 'completed');
         }
+        log.info(`[${subredditName}]`, 'Memory:', process.memoryUsage().heapUsed);
         alreadyProcessed.push(submission.id);
         }
     let endTime = new Date().getTime();
