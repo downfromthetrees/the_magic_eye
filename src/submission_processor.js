@@ -25,6 +25,13 @@ async function processSubmission(submission, masterSettings, database, reddit, a
     log.debug('starting processing for ', submission.id, 'submitted:', new Date(submission.created_utc));
     const subredditName = masterSettings._id;
 
+    // check if we have already processed submission
+    const existingMagicSubmissionById = await database.getMagicSubmissionById(submission.id);
+    if (existingMagicSubmissionById) {
+        log.info(`[${subredditName}]`, "Submission is already in database, - ignoring submission:", await printSubmission(submission));
+        return;
+    }
+
     // record details about user up front
     let username = (await submission.author) ? (await submission.author.name) : null;
     if (username && username != '[deleted]') {
