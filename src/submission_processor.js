@@ -30,8 +30,6 @@ async function processSubmission(submission, masterSettings, database, reddit, a
     if (existingMagicSubmissionById) {
         log.info(`[${subredditName}]`, "Submission is already in database, - ignoring submission:", await printSubmission(submission));
         return;
-    } else {
-        log.info(`[${subredditName}]`, 'Starting processing for ', await printSubmission(submission));
     }
 
     // record details about user up front
