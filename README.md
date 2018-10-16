@@ -48,7 +48,7 @@ Magic Eye supports normal image urls as well as imgur posts. No gif/media/link s
 
 * Invite www.reddit.com/u/MAGIC_EYE_BOT as a moderator to your subreddit
     * It needs `flair`, `posts` and `wiki` permissions
-* The bot will create a settings page in your wiki at: http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
+* The bot will create a settings page in your wiki at `http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye`
 * The bot will then trawl through all the top/new posts in your sub it can, this will take some time (give it an hour, since it can be several thousand posts)
 * If you want to blacklist images using toolbox (recommended) follow the steps [here](#remove-blacklisted-images).
 
@@ -150,13 +150,11 @@ If the image can't download the image, it will remove it as broken and ask the u
 
 ### Remove small images
 
-**(Included in default settings)**
-
     "removeSmallImages": {
         "smallDimension": 330
     },
 
-Removes images under a threshold.
+Removes images under a size threshold.
 
 Details:
 * `smallDimension`: pixels size, `smallDimension` by `smallDimension`. Example of 330px*330px image: https://i.imgur.com/7jTFozp.png

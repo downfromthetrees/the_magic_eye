@@ -43,9 +43,6 @@ class SubredditSettings {
                 largeScoreRepostDays: 50,
                 topScore: 999999999,
             },
-            removeSmallImages: {
-                smallDimension: 330,
-            },
             removeBrokenImages: {}
         }
     }
