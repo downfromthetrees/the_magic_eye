@@ -141,7 +141,7 @@ async function getImageDetails(submissionUrl, includeWords) {
     }
     const imageDetails = { dhash: null, height: null, width: null, trimmedHeight: null, trimmedWidth: null, words: null };
 
-    const imagePHash = await getImageSize(imagePath); 
+    const imagePHash = await getImageSize(imagePath, submissionUrl); 
     if (imagePHash != null) {
         if (imagePHash.height > 5000 || imagePHash.width > 5000) {
             return { tooLarge: true };
@@ -166,7 +166,7 @@ async function getImageDetails(submissionUrl, includeWords) {
     try {
         const trimmedPath = imagePath + '_trimmed';
         await promisify(imageMagick.convert)([imagePath, '-trim', trimmedPath]);
-        const trimmedPHash = await getImageSize(trimmedPath);
+        const trimmedPHash = await getImageSize(trimmedPath, submissionUrl);
         if (trimmedPHash != null) {
             imageDetails.trimmedHeight = trimmedPHash.height;
             imageDetails.trimmedWidth = trimmedPHash.width;
@@ -182,11 +182,11 @@ async function getImageDetails(submissionUrl, includeWords) {
     return imageDetails;
 }
 
-async function getImageSize(path) {
+async function getImageSize(path, submissionUrl) {
     try { 
         return imageSize(path);
     } catch (e) {
-        log.error(chalk.red('Could not get imageSize for submission:'), submissionUrl, ': ', e);
+        log.error(chalk.red('Could not get imageSize for submission:'), submissionUrl, e);
         return null;
     }
 }
