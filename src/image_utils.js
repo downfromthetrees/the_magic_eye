@@ -183,7 +183,12 @@ async function getImageDetails(submissionUrl, includeWords) {
 }
 
 async function getImageSize(path) {
-    return imageSize(path);
+    try { 
+        return imageSize(path);
+    } catch (e) {
+        log.error(chalk.red('Could not get imageSize for submission:'), submissionUrl, ': ', e);
+        return null;
+    }
 }
 
 async function getWordsInImage(originalImagePath, height) {
