@@ -5,6 +5,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 const { processSubmission } = require('./submission_processor.js');
 const { setSubredditSettings } = require('./mongodb_master_data.js');
+const { printSubmission } = require('./reddit_utils.js');
 
 let inProgress = [];
 
@@ -67,7 +68,12 @@ async function processOldSubmissions(submissions, alreadyProcessed, name, subred
 
     let startTime = new Date().getTime();
     for (const submission of submissionsToProcess) {
-        await processSubmission(submission, masterSettings, database, null, false);
+        try {
+            await processSubmission(submission, masterSettings, database, null, false);
+        } catch (e) {
+            log.info(`[${subredditName}][first_time_init]`, 'Error thrown while processing:', printSubmission(submission), e);
+        }
+
         processedCount++;
         if (processedCount % 30 == 0) {
             log.info(`[${subredditName}]`, processedCount, '/', submissionsToProcess.length, name, 'posts for', subredditName, 'completed');

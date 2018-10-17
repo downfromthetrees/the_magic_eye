@@ -23,7 +23,6 @@ const { removeReposts } = require('./processing_modules/submission_modules/image
 
 async function processSubmission(submission, masterSettings, database, reddit, activeMode) {
     const subredditName = masterSettings._id;
-    log.info(`[${subredditName}]`, 'Starting processing for ', await printSubmission(submission));
 
     // check if we have already processed submission
     const existingMagicSubmissionById = await database.getMagicSubmissionById(submission.id);
