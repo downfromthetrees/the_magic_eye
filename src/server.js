@@ -70,7 +70,6 @@ async function main() {
         }
 
         const moddedSubsMulti = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
-        log.info(chalk.blue("ListOfSubs:"), moddedSubsMulti);
         const subredditMulti = await reddit.getSubreddit(moddedSubsMulti);
 
         // submissions for all subs
@@ -127,7 +126,6 @@ async function main() {
 
 async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
     if (subredditName.startsWith('u_')) {
-        log.info(`[${subredditName}]`, 'Ignoring');
         return;
     }
     let masterSettings = await getSubredditSettings(subredditName);
