@@ -49,7 +49,8 @@ Magic Eye supports normal image urls as well as imgur posts. No gif/media/link s
 * Invite www.reddit.com/u/MAGIC_EYE_BOT as a moderator to your subreddit with `flair`, `posts` and `wiki` permissions
     * A settings page will be created by the bot in your wiki at: http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
     * The bot will then trawl through all the top/new posts in your sub it can, and send you a modmail once it's up and running
-* If you want to use the blacklist images feature follow the Toolbox configuration steps [here](#remove-blacklisted-images).
+* If you want to use any features blacklist images feature follow the Toolbox configuration steps [here](#remove-blacklisted-images).
+* Tweak your subs settings by looking at the [settings](#settings) documentation
 
 ## General info / FAQ
 
@@ -66,21 +67,18 @@ Magic Eye supports normal image urls as well as imgur posts. No gif/media/link s
 
 ## Settings 
 
-You can configure the bot by editing the magic_eye wiki page. The settings are in JSON format.
-
-http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
-
-MAGIC_EYE_BOT will let you know if your updates are sucessful. If you're having trouble with it you can use [this JSON validator](https://jsonformatter.curiousconcept.com/) for help.
-
-### Standard setup
-
 By default Magic Eye will:
 
 * Remove reposts
 * Remove blacklisted images and repeat the removal reason to the user (requires toolbox configuration, see below)
 * Remove broken image links
 
-It's a good starting point for most image subs. Features are listed individually below.
+You can configure the bot to do more by editing the magic_eye wiki page. The settings are in JSON format.
+
+http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
+
+MAGIC_EYE_BOT will let you know if your updates are sucessful. If you're having trouble with it you can use [this JSON validator](https://jsonformatter.curiousconcept.com/) for help.
+
 
 ### Remove reposts
 
