@@ -69,7 +69,7 @@ async function main() {
             setTimeout(main, 30 * 1000); // run again in 30 seconds
         }
 
-        const moddedSubsMulti = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
+        const moddedSubsMulti = moddedSubs.filter(sub => !sub.startsWith('u_')).map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
         log.info(chalk.blue("ListOfSubs:"), moddedSubsMulti);
         const subredditMulti = await reddit.getSubreddit(moddedSubsMulti);
 
@@ -126,11 +126,6 @@ async function main() {
 
 
 async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
-    if (subredditName === 'u_MAGIC_EYE_BOT') {
-        log.info(`[${subredditName}]`, 'Not processing own account page');
-        return;
-    }
-
     let masterSettings = await getSubredditSettings(subredditName);
     if (!masterSettings) {
         // find the database with least use
