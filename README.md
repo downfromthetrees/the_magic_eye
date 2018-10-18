@@ -79,8 +79,6 @@ By default Magic Eye will:
 * Remove reposts
 * Remove blacklisted images and repeat the removal reason to the user (requires toolbox configuration, see below)
 * Remove broken image links
-* Remove small images
-* Remove uncropped images
 
 It's a good starting point for most image subs. Features are listed individually below.
 
