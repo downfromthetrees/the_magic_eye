@@ -46,22 +46,19 @@ Magic Eye supports normal image urls as well as imgur posts. No gif/media/link s
 
 ## Setup
 
-<<<<<<< HEAD
-* Invite www.reddit.com/u/MAGIC_EYE_BOT as a moderator to your subreddit
-    * It needs `flair`, `posts` and `wiki` permissions
-* The bot will create a settings page in your wiki at `http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye`
-* The bot will then trawl through all the top/new posts in your sub it can, this will take some time (give it an hour, since it can be several thousand posts)
-* If you want to blacklist images using toolbox (recommended) follow the steps [here](#remove-blacklisted-images).
-=======
 * Invite www.reddit.com/u/MAGIC_EYE_BOT as a moderator to your subreddit with `flair`, `posts` and `wiki` permissions
     * A settings page will be created by the bot in your wiki at: http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
-    * The bot will then trawl through all the top/new posts in your sub it can, and send you a modmail once it's up and running
-* If you want to use the blacklist images featire (recommended as it's handy) follow the steps [here](#remove-blacklisted-images).
->>>>>>> a2ddc976badb4b5dbeb44704f37d402b7f8b7550
+    * The bot will then trawl through all the top/new posts in your sub it can, and send you a modmail once it's up and running   
+
+By default Magic Eye will:
+
+* Remove reposts
+* Remove blacklisted images and repeat the removal reason to the user (once toolbox configuration is in place, see [here](#remove-blacklisted-images))
+* Remove broken image links
+    
+See [settings](#settings) documentation for more features/tweaking for your sub.
 
 ## General info / FAQ
-
-* Magic Eye sometimes gets detection wrong. Normally that means missing reposts because it's conservative, but occasionally (under 1%) it's a false positive. Just keep in mind: the bot doesn't *see* images like we do, so what's obviously to your eyes as a repost/not the same image is not how the bot works ([algorithm info](http://www.hackerfactor.com/blog/?/archives/529-Kind-of-Like-That.html)).
 
 * If users reply to MAGIC_EYE_BOT, it will report the comment so you can check it out.
 
@@ -71,26 +68,16 @@ Magic Eye supports normal image urls as well as imgur posts. No gif/media/link s
 
 * Feature requests should be made in r/MAGIC_EYE_BOT
 
+* Magic Eye is designed to also match slightly altered versions of images, but because of this it will occasionally get detection wrong. Normally that means missing reposts because it's conservative, but occasionally (under 1%) it's a false positive. Just keep in mind: the bot doesn't *see* images like we do, so what's obviously to your eyes as a repost/not the same image doesn't mean the bot is broken. ([algorithm info](http://www.hackerfactor.com/blog/?/archives/529-Kind-of-Like-That.html)).
 
 ## Settings 
 
-You can configure the bot by editing the magic_eye wiki page. The settings are in JSON format.
+You can configure the bot to do more by editing the magic_eye wiki page. The settings are in JSON format.
 
 http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 
 MAGIC_EYE_BOT will let you know if your updates are sucessful. If you're having trouble with it you can use [this JSON validator](https://jsonformatter.curiousconcept.com/) for help.
 
-### Standard setup
-
-By default Magic Eye will:
-
-* Remove reposts
-* Remove blacklisted images and repeat the removal reason to the user (requires toolbox configuration, see below)
-* Remove broken image links
-* Remove small images
-* Remove uncropped images
-
-It's a good starting point for most image subs. Features are listed individually below.
 
 ### Remove reposts
 
@@ -111,8 +98,8 @@ The tolerance to image differences. Low number = match more exact images.
         "smallScoreRepostDays": 15,
         "mediumScore": 400,
         "mediumScoreRepostDays": 25,
-        "largeScore": 50,
-        "largeScoreRepostDays": 10000,
+        "largeScore": 10000,
+        "largeScoreRepostDays": 50,
         "topScore": 999999999
     },
 
