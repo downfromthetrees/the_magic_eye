@@ -10,7 +10,7 @@ const chalk = require('chalk');
 async function getModComment(reddit, submissionId) {
     const submission = reddit.getSubmission(submissionId);
     const comments = await submission.comments;
-    return comments.find(comment => comment.distinguished == 'moderator' && comment.removed != true);
+    return comments.find(comment => comment.distinguished === 'moderator' && comment.removed != true && comment.author !== 'AutoModerator');
 }
 
 async function isMagicIgnore(modComment) {
