@@ -34,7 +34,6 @@ class SubredditSettings {
         this.settings = {
             similarityTolerance: 6,            
             removeReposts: {
-                removeRepostsIfDeleted: true,
                 smallScore: 0,
                 smallScoreRepostDays: 15,
                 mediumScore: 400,
