@@ -3,6 +3,7 @@
 
 Magic Eye is an image detection bot for reddit that detects reposts, as well as several other image processing and moderation features.
 
+
 <!-- TOC -->
 
 - [Magic Eye](#magic-eye)
@@ -11,7 +12,6 @@ Magic Eye is an image detection bot for reddit that detects reposts, as well as 
     - [Setup](#setup)
     - [General info / FAQ](#general-info--faq)
     - [Settings](#settings)
-        - [Standard setup](#standard-setup)
         - [Remove reposts](#remove-reposts)
         - [Remove reposts](#remove-reposts-1)
         - [Remove blacklisted images](#remove-blacklisted-images)
@@ -24,7 +24,6 @@ Magic Eye is an image detection bot for reddit that detects reposts, as well as 
     - [Thanks](#thanks)
 
 <!-- /TOC -->
-
 
 ## Current features
 
