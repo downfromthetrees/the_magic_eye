@@ -27,3 +27,5 @@ Magic Eye is pretty simple to develop on and test locally.
     * `NODE_ENV`=`develop`
     * `PASSWORD`= password of your bot account
 
+* Run `npm run install` to install dependencies, and `npm run start` to begin.
+* Follow the normal setup instructions in the README to add it to a subreddit.
