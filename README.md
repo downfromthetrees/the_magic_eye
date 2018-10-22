@@ -47,7 +47,7 @@ Magic Eye supports normal image urls as well as imgur posts. No gif/media/link s
 
 * Invite www.reddit.com/u/MAGIC_EYE_BOT as a moderator to your subreddit with `flair`, `posts` and `wiki` permissions
     * A settings page will be created by the bot in your wiki at: http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
-    * The bot will then trawl through all the top/new posts in your sub it can, and send you a modmail once it's up and running   
+    * The bot will then trawl through all the top/new posts in your sub it can, and send you a modmail once it's up and running (will take roughly an hour) 
 
 By default Magic Eye will:
 
