@@ -179,9 +179,9 @@ class MagicDatabase {
             const collection = await getSubmissionCollection(this);
             await collection.remove({'_id': submission._id});
     
-            const index = dhash_cache.indexOf(submission._id);
+            const index = this.dhash_cache.indexOf(submission._id);
             if (index > -1) {
-                dhash_cache.splice(index, 1);
+                this.dhash_cache.splice(index, 1);
             }
         } catch (err) {
             log.error(chalk.red('MongoDb error:'), err);
