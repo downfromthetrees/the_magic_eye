@@ -175,9 +175,9 @@ Details:
 
 ### Custom footer
 
-    "customFooter": "([rules faq](https://www.reddit.com/r/hmmm/wiki/rules))",
+    "customFooter": "I'm a bot but check out our ([rules faq](https://www.reddit.com/r/hmmm/wiki/rules))",
 
-Adds text to the bots footer. See [here](https://www.reddit.com/r/hmmm/comments/9mcwds/hmmm/e7dqm0q/) for an example of the above settings.
+Replaces the default bot footer statement to a custom version.
 
 ### Report unmoderated posts
 
