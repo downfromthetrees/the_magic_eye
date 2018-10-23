@@ -8,7 +8,6 @@ This was initially intended for an audience when the bot was "if you can set it 
 ## Things to know before setting it up
 
 * Heroku requires a credit card number for validation. [No charges](https://devcenter.heroku.com/articles/free-dyno-hours#free-dyno-hour-pool) can or will ever be made by setting up Magic Eye though.
-* You must set up a new bot and new hosting account for each subreddit.
 * You need a github account [create one here](http://github.com/)
 
 ## Hosting setup

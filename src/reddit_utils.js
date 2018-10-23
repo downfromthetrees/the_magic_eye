@@ -26,14 +26,14 @@ function sliceSubmissionId(submissionId) {
 }
 
 async function removePost(reddit, submission, removalReason, subSettings) {
-    const customFooterSection = subSettings.customFooter ? subSettings.customFooter : "";
+    const footerText = subSettings.customFooter ? subSettings.customFooter : "*I'm a bot so if I was wrong, reply to me and a moderator will check it.*";
     const removalFooter = 
     outdent`
     
 
     -----------------------
 
-    *I'm a bot so if I was wrong, reply to me and a moderator will check it.* ${customFooterSection}`;
+    ${footerText}`;
     
     submission.remove();
     const replyable = await submission.reply(removalReason + removalFooter);
