@@ -15,6 +15,12 @@ async function processInboxMessage(inboxMessage, reddit, database) {
     const messageSubreddit = await inboxMessage.subreddit;
     const subredditName = messageSubreddit ? messageSubreddit.display_name : null;
     const subreddit = messageSubreddit ? await reddit.getSubreddit(subredditName) : null;
+    
+    if (inboxMessage.author.name === process.env.ACCOUNT_USERNAME) {
+        log.info('Ignoring message from self...', inboxMessage.id);
+        return;
+    }
+
     if (inboxMessage.was_comment) {
         const moderators = await subreddit.getModerators();
         const isMod = moderators.find((moderator) => moderator.name === inboxMessage.author.name);
