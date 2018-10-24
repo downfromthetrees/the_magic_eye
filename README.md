@@ -69,6 +69,8 @@ See [settings](#settings) documentation for more features/tweaking for your sub.
 
 * Magic Eye is designed to also match slightly altered versions of images, but because of this it will occasionally get detection wrong. Normally that means missing reposts because it's conservative, but occasionally (under 1%) it's a false positive. Just keep in mind: the bot doesn't *see* images like we do, so what's obviously to your eyes as a repost/not the same image doesn't mean the bot is broken. ([algorithm info](http://www.hackerfactor.com/blog/?/archives/529-Kind-of-Like-That.html)).
 
+* If you want to stop MAGIC_EYE_BOT for any reason, just demod it. You can safely remod it at any time and it will carry on as normal.
+
 ## Settings 
 
 You can configure the bot to do more by editing the magic_eye wiki page. The settings are in JSON format.
