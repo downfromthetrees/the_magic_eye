@@ -49,12 +49,12 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
     const lastSubmissionRemoved = await lastSubmission.removed;
     if (!lastSubmissionRemoved || lastIsRemovedAsRepost) {
         log.info(`[${subredditName}]`, 'Found matching hash for submission ', await printSubmission(submission), ', matched,', existingMagicSubmission.reddit_id,' re-approving as it is over the repost limit.');
-		if (subSettings.approveOverRepostLimitSubmissions == true) {
-			submission.approve();
-		}
-		if (subSettings.assignOverRepostLimitFlair == true) {
-			submission.assignFlair({'text': await lastSubmission.link_flair_text}); // reflair with same flair
-		}
+        if (subSettings.approveOverRepostLimitSubmissions == true) {
+            submission.approve();
+        }
+        if (subSettings.assignOverRepostLimitFlair == true) {
+            submission.assignFlair({'text': await lastSubmission.link_flair_text}); // reflair with same flair
+        }
         existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
     }
 
