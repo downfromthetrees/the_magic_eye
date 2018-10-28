@@ -154,6 +154,12 @@ async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
         selectedDatabase.count++;
         await setMasterProperty('databases', databaseList);
     }
+
+    // safe check
+    if (!masterSettings.settings || !masterSettings.config) {
+        log.warn(`[${subredditName}]`, chalk.yellow('Missing settings for '), subredditName, ' - ignoring subreddit');
+        return;
+    }
     
     // first time init
     if (!masterSettings.config.firstTimeInit) {
