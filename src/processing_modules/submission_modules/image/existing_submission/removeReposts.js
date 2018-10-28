@@ -90,7 +90,8 @@ async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubm
         return;
     }
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
-    let removalReason = outdent`Good post but unfortunately it has been removed because it has been posted recently by another user:
+    const removalRepostText = subSettings.removeReposts.removalMessage ? subSettings.removeReposts.removalMessage : "Good post but unfortunately it has been removed because it has been posted recently by another user:";
+    let removalReason = outdent`${removalRepostText}
 
         * [Submission link](${permalink})
         * [Direct image link](${await lastSubmission.url})`;
@@ -110,9 +111,12 @@ async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubm
 async function removeAsTopRepost(reddit, submission, lastSubmission, subSettings, subredditName){
     log.info(`[${subredditName}]`, 'Found matching hash for submission: ', await printSubmission(submission), ', removing as repost of all time top post:', await lastSubmission.id);
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
-    let removalReason = 
-        `Good post but unfortunately it has been removed because it is one of our all time top posts. You can see it [here](${permalink}), ([direct link](${ await lastSubmission.url})).`;
 
+    const removalRepostText = subSettings.removeReposts.allTimeTopRemovalMessage ? subSettings.removeReposts.allTimeTopRemovalMessage : "Good post but unfortunately it has been removed because it is one of this subreddits all time top posts:";
+    let removalReason = outdent`${removalRepostText}
+
+        * [Submission link](${permalink})
+        * [Direct image link](${await lastSubmission.url})`;
     removePost(reddit, submission, removalReason, subSettings);
 }
 

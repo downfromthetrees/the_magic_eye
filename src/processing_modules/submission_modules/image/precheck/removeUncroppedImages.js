@@ -18,7 +18,7 @@ async function removeUncroppedImages(reddit, submission, imageDetails, subSettin
     if (isImageUncropped(imageDetails)) {
         log.info(`[${subredditName}]`, "Image is uncropped, removing - removing submission: ", await printSubmission(submission));
         const removalReason = 
-            `This image appears to be uncropped (i.e. black/white bars at the top and bottom). Images must be cropped before posting (or post the original image).`;
+            `This image appears to be uncropped (i.e. black/white bars at the top and bottom). Images must be cropped before posting to this subreddit.`;
         removePost(reddit, submission, removalReason, subSettings);
         return false;
     }

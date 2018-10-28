@@ -73,7 +73,7 @@ async function processSubmission(submission, masterSettings, database, reddit, a
     if (imageDetails == null){
         log.info(`[${subredditName}]`, "Could not download image (probably deleted): ", await printSubmission(submission));
         if (activeMode && masterSettings.settings.removeBrokenImages) {
-            removePost(reddit, submission, `It looks like your link is broken or deleted. You will need to fix it and resubmit.`, masterSettings.settings);
+            removePost(reddit, submission, `This post has been automatically removed because the link is broken or deleted. You will need to fix it and resubmit.`, masterSettings.settings);
         }
         return;
     } else if (imageDetails.tooLarge || imageDetails.ignore) {
