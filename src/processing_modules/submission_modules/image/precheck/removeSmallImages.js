@@ -21,7 +21,7 @@ async function removeSmallImages(reddit, submission, imageDetails, subSettings, 
 
     if (isImageTooSmall(imageDetails, smallDimension)) {
         log.info(`[${subredditName}]`, "Image is too small, removing - removing submission: ", await printSubmission(submission));
-        const removalReason = `Your image has been removed because it is too small. Image submissions to this subreddit must be larger than ${smallDimension}px*${smallDimension}px).`;
+        const removalReason = `Your image has been removed because it is too small. Image submissions to this subreddit must be larger than ${smallDimension}px*${smallDimension}px.`;
         removePost(reddit, submission, removalReason, subSettings);
         return false;
     }   
