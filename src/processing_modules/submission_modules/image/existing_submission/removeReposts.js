@@ -90,7 +90,7 @@ async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubm
     if (noOriginalSubmission) {
         removalReason += outdent` 
 
-        That submission was also removed by a moderator as a repost, so it will have been posted by another user recently.`;
+        That submission was also removed by a moderator as a repost, so it has been posted by another user recently.`;
     } else if (warnAboutDeletedReposts) {
         removalReason += outdent`
         
