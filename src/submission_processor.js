@@ -118,14 +118,14 @@ async function processExistingSubmission(submission, existingMagicSubmission, ma
     existingMagicSubmission.highest_score = Math.max(existingMagicSubmission.highest_score, await lastSubmission.score);
     existingMagicSubmission.duplicates.push(submission.id);
 
+    const modWhoRemoved = await lastSubmission.banned_by;
+    if (modWhoRemoved == 'AutoModerator') { // can happen in cases where automod is slow for some reason
+        log.info(`[${subredditName}]`, 'Ignoring automoderator removal for: ', await printSubmission(submission)); 
+        return;
+    }
+
     let modComment;
     if (lastSubmissionRemoved) {
-        const modWhoRemoved = await lastSubmission.banned_by;
-        if (modWhoRemoved == 'AutoModerator') { // can happen in cases where automod is slow for some reason
-            log.info(`[${subredditName}]`, 'Ignoring automoderator removal for: ', await printSubmission(submission)); 
-            return;
-        }
-
         log.debug(`[${subredditName}]`, 'Last submission removed, getting mod comment');
         modComment = await getModComment(reddit, existingMagicSubmission.reddit_id);
         const magicIgnore = await isMagicIgnore(modComment);
