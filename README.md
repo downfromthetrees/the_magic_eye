@@ -111,7 +111,7 @@ Optional fields:
     "removeReposts": {
         ...
         "removalMessage": "Bad luck buckaroo, this image is a repost!",
-        "allTimeTopRemovalMessage": : "Bad luck buckaroo, this image is an all time classic!"
+        "allTimeTopRemovalMessage": "Bad luck buckaroo, this image is an all time classic!"
     },
 
 Aside from removing reposts, this setting will auto approve reposts over the limit, and reflair them with the same flair.
