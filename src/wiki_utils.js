@@ -48,11 +48,6 @@ async function updateSettings(subredditMulti, reddit) {
         const subredditName = await change.subreddit.display_name;
         await doUpdateSettings(subredditName, change, reddit);
     }
-
-    if (process.env.ACCOUNT_USERNAME == 'MAGIC_EYE_BOT') {
-        await doUpdateSettings('TheLastAirbender', {mod: "CosmicKeys"}, reddit);
-    }
-
 }
 
 // overkill, but well tested
