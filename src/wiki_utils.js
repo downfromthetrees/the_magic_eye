@@ -101,6 +101,7 @@ async function doUpdateSettings(subredditName, change, reddit) {
     } catch (e) {
         sendFailureReply(change.mod, reddit);
         log.warn('Failed to update new settings for sub');
+        return;
     }
 
     //var schemaValidator = new Validator();
