@@ -41,6 +41,8 @@ class SubredditSettings {
                 largeScore: 10000,
                 largeScoreRepostDays: 50,
                 topScore: 999999999,
+                approveIfOverRepostDays: true,
+                reflairApprovedReposts: false,
             },
             removeBrokenImages: {}
         }
