@@ -91,11 +91,11 @@ async function removeAsRepost(reddit, submission, lastSubmission, noOriginalSubm
     }
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
     const removalRepostText = subSettings.removeReposts.removalMessage ? subSettings.removeReposts.removalMessage : "Good post but unfortunately it has been removed because it has been posted recently by another user:";
-    let removalReason = 
-        outdent`${removalRepostText}
+    let removalReason = outdent`
+    ${removalRepostText}
 
-        * [Submission link](${permalink})
-        * [Direct image link](${await lastSubmission.url})`;
+    * [Submission link](${permalink})
+    * [Direct image link](${await lastSubmission.url})`;
 
     if (noOriginalSubmission) {
         removalReason += outdent` 
@@ -115,11 +115,11 @@ async function removeAsTopRepost(reddit, submission, lastSubmission, subSettings
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
 
     const removalRepostText = subSettings.removeReposts.allTimeTopRemovalMessage ? subSettings.removeReposts.allTimeTopRemovalMessage : "Good post but unfortunately it has been removed because it is one of this subreddits all time top posts:";
-    let removalReason = 
-        outdent`${removalRepostText}
+    let removalReason = outdent
+    `${removalRepostText}
 
-        * [Submission link](${permalink})
-        * [Direct image link](${await lastSubmission.url})`;
+    * [Submission link](${permalink})
+    * [Direct image link](${await lastSubmission.url})`;
     removePost(reddit, submission, removalReason, subSettings);
 }
 
