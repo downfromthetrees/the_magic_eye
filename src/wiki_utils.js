@@ -49,7 +49,10 @@ async function updateSettings(subredditMulti, reddit) {
         await doUpdateSettings(subredditName, change, reddit);
     }
 
-    //await doUpdateSettings('TheLastAirbender', {mod: "CosmicKeys"}, reddit);
+    if (process.env.ACCOUNT_USERNAME == 'MAGIC_EYE_BOT') {
+        await doUpdateSettings('TheLastAirbender', {mod: "CosmicKeys"}, reddit);
+    }
+
 }
 
 // overkill, but well tested
