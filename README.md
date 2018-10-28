@@ -103,7 +103,7 @@ The tolerance to image differences. Low number = match more exact images.
         "largeScoreRepostDays": 50,
         "topScore": 999999999,
         "approveIfOverRepostDays": true,
-        "reflairApprovedReposts": true,        
+        "reflairApprovedReposts": true
     },
 
 Optional fields:
