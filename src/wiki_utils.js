@@ -49,7 +49,7 @@ async function updateSettings(subredditMulti, reddit) {
         await doUpdateSettings(subredditName, change, reddit);
     }
 
-    await doUpdateSettings('TheLastAirbender', {mod: "CosmicKeys"}, reddit);
+    //await doUpdateSettings('TheLastAirbender', {mod: "CosmicKeys"}, reddit);
 }
 
 // overkill, but well tested
