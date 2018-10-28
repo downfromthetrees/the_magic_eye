@@ -102,14 +102,14 @@ The tolerance to image differences. Low number = match more exact images.
         "largeScore": 10000,
         "largeScoreRepostDays": 50,
         "topScore": 999999999,
+        "approveIfOverRepostDays": true,
+        "reflairApprovedReposts": true,        
     },
 
 Optional fields:
 
     "removeReposts": {
         ...
-        "approveIfOverRepostDays": true,
-        "reflairApprovedReposts": true,
         "removalMessage": "Bad luck buckaroo, this image is a repost!",
         "allTimeTopRemovalMessage": : "Bad luck buckaroo, this image is an all time classic!"
     },
