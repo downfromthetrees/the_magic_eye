@@ -12,8 +12,8 @@ Magic Eye is an image detection bot for reddit that detects reposts, as well as 
     - [Setup](#setup)
     - [General info / FAQ](#general-info--faq)
     - [Settings](#settings)
+        - [Tolerance](#tolerance)
         - [Remove reposts](#remove-reposts)
-        - [Remove reposts](#remove-reposts-1)
         - [Remove blacklisted images](#remove-blacklisted-images)
         - [Remove broken image links](#remove-broken-image-links)
         - [Remove small images](#remove-small-images)
@@ -80,14 +80,14 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 MAGIC_EYE_BOT will let you know if your updates are sucessful. If you're having trouble with it you can use [this JSON validator](https://jsonformatter.curiousconcept.com/) for help.
 
 
-### Remove reposts
+### Tolerance
 
     "similarityTolerance": 6,
 
 The tolerance to image differences. Low number = match more exact images.
 
 * Set to 0 to only match exact as possible images
-*  Default is 6, if you're a subreddit that deals with similar memes/tweets, try 3 and see how you go
+*  Default is 6, if you're a subreddit that sees any issue with similar memes/tweets, experiment with smaller numbers.
 
 ### Remove reposts
 
@@ -101,7 +101,17 @@ The tolerance to image differences. Low number = match more exact images.
         "mediumScoreRepostDays": 25,
         "largeScore": 10000,
         "largeScoreRepostDays": 50,
-        "topScore": 999999999
+        "topScore": 999999999,
+    },
+
+Optional fields:
+
+    "removeReposts": {
+        ...
+        "approveIfOverRepostDays": true,
+        "reflairApprovedReposts": true,
+        "removalMessage": "Bad luck buckaroo, this image is a repost!",
+        "allTimeTopRemovalMessage": : "Bad luck buckaroo, this image is an all time classic!"
     },
 
 Aside from removing reposts, this setting will auto approve reposts over the limit, and reflair them with the same flair.
