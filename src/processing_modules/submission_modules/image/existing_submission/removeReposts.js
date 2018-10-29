@@ -117,7 +117,7 @@ async function removeAsTopRepost(reddit, submission, lastSubmission, subSettings
     const removalRepostText = subSettings.removeReposts.allTimeTopRemovalMessage ? subSettings.removeReposts.allTimeTopRemovalMessage : "Good post but unfortunately it has been removed because it is one of this subreddits all time top posts:";
     let removalReason = outdent`
     ${removalRepostText}
-
+    
     * [Submission link](${permalink})
     * [Direct image link](${await lastSubmission.url})`;
     removePost(reddit, submission, removalReason, subSettings);
