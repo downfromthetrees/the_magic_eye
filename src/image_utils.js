@@ -75,8 +75,6 @@ export async function getImageUrl(submissionUrl) {
     // http://imgur.com/gallery/HFoOCeg gallery, single image
     // https://imgur.com/gallery/5l71D gallery, multiple images (album)
 
-    // if album data[0] && data[0].link
-
     const isImgur = imageUrl.includes('imgur.com');
     if (isImgur) {
         let imgurHash = imageUrl.split('/')[imageUrl.split('/').length-1];  // http://imgur.com/S1dZBPm.weird?horrible=true
