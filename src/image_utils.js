@@ -68,11 +68,14 @@ export async function getImageUrl(submissionUrl) {
         return null; // fail fast
     }
 
-    // http://i.imgur.com/f7VXJQF
-    // http://imgur.com/mLkJuXP/
-    // http://imgur.com/a/liD3a
-    // http://imgur.com/gallery/HFoOCeg single image
-    // https://imgur.com/gallery/5l71D album
+    // http://i.imgur.com/f7VXJQF - single image
+    // http://imgur.com/mLkJuXP/ - single image, different url formatting
+    // https://imgur.com/a/9RKPOtA - album, single image
+    // http://imgur.com/a/liD3a - album, multiple images
+    // http://imgur.com/gallery/HFoOCeg gallery, single image
+    // https://imgur.com/gallery/5l71D gallery, multiple images (album)
+
+    // if album data[0] && data[0].link
 
     const isImgur = imageUrl.includes('imgur.com');
     if (isImgur) {
@@ -89,30 +92,20 @@ export async function getImageUrl(submissionUrl) {
         const isAlbum = imageUrl.includes('imgur.com/a/');
         const isGallery = imageUrl.includes('imgur.com/gallery/');
         if (isGallery || isAlbum) { 
-            if (submissionUrl === 'http://redd.it/6f9umk') {
-                log.info('isgallery')
-            }
-            const galleryResult = await fetch(`https://api.imgur.com/3/gallery/album/${imgurHash}/images`, options); // gallery album
-            const galleryAlbum = await galleryResult.json();
-            if (submissionUrl === 'http://redd.it/6f9umk') {
-                log.info('galleryAlbum:', JSON.stringify(galleryAlbum))
-            }            
-            if (galleryAlbum.success && galleryAlbum.data && galleryAlbum.data.images && galleryAlbum.data.images[0] && galleryAlbum.data.images[0].type.startsWith('image')) {
-                if (submissionUrl === 'http://redd.it/6f9umk') {
-                    log.info('isgallery success')
-                }
-                return galleryAlbum.data.images[0].link;
+            const albumFetchUrl = isGallery ? `https://api.imgur.com/3/gallery/album/${imgurHash}/images` : `https://api.imgur.com/3/album/${imgurHash}/images`;
+            const albumResult = await fetch(albumFetchUrl, options); // gallery album
+            const albumData = await albumResult.json();
+            if (albumData.success && albumData.data && albumData.data[0] && albumData.data[0].type && albumData.data[0].type.startsWith('image')) {
+                return albumData.data[0].link;
+            } else if (albumData.success && albumData.data && albumData.data.images && albumData.data.images[0] && albumData.data.images[0].type.startsWith('image')) { // usecase?
+                logger.warn('Abnormal gallery url for processing: ')
+                return albumData.data.images[0].link;
             } else {
-                if (submissionUrl === 'http://redd.it/6f9umk') {
-                    log.info('isgallery signle image')
-                }
-                const imageResult = await fetch(`https://api.imgur.com/3/gallery/image/${imgurHash}`, options); // gallery but only one image
-                const galleryImage = await imageResult.json();                
-                if (galleryImage.success && galleryImage.data && galleryImage.data.type.startsWith('image') && !galleryImage.data.animated) {
-                    if (submissionUrl === 'http://redd.it/6f9umk') {
-                        log.info('isgallery signle image success')
-                    }
-                    return galleryImage.data.link;
+                const albumImageFetchUrl = `https://api.imgur.com/3/gallery/image/${imgurHash}`; // `https://api.imgur.com/3/album/{{albumHash}}/image/{{imageHash}}`;
+                const imageResult = await fetch(albumImageFetchUrl, options); // gallery but only one image
+                const albumImage = await imageResult.json();                
+                if (albumImage.success && albumImage.data && albumImage.data.type.startsWith('image') && !albumImage.data.animated) {
+                    return albumImage.data.link;
                 } else {
                     log.warn('Tried to parse this imgur album/gallery url but failed: ', imageUrl);
                     return null;
@@ -124,7 +117,7 @@ export async function getImageUrl(submissionUrl) {
             if (singleImage.success && singleImage.data.type.startsWith('image') && !singleImage.data.animated) {
                 return singleImage.data.link;
             } else {
-                log.warn('Tried to parse this imgur single image url but failed: ', imageUrl);
+                log.warn('Tried to parse this imgur url but failed: ', imageUrl);
                 return null;
             }
         }       
