@@ -50,10 +50,10 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
     if (!lastSubmissionRemoved || lastIsRemovedAsRepost) {
         log.info(`[${subredditName}]`, 'Found matching hash for submission ', await printSubmission(submission), ', matched,', existingMagicSubmission.reddit_id,' re-approving as it is over the repost limit.');
 
-        if (processorSettings.approveIfOverRepostDays) {
+        if (processorSettings.approveIfOverRepostDays === true) {
             submission.approve();
         }
-        if (processorSettings.reflairApprovedReposts == true) {
+        if (processorSettings.reflairApprovedReposts === true) {
             submission.assignFlair({'text': await lastSubmission.link_flair_text}); // reflair with same flair
         }
         existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
