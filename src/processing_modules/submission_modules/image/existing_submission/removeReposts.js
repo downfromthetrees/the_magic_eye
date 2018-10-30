@@ -56,8 +56,6 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
         if (processorSettings.reflairApprovedReposts == true) {
             submission.assignFlair({'text': await lastSubmission.link_flair_text}); // reflair with same flair
         }
-        submission.approve();
-        submission.assignFlair({'text': await lastSubmission.link_flair_text}); // reflair with same flair
         existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
     }
 
