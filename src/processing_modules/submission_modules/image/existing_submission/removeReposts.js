@@ -48,7 +48,7 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
 
     const lastSubmissionRemoved = await lastSubmission.removed;
     if (!lastSubmissionRemoved || lastIsRemovedAsRepost) {
-        log.info(`[${subredditName}]`, 'Found matching hash for submission ', await printSubmission(submission), ', matched,', existingMagicSubmission.reddit_id,' re-approving as it is over the repost limit.');
+        log.info(`[${subredditName}]`, 'Found matching hash for submission ', await printSubmission(submission), ', matched,', existingMagicSubmission.reddit_id,' - valid as over the repost limit.');
 
         if (processorSettings.approveIfOverRepostDays === true) {
             submission.approve();
