@@ -10,8 +10,8 @@ const { removePost, printSubmission } = require('../../../../reddit_utils.js');
 
 //=====================================
 
-async function removeUncroppedImages(reddit, submission, imageDetails, subSettings, subredditName) {
-    if (!subSettings.removeUncroppedImages) {
+async function removeUncroppedImages(reddit, submission, imageDetails, subSettings, subredditName, submissionType) {
+    if (!subSettings.removeUncroppedImages || submissionType !== 'image') {
         return true;
     }
 
@@ -30,12 +30,10 @@ function isImageUncropped(imageDetails) {
     const isSquarish = imageDetails.height < imageDetails.width * 1.2;
     
     if (isSquarish || imageDetails.trimmedHeight == null || imageDetails.trimmedHeight == null) {
-        log.debug(chalk.blue('Image is squarish, not checking for crop'));
+        // Image is already squarish, not checking for crop
         return false;
     }
 
-    log.debug(chalk.blue('imageDetails.trimmedHeight', imageDetails.trimmedHeight));
-    log.debug(chalk.blue('imageDetails.height', imageDetails.height));
     return (imageDetails.trimmedHeight / imageDetails.height) < 0.81; // https://i.imgur.com/tfDO06G.png
 }
 

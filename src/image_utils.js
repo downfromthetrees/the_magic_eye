@@ -51,8 +51,9 @@ export function deleteImage(imagePath) {
     });
 }
 
-export async function getImageUrl(submissionUrl) {
-    let imageUrl = submissionUrl;
+export async function getImageUrl(submission) {
+    let imageUrl = await submission.url;
+    const thumbnail = await submission.thumbnail;
     if (imageUrl.endsWith('/')) {
         imageUrl = imageUrl.slice(0, imageUrl.length - 1);
     }
@@ -60,23 +61,29 @@ export async function getImageUrl(submissionUrl) {
     const suffix = imageUrl.split('.')[imageUrl.split('.').length-1].split('?')[0];  // http://imgur.com/a/liD3a.gif?horrible=true
     const images = ['png', 'jpg', 'jpeg', 'bmp'];
     if (images.includes(suffix)) {
-        return imageUrl;
+        return { imageUrl: imageUrl, submissionType: 'image' };
     }
 
-    const notImages = ['gif', 'gifv', 'mp4', 'mp4', 'webm', 'tiff', 'pdf', 'mov', 'mov', 'bmp']; 
-    if (notImages.includes(suffix)) {
-        return null; // fail fast
-    }
+    const isVid = await submission.is_video;
 
-    // http://i.imgur.com/f7VXJQF - single image
-    // http://imgur.com/mLkJuXP/ - single image, different url formatting
-    // https://imgur.com/a/9RKPOtA - album, single image
-    // http://imgur.com/a/liD3a - album, multiple images
-    // http://imgur.com/gallery/HFoOCeg gallery, single image
-    // https://imgur.com/gallery/5l71D gallery, multiple images (album)
+    const animatedMedia = ['gif', 'gifv', 'mp4', 'webm'];
+    if (animatedMedia.includes(suffix) || isVid) {
+        return { imageUrl: thumbnail, submissionType: 'animated' };
+    }
 
     const isImgur = imageUrl.includes('imgur.com');
     if (isImgur) {
+        // cases:
+        // http://i.imgur.com/f7VXJQF - single image
+        // http://imgur.com/mLkJuXP/ - single image, different url formatting
+        // https://imgur.com/a/9RKPOtA - album, single image
+        // http://imgur.com/a/liD3a - album, multiple images
+        // http://imgur.com/gallery/HFoOCeg gallery, single image
+        // https://imgur.com/gallery/5l71D gallery, multiple images (album)
+
+        // An alternative method for imgur gifs/videos is to use "_d.jpg?maxwidth=520&shape=thumb&fidelity=high", however to keep them consistent with 
+        // giphy etc, magic eye will use the reddit thumbnail
+
         let imgurHash = imageUrl.split('/')[imageUrl.split('/').length-1];  // http://imgur.com/S1dZBPm.weird?horrible=true
         imgurHash = imgurHash.split('.')[0];
         imgurHash = imgurHash.split('?')[0];
@@ -93,27 +100,42 @@ export async function getImageUrl(submissionUrl) {
             const albumFetchUrl = isGallery ? `https://api.imgur.com/3/gallery/album/${imgurHash}/images` : `https://api.imgur.com/3/album/${imgurHash}/images`;
             const albumResult = await fetch(albumFetchUrl, options); // gallery album
             const albumData = await albumResult.json();
-            if (albumData.success && albumData.data && albumData.data[0] && albumData.data[0].type && albumData.data[0].type.startsWith('image')) {
-                return albumData.data[0].link;
-            } else if (albumData.success && albumData.data && albumData.data.images && albumData.data.images[0] && albumData.data.images[0].type.startsWith('image')) { // usecase?
-                logger.warn('Abnormal gallery url for processing: ')
-                return albumData.data.images[0].link;
+            if (albumData.success && albumData.data && albumData.data[0]) {
+                // gallery with multiple images
+                if (albumData.data[0].animated) {
+                    return {imageUrl: thumbnail, submissionType: 'animated'};
+                }
+                return {imageUrl: albumData.data[0].link, submissionType: 'image'};
+            } else if (albumData.success && albumData.data && albumData.data.images && albumData.data.images[0]) {
+                // Not sure if case is valid - log for testing
+                logger.warn('Abnormal gallery url for processing: ', imageUrl); 
+                return null;
             } else {
-                const albumImageFetchUrl = `https://api.imgur.com/3/gallery/image/${imgurHash}`; // `https://api.imgur.com/3/album/{{albumHash}}/image/{{imageHash}}`;
-                const imageResult = await fetch(albumImageFetchUrl, options); // gallery but only one image
-                const albumImage = await imageResult.json();                
-                if (albumImage.success && albumImage.data && albumImage.data.type.startsWith('image') && !albumImage.data.animated) {
-                    return albumImage.data.link;
+                // gallery but only one image
+                const albumImageFetchUrl = `https://api.imgur.com/3/gallery/image/${imgurHash}`;
+                const imageResult = await fetch(albumImageFetchUrl, options); 
+                const albumImage = await imageResult.json();             
+                if (albumImage.success && albumImage.data) {
+                    if (albumImage.data.animated) {
+                        return {imageUrl: thumbnail, submissionType: 'animated'};
+                    }
+
+                    return {imageUrl: albumImage.data.link, submissionType: 'image'};
                 } else {
                     log.warn('Tried to parse this imgur album/gallery url but failed: ', imageUrl);
                     return null;
                 }
             }
         } else {
-            const result = await fetch(`https://api.imgur.com/3/image/${imgurHash}`, options); // single image
+            // single image
+            const result = await fetch(`https://api.imgur.com/3/image/${imgurHash}`, options); 
             const singleImage = await result.json();
-            if (singleImage.success && singleImage.data.type.startsWith('image') && !singleImage.data.animated) {
-                return singleImage.data.link;
+            if (singleImage.success && singleImage.data) {
+                if (singleImage.data.animated) {
+                    return {imageUrl: thumbnail, submissionType: 'animated'};
+                }
+
+                return {imageUrl: singleImage.data.link, submissionType: 'image'};
             } else {
                 log.warn('Tried to parse this imgur url but failed: ', imageUrl);
                 return null;
@@ -127,7 +149,6 @@ export async function getImageUrl(submissionUrl) {
 async function getImageDetails(submissionUrl, includeWords) {
     const imagePath = await downloadImage(submissionUrl);
     if (imagePath == null) {
-        log.debug('download image stage failed');
         return null;
     }
     const imageDetails = { dhash: null, height: null, width: null, trimmedHeight: null, trimmedWidth: null, words: null };
@@ -148,7 +169,6 @@ async function getImageDetails(submissionUrl, includeWords) {
     imageDetails.dhash = await generateDHash(imagePath, submissionUrl);
 
     if (imageDetails.dhash == null) {
-        log.debug('dhash generate stage failed');
         return null; // must generate a dhash to be valid details
     }
 
@@ -197,7 +217,6 @@ async function getWordsInImage(originalImagePath, height) {
         log.debug(chalk.blue("Begin text detection in image:", imagePath));
         await tesseract.recognize(imagePath).then(data => result = data);
         const detectedStrings = result.words.map(word => stripchar.RSExceptUnsAlpNum(word.text.toLowerCase()));
-        //log.debug(chalk.blue("Strings detected in image:"), detectedStrings);
         const detectedWords = detectedStrings.filter(item => (item.length > 3 && commonWords.has(item)));
         log.debug(chalk.blue("Text detected in image:"), detectedWords);
         const endTime = new Date().getTime();

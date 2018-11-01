@@ -10,12 +10,12 @@ const { isRepostRemoval, removePost, printSubmission } = require('../../../../re
 
 //=====================================
 
-async function removeBlacklisted(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings, subredditName) {
+async function removeBlacklisted(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings, subredditName, submissionType) {
     if (!subSettings.removeBlacklisted) {
         return true;
     }
 
-    // We missed detecting a valid repost so a mod manually removed it. That image is reposted but we don't know the approved submission.
+    // We missed detecting a valid repost so a mod manually removed it. That submission is reposted but we don't know the approved submission.
     const lastIsRemovedAsRepost = await isRepostRemoval(modComment); 
 
     const imageIsBlacklisted = await lastSubmission.removed && !lastIsRemovedAsRepost;

@@ -12,8 +12,8 @@ const { removePost, printSubmission } = require('../../../../reddit_utils.js');
 
 // 330px https://i.imgur.com/7jTFozp.png
 
-async function removeSmallImages(reddit, submission, imageDetails, subSettings, subredditName) {
-    if (!subSettings.removeSmallImages) {
+async function removeSmallImages(reddit, submission, imageDetails, subSettings, subredditName, submissionType) {
+    if (!subSettings.removeSmallImages || submissionType !== 'image') {
         return true;
     }   
 

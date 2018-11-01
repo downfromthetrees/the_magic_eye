@@ -40,10 +40,11 @@ async function removePost(reddit, submission, removalReason, subSettings) {
     replyable.distinguish();
 }
 
-async function printSubmission(submission) {
+async function printSubmission(submission, submissionType) {
     const username = (await submission.author) ? (await submission.author.name) : null;
     const idForLog = await submission.id;
-    return `http://redd.it/${idForLog} by ${username}`;
+    const type = submissionType ? ` [${submissionType}]` : ""; 
+    return `http://redd.it/${idForLog} by ${username}${type}`;
 }
 
 

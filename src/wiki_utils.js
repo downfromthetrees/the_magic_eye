@@ -40,7 +40,6 @@ async function createDefaultSettings(subredditName, masterSettings, reddit) {
 }
 
 async function updateSettings(subredditMulti, reddit) {
-    log.debug('Checking for updated settings');
     const wikiChanges = await subredditMulti.getModerationLog({type: 'wikirevise'});
     const newChanges = wikiChanges.filter(change => change.details.includes('Page magic_eye edited') && change.mod != process.env.ACCOUNT_USERNAME);
     const unprocessedChanges = await consumeUnprocessedWikiChanges(newChanges);

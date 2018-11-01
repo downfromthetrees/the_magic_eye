@@ -13,8 +13,8 @@ const { removePost, printSubmission } = require('../../../../reddit_utils.js');
 
 // Custom processor for r/hmmm
 
-async function removeImagesWithText(reddit, submission, imageDetails, subSettings, subredditName) {
-    if (!subSettings.removeImagesWithText) {
+async function removeImagesWithText(reddit, submission, imageDetails, subSettings, subredditName, submissionType) {
+    if (!subSettings.removeImagesWithText || submissionType !== 'image') {
         return true;
     }
 

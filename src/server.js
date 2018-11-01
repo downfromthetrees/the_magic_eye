@@ -177,7 +177,6 @@ async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
     // unmoderated
     if (masterSettings.settings.reportUnmoderated) {
         if (masterSettings.config.reportUnmoderatedTime > 20) {
-            log.debug(chalk.blue('Performing unmoderated check: ', subredditName));
             const subForUnmoderated = await reddit.getSubreddit(subredditName);
             const topSubmissionsDay = await subForUnmoderated.getTop({time: 'day'}).fetchAll({amount: 100});
             masterSettings.config.reportUnmoderatedTime = 0;
@@ -196,8 +195,6 @@ async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
             for (let submission of unprocessedSubmissions) {
                 await processSubmission(submission, masterSettings, database, reddit, true);
             };
-            
-            log.debug(chalk.blue('Processed', unprocessedSubmissions.length, ' new submissions for: ', subredditName));
         }
     }
 }

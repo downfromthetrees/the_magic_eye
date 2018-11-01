@@ -39,14 +39,16 @@ class MagicSubmission {
     duplicates; // array of reddit ids, includes removed and approved posts
     exactMatchOnly; // boolean value
     highest_score; // number
+    type; // 'image' or 'animated'
 
-    constructor(dhash, redditSubmission, highestScore) {
+    constructor(dhash, redditSubmission, highestScore, submissionType) {
         this._id = dhash;
         this.createdAt = new Date();
         this.reddit_id = redditSubmission.id;
         this.duplicates = [];
         this.exactMatchOnly = null;
         this.highest_score = highestScore;
+        this.type = submissionType;
     }
 }
 
@@ -81,7 +83,6 @@ class MagicDatabase {
 
     async addUser(name) {
         try {
-            log.debug(chalk.yellow("inserting user. name:"), name);
             const collection = await getUserCollection(this);
             await collection.save(new User(name));
         } catch (err) {
@@ -91,7 +92,6 @@ class MagicDatabase {
     
     async setUser(user, database) {
         try {
-            log.debug(chalk.yellow("updating user:"), user);
             const collection = await getUserCollection(this);
             await collection.save(user);
         } catch (err) {
@@ -120,7 +120,6 @@ class MagicDatabase {
 
         submission.createdAt = new Date(); // reset expiry date
         try {
-            log.debug(chalk.yellow("INSERTING submission:" + JSON.stringify(submission)));
             const collection = await getSubmissionCollection(this);
             await collection.save(submission);
             if (addToCache) {
@@ -139,7 +138,7 @@ class MagicDatabase {
         const canonicalHashKey = this.dhash_cache.find(isMatch);
     
         if (canonicalHashKey == undefined) {
-            log.debug('No cache hit for hashKey:', inputDHash);
+            // No cache hit for hashKey
             return null;
         }
         
@@ -175,7 +174,6 @@ class MagicDatabase {
     
     async deleteMagicSubmission(submission) {
         try {
-            log.debug(chalk.yellow("DELETING:" + submission));
             const collection = await getSubmissionCollection(this);
             await collection.remove({'_id': submission._id});
     
@@ -191,7 +189,6 @@ class MagicDatabase {
     
     async setMagicProperty(key, value) {
         try {
-            log.debug(chalk.yellow("inserting property. key:"), key, Array.isArray(value) ? (chalk.yellow('size: ') + value.length) : (chalk.yellow('value: ') + value));
             const collection = await getPropertyCollection(this);
             await collection.save(new MagicProperty(key, value));
         } catch (err) {

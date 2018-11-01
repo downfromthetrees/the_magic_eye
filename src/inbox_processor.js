@@ -92,11 +92,11 @@ async function processUserPrivateMessage(inboxMessage, subreddit) {
 
 async function printHelp(inboxMessage) {
     const helpMessage = outdent`
-    Here are the commands I support as replies in a thread (root image is the one linked, current image is from this thread):
+    Here are the commands I support as replies in a thread (root submission is the one linked, current submission is from this thread):
 
-    * \`wrong\`: Removes the current image as a duplicate of the root. (future feature wanted here so that the two images won't match again.)
+    * \`wrong\`: Removes the current submission as a duplicate of the root. (future feature wanted here so that the two submissions won't match again.)
     * \`avoid\`: Only match identical images with the root the future. Helps with root images that keep matching wrong (commonly because they are dark).
-    * \`clear\`: Removes all the information I have about the root image that it the current image was matched with. For when it doesn't really matter and you want the root to go away.
+    * \`clear\`: Removes all the information I have about the root submission that it the current submission was matched with. For when it doesn't really matter and you want the root to go away.
     `
     await inboxMessage.reply(helpMessage).distinguish();
 }
@@ -115,7 +115,6 @@ async function runCommand(inboxMessage, reddit, database, commandFunction) {
     }
 
     const existingMagicSubmission = await database.getMagicSubmission(imageDetails.dhash);
-    log.debug('Existing submission for dhash:', chalk.blue(imageDetails.dhash), chalk.yellow(JSON.stringify(existingMagicSubmission)));
     if (existingMagicSubmission == null) {
         log.info('No magic submission found for clear, ignoring. dhash: ', await submission._id);
         inboxMessage.reply("No info for this found, so consider it already gone.").distinguish();
@@ -128,13 +127,13 @@ async function runCommand(inboxMessage, reddit, database, commandFunction) {
 
 
 async function command_clearSubmission(submission, existingMagicSubmission, database) {
-    log.debug(chalk.yellow('Clearing magic submission by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
+    log.info(chalk.yellow('Clearing magic submission by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
     await database.deleteMagicSubmission(existingMagicSubmission);
     return true; 
 }
 
 async function command_removeDuplicate(submission, existingMagicSubmission, database) {
-    log.debug(chalk.yellow('Starting process for remove duplicate by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
+    log.info(chalk.yellow('Starting process for remove duplicate by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
     const duplicateIndex = existingMagicSubmission.duplicates.indexOf(await submission.id);
     existingMagicSubmission.duplicates.splice(duplicateIndex, 1);
     await database.saveMagicSubmission(existingMagicSubmission);
@@ -142,7 +141,7 @@ async function command_removeDuplicate(submission, existingMagicSubmission, data
 }
 
 async function command_setExactMatchOnly(submission, existingMagicSubmission, database) {
-    log.debug(chalk.yellow('Setting exact match only for submission by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
+    log.info(chalk.yellow('Setting exact match only for submission by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
     existingMagicSubmission.exactMatchOnly = true;
     await database.saveMagicSubmission(existingMagicSubmission);
     return true; 

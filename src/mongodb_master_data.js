@@ -32,6 +32,8 @@ class SubredditSettings {
         }
         
         this.settings = {
+            processImages: true,            
+            processAnimatedMedia: true,
             similarityTolerance: 6,            
             removeReposts: {
                 smallScore: 0,
@@ -64,7 +66,6 @@ async function getPropertyCollection() {
 
 async function setSubredditSettings(subredditName, settings) {   
     try {
-        log.debug(chalk.yellow("Inserting subreddit settings for:"), subredditName);
         const collection = await getSubredditSettingsCollection();
         await collection.save(settings);
     } catch (err) {
@@ -88,7 +89,6 @@ async function getSubredditSettings(subredditName) {
 
 async function setMasterProperty(key, value) {
     try {
-        log.debug(chalk.yellow("inserting master property. key:"), key, Array.isArray(value) ? (chalk.yellow('size: ') + value.length) : (chalk.yellow('value: ') + value));
         const collection = await getPropertyCollection();
         const newMasterProp = new MasterProperty(key, value);
         await collection.save(newMasterProp);
