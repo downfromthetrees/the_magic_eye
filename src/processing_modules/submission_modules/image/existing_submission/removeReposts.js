@@ -28,7 +28,9 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
         log.info(`[${subredditName}]`, 'Found matching hash for submission', await printSubmission(submission), ', but approving as the last submission was deleted: http://redd.it/' + existingMagicSubmission.reddit_id);
         existingMagicSubmission.approve = true;
         existingMagicSubmission.reddit_id = await submission.id;
-        submission.approve();
+        if (processorSettings.approveIfRepostDeleted === true) {
+            submission.approve();
+        }
         return false;
     }
 
@@ -48,7 +50,7 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
 
     const lastSubmissionRemoved = await lastSubmission.removed;
     if (!lastSubmissionRemoved || lastIsRemovedAsRepost) {
-        log.info(`[${subredditName}]`, 'Found matching hash for submission ', await printSubmission(submission), ', matched,', existingMagicSubmission.reddit_id,' re-approving as it is over the repost limit.');
+        log.info(`[${subredditName}]`, 'Found matching hash for submission ', await printSubmission(submission), ', matched,', existingMagicSubmission.reddit_id,' - valid as over the repost limit.');
 
         if (processorSettings.approveIfOverRepostDays === true) {
             submission.approve();
