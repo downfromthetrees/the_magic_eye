@@ -39,9 +39,9 @@ const { initDatabase } = require('./mongodb_data.js');
 const { processSubmission, } = require('./submission_processor.js');
 const { processInboxMessage } = require('./inbox_processor.js');
 const { processUnmoderated } = require('./unmoderated_processor.js');
-const { firstTimeInit, isInitialising, isAnythingInitialising } = require('./first_time_init.js');
-const { SubredditSettings, getSubredditSettings, setSubredditSettings, getMasterProperty, setMasterProperty, initMasterDatabase, refreshDatabaseList } = require('./mongodb_master_data.js');
-const { updateSettings, createDefaultSettings } = require('./wiki_utils.js');
+const { firstTimeInit, isAnythingInitialising } = require('./first_time_init.js');
+const { SubredditSettings, getSubredditSettings, setSubredditSettings, getMasterProperty, setMasterProperty, initMasterDatabase, refreshDatabaseList, upgradeMasterSettings, needsUpgrade } = require('./mongodb_master_data.js');
+const { updateSettings, createDefaultSettings, writeSettings } = require('./wiki_utils.js');
 
 // Create a new snoowrap requester with OAuth credentials
 // See here: https://github.com/not-an-aardvark/reddit-oauth-helper
@@ -150,7 +150,7 @@ async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
         await createDefaultSettings(subredditName, masterSettings, reddit);
         
         masterSettings.config.databaseUrl = selectedDatabase.url;
-        await setSubredditSettings(subredditName, masterSettings)
+        await setSubredditSettings(subredditName, masterSettings);
         selectedDatabase.count++;
         await setMasterProperty('databases', databaseList);
     }
@@ -159,6 +159,12 @@ async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
     if (!masterSettings.settings || !masterSettings.config) {
         log.warn(`[${subredditName}]`, chalk.yellow('Missing settings for '), subredditName, ' - ignoring subreddit');
         return;
+    }
+
+    if (needsUpgrade(masterSettings)) {
+        masterSettings = upgradeMasterSettings(masterSettings);
+        await writeSettings(subredditName, masterSettings, reddit);
+        await setSubredditSettings(subredditName, masterSettings);
     }
     
     // first time init

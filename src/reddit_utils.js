@@ -25,7 +25,7 @@ function sliceSubmissionId(submissionId) {
     return submissionId.slice(3, submissionId.length); // id is prefixed with "id_"
 }
 
-async function removePost(reddit, submission, removalReason, subSettings) {
+async function removePost(submission, removalReason, subSettings) {
     const footerText = subSettings.customFooter ? subSettings.customFooter : "*I'm a bot so if I was wrong, reply to me and a moderator will check it.*";
     const removalFooter = 
     outdent`

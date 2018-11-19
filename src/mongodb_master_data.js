@@ -16,13 +16,17 @@ class MasterProperty {
     }
 }
 
+const currentVersion = "1";
+
 // mod editable settings
 class SubredditSettings {
     _id; // subreddit name
     config; // private config settings
     settings; // default settings
+    version;
 
     constructor(subredditName) {
+        this.version = currentVersion;
         this._id = subredditName;
 
         this.config = {
@@ -32,10 +36,10 @@ class SubredditSettings {
         }
         
         this.settings = {
-            processImages: true,            
+            processImages: true,
             processAnimatedMedia: true,
             similarityTolerance: 6,            
-            removeReposts: {
+            reposts: {
                 smallScore: 0,
                 smallScoreRepostDays: 15,
                 mediumScore: 400,
@@ -45,11 +49,52 @@ class SubredditSettings {
                 topScore: 999999999,
                 approveIfOverRepostDays: true,
                 reflairApprovedReposts: false,
+                actionRepostsIfDeleted: false,
+                action: "remove"
             },
             removeBrokenImages: {}
         }
     }
 }
+
+function needsUpgrade(masterSettings) {
+    return masterSettings.version != currentVersion;
+}
+
+
+function upgradeMasterSettings(masterSettings) {
+    let newMasterSettings = masterSettings;
+
+    // upgrade version
+    newMasterSettings.version = currentVersion; 
+
+    // upgrade reposts
+    if (newMasterSettings.settings.removeReposts) {
+        newMasterSettings.settings.reposts = newMasterSettings.settings.removeReposts;
+        delete newMasterSettings.settings.removeReposts;
+        
+        newMasterSettings.settings.reposts.action = "remove";     
+
+        if (newMasterSettings.settings.reposts.removeRepostsIfDeleted !== undefined) {
+            newMasterSettings.settings.reposts.actionRepostsIfDeleted = newMasterSettings.settings.reposts.removeRepostsIfDeleted;
+            delete newMasterSettings.settings.reposts.removeRepostsIfDeleted;
+        }
+        if (newMasterSettings.settings.reposts.approveIfOverRepostDays === undefined) {
+            newMasterSettings.settings.reposts.approveIfOverRepostDays = true;
+        }
+        if (masterSettings.settings.reposts.reflairApprovedReposts === undefined) {
+            newMasterSettings.settings.reposts.reflairApprovedReposts = false;
+        }
+    }
+
+    // new stuff
+    newMasterSettings.settings.processImages = true;
+    newMasterSettings.settings.processAnimatedMedia = false;
+
+    return newMasterSettings;
+}
+
+
 
 function getCollectionName(collection) {
     const collectionPrefix = (process.env.NODE_ENV == 'production' ? '' : process.env.NODE_ENV + ':');
@@ -157,4 +202,6 @@ module.exports = {
     getSubredditSettings,
     getMasterProperty,
     setMasterProperty,
+    needsUpgrade,
+    upgradeMasterSettings
 };

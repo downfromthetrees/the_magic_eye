@@ -112,8 +112,6 @@ async function processSubmission(submission, masterSettings, database, reddit, a
 
 async function processExistingSubmission(submission, existingMagicSubmission, masterSettings, reddit, subredditName, submissionType) {
     const processImages = masterSettings.settings.processImages === true || masterSettings.settings.processImages === undefined;
-    // uncomment when taking gif out of beta
-    //const processAnimatedMedia = masterSettings.settings.processAnimatedMedia === true || masterSettings.settings.processAnimatedMedia === undefined;
     const processAnimatedMedia = masterSettings.settings.processAnimatedMedia === true;
     const isImageToProcess = processImages && submissionType == 'image';
     const isAnimatedMediaToProcess = processAnimatedMedia && submissionType == 'animated';

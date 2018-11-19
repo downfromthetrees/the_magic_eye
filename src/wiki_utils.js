@@ -39,6 +39,25 @@ async function createDefaultSettings(subredditName, masterSettings, reddit) {
     }
 }
 
+async function writeSettings(subredditName, masterSettings, reddit) {
+    log.info(`[${subredditName}]`, 'Upgrading settings for', subredditName, '...');
+    const wikiPage = await reddit.getSubreddit(subredditName).getWikiPage('magic_eye');
+
+    const stringSettings = JSON.stringify(masterSettings.settings, null, 4);
+    const indentedSettings = indentString(stringSettings, 4);
+    try {
+        await wikiPage.edit({text: indentedSettings, reason: 'Updating Magic Eye settings (new settings version)'});
+        log.info(`[${subredditName}]`, 'Settings upgrade complete for', subredditName);
+    } catch (e) {
+        if (e.message && e.message.includes('WIKI_DISABLED')) {
+            throw `[${subredditName}] Cannot update settings because WIKI_DISABLED`;
+        } else {
+            throw e;
+        }
+    }
+}
+
+
 async function updateSettings(subredditMulti, reddit) {
     const wikiChanges = await subredditMulti.getModerationLog({type: 'wikirevise'});
     const newChanges = wikiChanges.filter(change => change.details.includes('Page magic_eye edited') && change.mod != process.env.ACCOUNT_USERNAME);
@@ -135,4 +154,5 @@ const settingsSchema = ``;
 module.exports = {
     updateSettings,
     createDefaultSettings,
+    writeSettings,
 };

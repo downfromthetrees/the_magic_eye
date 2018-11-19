@@ -41,7 +41,7 @@ async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklist
         `This post has been automatically removed because it is a repost of [this image](${await lastSubmission.url}) posted [here](${permalink}), and that post was removed because:
 
         ${blacklistReason}`;
-    removePost(reddit, submission, removalReason, subSettings);
+    removePost(submission, removalReason, subSettings);
 }
 
 
