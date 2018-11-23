@@ -73,7 +73,7 @@ async function processSubmission(submission, masterSettings, database, reddit, a
     const { imageUrl, submissionType } = imageUrlInfo;
     const imageDetails = await getImageDetails(imageUrl, activeMode && masterSettings.settings.removeImagesWithText);
     if (imageDetails == null){
-        log.info(`[${subredditName}]`, "Could not download image (probably deleted): ", await printSubmission(submission));
+        log.info(`[${subredditName}]`, "Could not download image (probably deleted - ignoring if gif): ", await printSubmission(submission));
         if (activeMode && submissionType == 'image' && masterSettings.settings.removeBrokenImages) {
             removePost(reddit, submission, `This post has been automatically removed because the link is broken or deleted. You will need to fix it and resubmit.`, masterSettings.settings);
         }
