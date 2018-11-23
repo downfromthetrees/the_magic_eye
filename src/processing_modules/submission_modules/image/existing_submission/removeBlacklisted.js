@@ -35,7 +35,7 @@ async function removeBlacklisted(reddit, modComment, submission, lastSubmission,
 }
 
 async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklistReason, subSettings, subredditName){
-    log.info(`[${subredditName}]`, 'Removing as blacklisted:', await printSubmission(submission), ', as blacklisted. Root blacklisted submission: ', await printSubmission(lastSubmission));
+    log.info(`[${subredditName}]`, 'Removing as blacklisted:', await printSubmission(submission), '. Origin: ', await printSubmission(lastSubmission));
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
     const removalReason = outdent
         `This post has been automatically removed because it is a repost of [this image](${await lastSubmission.url}) posted [here](${permalink}), and that post was removed because:

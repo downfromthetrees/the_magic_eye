@@ -127,7 +127,7 @@ Aside from removing reposts, this setting will auto approve reposts over the lim
 
 Action options:
 * `"remove"`: removes the post and posts a message to the user
-* `"warn"`: reports the post and posts a removed comment in the thread
+* `"warn"`: reports the post and posts a removed comment in the thread with links
 
 Other details:
 * `removeRepostsIfDeleted`: Removes reposts even if the previous post was deleted. (`true`/`false`)
