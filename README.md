@@ -27,7 +27,7 @@ Magic Eye is an image detection bot for reddit that detects reposts, as well as 
 
 ## Current features
 
-* Remove reposts
+* Remove or warn about reposts
 * Remove blacklisted images and repeat the removal reason to the user (requires toolbox)
 * Remove broken image links
 * Remove small images
@@ -35,7 +35,7 @@ Magic Eye is an image detection bot for reddit that detects reposts, as well as 
 * Private message first time posters with a custom message
 * Report unmoderated posts over a certain threshold
 
-Magic Eye supports normal image urls as well as imgur posts. No gif/media/link support yet.
+Magic Eye supports normal image urls as well as imgur posts, for both images and gifs/videos (detected based on the thumbnail).
 
 
 ## Prerequisites
@@ -87,14 +87,13 @@ MAGIC_EYE_BOT will let you know if your updates are sucessful. If you're having 
 The tolerance to image differences. Low number = match more exact images.
 
 * Set to 0 to only match exact as possible images
-*  Default is 6, if you're a subreddit that sees any issue with similar memes/tweets, experiment with smaller numbers.
+* Default is 6, if you're a subreddit that sees any issue with similar memes/tweets, experiment with smaller numbers.
 
 ### Remove reposts
 
 **(Included in default settings)**
 
-    "removeReposts": {
-        "removeRepostsIfDeleted": true,
+    "reposts": {
         "smallScore": 0,
         "smallScoreRepostDays": 15,
         "mediumScore": 400,
@@ -103,7 +102,9 @@ The tolerance to image differences. Low number = match more exact images.
         "largeScoreRepostDays": 50,
         "topScore": 999999999,
         "approveIfOverRepostDays": true,
-        "reflairApprovedReposts": true
+        "reflairApprovedReposts": false,
+        "actionRepostsIfDeleted": false,
+        "action": "remove"
     },
 
 Optional fields:
@@ -116,7 +117,11 @@ Optional fields:
 
 Aside from removing reposts, this setting will auto approve reposts over the limit, and reflair them with the same flair.
 
-Details:
+Action options:
+* `"remove"`: removes the post and posts a message to the user
+* `"warn"`: reports the post and posts a removed comment in the thread
+
+Other details:
 * `removeRepostsIfDeleted`: Removes reposts even if the previous post was deleted. (`true`/`false`)
 * Scores thresholds: These are intemediary thresholds for reposts. i.e. if the previous image got `mediumScore`, it'll be removed if it's under `mediumScoreRepostDays`.
     * If `smallScore` if set higher than 0 it will auto-approve anything that gets under this score
@@ -171,8 +176,6 @@ Details:
 Removes images with [black bars](https://i.imgur.com/6a4SCcw.png) at the bottom and top typical of cellphone screenshots. Does not support horizontal cropping.
 
 ### Message first time submitters 
-
-**(beta support - may be intermittent)**
 
     "messageFirstTimeUser": {
            "firstTimeUserMessageTitle": "RULES REMINDER",

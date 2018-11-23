@@ -58,6 +58,7 @@ async function processSubmission(submission, masterSettings, database, reddit, a
 
     log.debug(chalk.yellow('Starting process for submission by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
 
+    // get image info
     const imageUrlInfo = await getImageUrl(submission);
     if (!imageUrlInfo)
         {
@@ -70,7 +71,6 @@ async function processSubmission(submission, masterSettings, database, reddit, a
         }
 
     const { imageUrl, submissionType } = imageUrlInfo;
-
     const imageDetails = await getImageDetails(imageUrl, activeMode && masterSettings.settings.removeImagesWithText);
     if (imageDetails == null){
         log.info(`[${subredditName}]`, "Could not download image (probably deleted): ", await printSubmission(submission));
@@ -83,8 +83,18 @@ async function processSubmission(submission, masterSettings, database, reddit, a
         return;
     }
 
+    // only run on approved media 
+    const processImages = masterSettings.settings.processImages === true || masterSettings.settings.processImages === undefined;
+    const processAnimatedMedia = masterSettings.settings.processAnimatedMedia === true;
+    const isImageToProcess = processImages && submissionType == 'image';
+    const isAnimatedMediaToProcess = processAnimatedMedia && submissionType == 'animated';
+    if (!isImageToProcess && !isAnimatedMediaToProcess) {
+        log.info(chalk.yellow(`[${subredditName}]`, 'Ignoring: ', await printSubmission(submission, submissionType), ' - media type not active'));
+        return;
+    }
+
+    // run the precheck processors
     if (activeMode) {
-        // run the precheck processors
         const precheckProcessors = [ 
             removeImagesWithText,
             removeSmallImages,
@@ -99,6 +109,7 @@ async function processSubmission(submission, masterSettings, database, reddit, a
         }
     }
 
+    // process submission as new or existing
     const existingMagicSubmission = await database.getMagicSubmission(imageDetails.dhash, masterSettings.settings.similarityTolerance);
     if (existingMagicSubmission == null) {
         await processNewSubmission(submission, imageDetails, database, activeMode, subredditName, submissionType);
@@ -111,15 +122,6 @@ async function processSubmission(submission, masterSettings, database, reddit, a
 }
 
 async function processExistingSubmission(submission, existingMagicSubmission, masterSettings, reddit, subredditName, submissionType) {
-    const processImages = masterSettings.settings.processImages === true || masterSettings.settings.processImages === undefined;
-    const processAnimatedMedia = masterSettings.settings.processAnimatedMedia === true;
-    const isImageToProcess = processImages && submissionType == 'image';
-    const isAnimatedMediaToProcess = processAnimatedMedia && submissionType == 'animated';
-    if (!isImageToProcess && !isAnimatedMediaToProcess) {
-        log.info(chalk.yellow(`[${subredditName}]`, 'Existing submission found for ', await printSubmission(submission, submissionType), ', matched:', existingMagicSubmission.reddit_id, ' - ignoring because media type not active'));
-        return;
-    }  
-
     const existingMagicSubmissionType = existingMagicSubmission.type ? existingMagicSubmission.type : 'image'; // legacy data
     if (existingMagicSubmissionType !== submissionType) {
         log.warn(chalk.yellow(`[${subredditName}]`, 'Incompatable types found for existing submission ', await printSubmission(submission, submissionType), ', matched:', existingMagicSubmission.reddit_id, ' - ignoring'));
