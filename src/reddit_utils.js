@@ -35,7 +35,7 @@ async function removePost(submission, removalReason, subSettings) {
 
     ${footerText}`;
     
-    submission.remove();
+    await submission.remove();
     const replyable = await submission.reply(removalReason + removalFooter);
     replyable.distinguish();
 }
