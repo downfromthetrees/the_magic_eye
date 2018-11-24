@@ -12,7 +12,7 @@ Magic Eye is an image detection bot for reddit that detects reposts, as well as 
     - [Setup](#setup)
     - [General info / FAQ](#general-info--faq)
     - [Settings](#settings)
-- [Media types](#media-types)
+        - [Media types](#media-types)
         - [Tolerance](#tolerance)
         - [Remove reposts](#remove-reposts)
         - [Remove blacklisted images](#remove-blacklisted-images)
@@ -81,7 +81,7 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 MAGIC_EYE_BOT will let you know if your updates are sucessful. If you're having trouble with it you can use [this JSON validator](https://jsonformatter.curiousconcept.com/) for help.
 
 
-# Media types
+### Media types
 
     "processImages": true,
     "processAnimatedMedia": true,
