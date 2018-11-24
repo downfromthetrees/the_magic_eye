@@ -16,7 +16,7 @@ async function processInboxMessage(inboxMessage, reddit, database) {
     const subredditName = messageSubreddit ? messageSubreddit.display_name : null;
     const subreddit = messageSubreddit ? await reddit.getSubreddit(subredditName) : null;
     
-    if (inboxMessage.author.name === process.env.ACCOUNT_USERNAME) {
+    if (inboxMessage.author && inboxMessage.author.name === process.env.ACCOUNT_USERNAME) {
         log.info('Ignoring message from self...', inboxMessage.id);
         return;
     }
