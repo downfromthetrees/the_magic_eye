@@ -30,7 +30,7 @@ async function mainHolding() {
         const submissions = await targetSubreddit.getNew({'limit': 50});
         if (!submissions) {
             log.error(chalk.red('[HOLDING] Cannot get new submissions to process - api is probably down for maintenance.'));
-            setTimeout(main, 120 * 1000); // run again in 30 seconds
+            setTimeout(main, 60 * 1000); // run again in 60 seconds
             return;
         }
 
@@ -132,7 +132,7 @@ async function consumeUnprocessedModlog(latestItems) {
 
     const maxCheck = 500;
     if (latestItems.length > maxCheck) {
-        log.info('[HOLDING] Passed more than maxCheck items:', latestItems.length);
+        // log.info('[HOLDING] Passed more than maxCheck items:', latestItems.length); // MUSTFIX - uncomment and make sane
         latestItems = latestItems.slice(latestItems.length - maxCheck, latestItems.length);
     }
 
