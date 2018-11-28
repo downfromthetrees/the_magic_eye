@@ -132,7 +132,7 @@ async function consumeUnprocessedModlog(latestItems) {
 
     const maxCheck = 500;
     if (latestItems.length > maxCheck) {
-        // log.info('[HOLDING] Passed more than maxCheck items:', latestItems.length); // MUSTFIX - uncomment and make sane
+        log.info('[HOLDING] Passed more than maxCheck items:', latestItems.length);
         latestItems = latestItems.slice(latestItems.length - maxCheck, latestItems.length);
     }
 
@@ -169,7 +169,7 @@ async function consumeTargetSubmissions(latestItems) {
 
     const maxCheck = 6;
     if (latestItems.length > maxCheck) {
-        log.info('[HOLDING] Passed more than maxCheck items:', latestItems.length);
+        // log.info('[HOLDING] Passed more than maxCheck items:', latestItems.length);  // MUSTFIX - uncomment and make sane
         latestItems = latestItems.slice(latestItems.length - maxCheck, latestItems.length);
     }
 
