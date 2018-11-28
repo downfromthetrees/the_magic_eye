@@ -43,8 +43,11 @@ async function mainHolding() {
         const holdingSubreddit = await reddit.getSubreddit(process.env.HOLDING_SUBREDDIT);
         const approvedLinks = await holdingSubreddit.getModerationLog({type: 'approvelink'});
         const unprocessedHoldingItems = await consumeUnprocessedModlog(approvedLinks);
-
         await processApprovedPosts(unprocessedHoldingItems, reddit);
+
+        const removedLinks = await holdingSubreddit.getModerationLog({type: 'removelink'});
+        const unprocessedRemovedHoldingItems = await consumeUnprocessedModlog(removedLinks, 'removed');
+        await processRemovedPosts(unprocessedRemovedHoldingItems, reddit);
 
         // done
         log.debug(chalk.green('[HOLDING] End Holding processing cycle, running again soon.'));
@@ -81,16 +84,38 @@ async function processApprovedPosts(unprocessedItems, reddit) {
         try {            
             const submissionId = item.target_permalink.split('/')[4]; // "/r/hmmm/comments/a0uwkf/hmmm/eakgqi3/"
             const submission = await reddit.getSubmission(submissionId);
-            const imagePath = await downloadImage(await submission.url);   
+            const imagePath = await downloadImage(await submission.url);
             const uploadResponse = await uploadToImgur(imagePath);
             const finalSubmission = await destinationSubreddit.submitLink({title: 'hmmm', url: `https://imgur.com/${uploadResponse.data.id}.png`});
             const finalSubmissionId = await finalSubmission.id;
+            submission.delete();
             log.info(chalk.blue(`[HOLDING] Uploaded https://www.redd.it/${finalSubmissionId} to target`));
         } catch (e) {
             log.error('[HOLDING] Error processing approved posts:', item.target_permalink, e);
         }
     }
 }
+
+
+
+async function processRemovedPosts(unprocessedItems, reddit) {
+    if (!unprocessedItems || unprocessedItems.length == 0) {
+        return;
+    }
+
+    for (let item of unprocessedItems) {
+        try {            
+            const submissionId = item.target_permalink.split('/')[4]; // "/r/hmmm/comments/a0uwkf/hmmm/eakgqi3/"
+            const submission = await reddit.getSubmission(submissionId);
+            submission.delete();
+        } catch (e) {
+            log.error('[HOLDING] Error processing approved posts:', item.target_permalink, e);
+        }
+    }
+}
+
+
+
 
 async function uploadToImgur(imagePath) {
     const fileStats = fs.statSync(imagePath);
@@ -125,10 +150,13 @@ export async function downloadImage(submissionUrl) {
 
 
 // overkill, but well tested
-async function consumeUnprocessedModlog(latestItems) {
+async function consumeUnprocessedModlog(latestItems, suffix) {
     latestItems.sort((a, b) => { return a.created_utc - b.created_utc}); // oldest first
 
-    const propertyId = 'holding_processed_modlog';
+    let propertyId = 'holding_processed_modlog';
+    if (suffix) {
+        propertyId = propertyId + suffix;
+    }
 
     const maxCheck = 500;
     if (latestItems.length > maxCheck) {
