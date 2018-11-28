@@ -48,7 +48,13 @@ async function processSubmission(submission, masterSettings, database, reddit, a
                 messageFirstTimeUser(reddit, submission, masterSettings.settings, subredditName);
             }
         }
+
+        if (username == process.env.HOLDING_ACCOUNT_USERNAME) {
+            submission.approve();
+            return;
+        }
     }
+
 
     // ignore approved submissions
     if (await submission.approved && activeMode) {
