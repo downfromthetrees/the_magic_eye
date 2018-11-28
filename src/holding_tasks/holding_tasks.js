@@ -41,8 +41,8 @@ async function mainHolding() {
 
         // check for approved posts
         const holdingSubreddit = await reddit.getSubreddit(process.env.HOLDING_SUBREDDIT);
-        const removedLinks = await holdingSubreddit.getModerationLog({type: 'removelink'});
-        const unprocessedHoldingItems = await consumeUnprocessedModlog(removedLinks);
+        const approvedLinks = await holdingSubreddit.getModerationLog({type: 'approvelink'});
+        const unprocessedHoldingItems = await consumeUnprocessedModlog(approvedLinks);
 
         await processApprovedPosts(unprocessedHoldingItems, reddit);
 
