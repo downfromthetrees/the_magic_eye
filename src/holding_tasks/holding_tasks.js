@@ -30,7 +30,7 @@ async function mainHolding() {
         const submissions = await targetSubreddit.getNew({'limit': 50});
         if (!submissions) {
             log.error(chalk.red('[HOLDING] Cannot get new submissions to process - api is probably down for maintenance.'));
-            setTimeout(main, 30 * 1000); // run again in 30 seconds
+            setTimeout(main, 120 * 1000); // run again in 30 seconds
             return;
         }
 
