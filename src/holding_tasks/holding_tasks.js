@@ -22,7 +22,7 @@ reddit.config({requestDelay: 1000, continueAfterRatelimitError: true});
 
 async function mainHolding() {
     try {
-        log.info(chalk.blue("[HOLDING] Starting holding processing cycle"));
+        log.debug(chalk.blue("[HOLDING] Starting holding processing cycle"));
 
         const targetSubreddit = await reddit.getSubreddit(process.env.HOLDING_TARGET_SUBREDDIT);
 
@@ -36,7 +36,6 @@ async function mainHolding() {
 
         const unprocessedTargetSubmissions = await consumeTargetSubmissions(submissions, 'target');
 
-        log.info(chalk.blue("[HOLDING] unprocessedTargetSubmissions", unprocessedTargetSubmissions.length));
         // crosspost
         await crossPostFromTargetSubreddit(unprocessedTargetSubmissions, reddit);
 
@@ -48,7 +47,7 @@ async function mainHolding() {
         await processApprovedPosts(unprocessedHoldingItems, reddit);
 
         // done
-        log.info(chalk.green('[HOLDING] End Holding processing cycle, running again soon.'));
+        log.debug(chalk.green('[HOLDING] End Holding processing cycle, running again soon.'));
     } catch (err) {
         log.error(chalk.red("[HOLDING] Main loop error: ", err));
     }
