@@ -22,20 +22,21 @@ reddit.config({requestDelay: 1000, continueAfterRatelimitError: true});
 
 async function mainHolding() {
     try {
-        log.debug(chalk.blue("Starting [HOLDING] processing cycle"));
+        log.info(chalk.blue("[HOLDING] Starting holding processing cycle"));
 
         const targetSubreddit = await reddit.getSubreddit(process.env.HOLDING_TARGET_SUBREDDIT);
 
         // get new target submissions
-        const submissions = await targetSubreddit.getNew({'limit': 6});
+        const submissions = await targetSubreddit.getNew({'limit': 50});
         if (!submissions) {
             log.error(chalk.red('[HOLDING] Cannot get new submissions to process - api is probably down for maintenance.'));
-            setTimeout(main, 120 * 1000); // run again in 2 minutes seconds
+            setTimeout(main, 30 * 1000); // run again in 30 seconds
             return;
         }
 
         const unprocessedTargetSubmissions = await consumeTargetSubmissions(submissions, 'target');
 
+        log.info(chalk.blue("[HOLDING] unprocessedTargetSubmissions", unprocessedTargetSubmissions.length));
         // crosspost
         await crossPostFromTargetSubreddit(unprocessedTargetSubmissions, reddit);
 
@@ -47,7 +48,7 @@ async function mainHolding() {
         await processApprovedPosts(unprocessedHoldingItems, reddit);
 
         // done
-        log.debug(chalk.green('[HOLDING] End Holding processing cycle, running again soon.'));
+        log.info(chalk.green('[HOLDING] End Holding processing cycle, running again soon.'));
     } catch (err) {
         log.error(chalk.red("[HOLDING] Main loop error: ", err));
     }
@@ -167,7 +168,7 @@ async function consumeTargetSubmissions(latestItems) {
 
     const propertyId = 'holding_processed_target_ids';
 
-    const maxCheck = 500;
+    const maxCheck = 6;
     if (latestItems.length > maxCheck) {
         log.info('[HOLDING] Passed more than maxCheck items:', latestItems.length);
         latestItems = latestItems.slice(latestItems.length - maxCheck, latestItems.length);
