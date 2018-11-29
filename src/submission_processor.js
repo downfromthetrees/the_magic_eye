@@ -49,7 +49,7 @@ async function processSubmission(submission, masterSettings, database, reddit, a
             }
         }
 
-        if (username == process.env.HOLDING_ACCOUNT_USERNAME) {
+        if (activeMode && username == process.env.HOLDING_ACCOUNT_USERNAME || username == 'CosmicKeys') {
             submission.approve();
             return;
         }
