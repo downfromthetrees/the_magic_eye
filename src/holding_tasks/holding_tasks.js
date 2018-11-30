@@ -55,7 +55,7 @@ async function mainHolding() {
         log.error(chalk.red("[HOLDING] Main loop error: ", err));
     }
     
-    setTimeout(mainHolding, 30 * 1000); // run again in 60 seconds
+    setTimeout(mainHolding, 120 * 1000); // run again in 120 seconds
 }
 
 async function crossPostFromTargetSubreddit(unprocessedSubmissions, reddit) {
