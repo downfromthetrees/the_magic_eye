@@ -48,11 +48,6 @@ async function processSubmission(submission, masterSettings, database, reddit, a
                 messageFirstTimeUser(reddit, submission, masterSettings.settings, subredditName);
             }
         }
-
-        if (activeMode && username == process.env.HOLDING_ACCOUNT_USERNAME || username == 'CosmicKeys') {
-            submission.approve();
-            return;
-        }
     }
 
 
@@ -181,6 +176,12 @@ async function processNewSubmission(submission, imageDetails, database, activeMo
 
     const newMagicSubmission = new MagicSubmission(imageDetails.dhash, submission, await submission.score, submissionType);
     await database.saveMagicSubmission(newMagicSubmission, true);
+
+    let username = (await submission.author) ? (await submission.author.name) : null;
+    if (activeMode && username == process.env.HOLDING_ACCOUNT_USERNAME || username == 'CosmicKeys') {
+        submission.approve();
+        return;
+    }        
 }
 
 
