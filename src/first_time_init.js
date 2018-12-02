@@ -79,19 +79,17 @@ async function processOldSubmissions(submissions, alreadyProcessed, name, subred
                 await setMasterProperty('known_poisoned_ids', knownPoisonedIds);
                 await processSubmission(submission, masterSettings, database, null, false);
 
+                var submissionIndex = knownPoisonedIds.indexOf(submission.id);
+                if (submissionIndex > -1) {
+                    knownPoisonedIds.splice(submissionIndex, 1);
+                }
+                await setMasterProperty('known_poisoned_ids', knownPoisonedIds);
             } else {
-                log.info(`[${subredditName}][first_time_init]`, 'Skipping poison submission:', printSubmission(submission), e);    
+                log.info(`[${subredditName}][first_time_init]`, 'Skipping poison submission:', printSubmission(submission));    
             }
         } catch (e) {
             log.info(`[${subredditName}][first_time_init]`, 'Error thrown while processing:', printSubmission(submission), e);
         }
-
-        var submissionIndex = knownPoisonedIds.indexOf(submission.id);
-        if (submissionIndex > -1) {
-            knownPoisonedIds.splice(submissionIndex, 1);
-        }
-        await setMasterProperty('known_poisoned_ids', knownPoisonedIds);
-
         processedCount++;
         if (processedCount % 30 == 0) {
             log.info(`[${subredditName}]`, processedCount, '/', submissionsToProcess.length, name, 'posts for', subredditName, 'completed');
