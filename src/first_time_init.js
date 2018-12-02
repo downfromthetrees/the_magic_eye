@@ -74,6 +74,7 @@ async function processOldSubmissions(submissions, alreadyProcessed, name, subred
                 await setMasterProperty('last_attempted_init_id', submission.id);
                 await processSubmission(submission, masterSettings, database, null, false);
             } else {
+                await setMasterProperty('last_attempted_init_id', 'skip');
                 log.info(`[${subredditName}][first_time_init]`, 'Skipping poison submission:', printSubmission(submission), e);    
             }
         } catch (e) {
