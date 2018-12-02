@@ -87,6 +87,7 @@ async function processApprovedPosts(unprocessedItems, reddit) {
             const imagePath = await downloadImage(await submission.url);
             if (!imagePath) {
                 log.error('[HOLDING] Error processing approved posts:', item.target_permalink);    
+                submission.delete();
                 return;
             }
             const uploadResponse = await uploadToImgur(imagePath);
