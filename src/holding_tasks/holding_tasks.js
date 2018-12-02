@@ -85,6 +85,10 @@ async function processApprovedPosts(unprocessedItems, reddit) {
             const submissionId = item.target_permalink.split('/')[4]; // "/r/hmmm/comments/a0uwkf/hmmm/eakgqi3/"
             const submission = await reddit.getSubmission(submissionId);
             const imagePath = await downloadImage(await submission.url);
+            if (!imagePath) {
+                log.error('[HOLDING] Error processing approved posts:', item.target_permalink);    
+                return;
+            }
             const uploadResponse = await uploadToImgur(imagePath);
             const finalSubmission = await destinationSubreddit.submitLink({title: 'hmmm', url: `https://imgur.com/${uploadResponse.data.id}.png`});
             const finalSubmissionId = await finalSubmission.id;
