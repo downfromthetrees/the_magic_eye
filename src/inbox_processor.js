@@ -85,7 +85,7 @@ async function processUserPrivateMessage(inboxMessage, subreddit) {
         return;
     }
 
-    inboxMessage.reply("I am a robot so I cannot answer your message. If you have questions about me, post to r/MAGIC_EYE_BOT.");
+    inboxMessage.reply("I am a robot so I cannot answer your message. Contact the moderators of the subreddit for information.");
     log.info('Processed inbox private message:', inboxMessage.id);
 }
 
