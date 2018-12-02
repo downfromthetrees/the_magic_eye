@@ -151,11 +151,17 @@ async function getImageDetails(submissionUrl, includeWords) {
     if (imagePath == null) {
         return null;
     }
+
+    if (getFilesizeInMegaBytes(imagePath) > 15) {
+        log.error('Image was too large - ignoring. (is it a renamed gif?) ', submissionUrl);
+        return { tooLarge: true };
+    }
+
     const imageDetails = { dhash: null, height: null, width: null, trimmedHeight: null, trimmedWidth: null, words: null };
 
     const imagePHash = await getImageSize(imagePath, submissionUrl); 
     if (imagePHash != null) {
-        if (imagePHash.height > 3500 || imagePHash.width > 3500) {
+        if (imagePHash.height > 5000 || imagePHash.width > 5000) {
             return { tooLarge: true };
         }
 
@@ -200,6 +206,12 @@ async function getImageSize(path, submissionUrl) {
         log.error(chalk.red('Could not get imageSize for submission:'), submissionUrl, e);
         return null;
     }
+}
+
+function getFilesizeInMegaBytes(filename) {
+    const stats = fs.statSync(filename)
+    const fileSizeInBytes = stats.size
+    return fileSizeInBytes / 1000000.0;
 }
 
 async function getWordsInImage(originalImagePath, height) {
