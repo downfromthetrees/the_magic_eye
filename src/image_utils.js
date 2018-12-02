@@ -155,7 +155,7 @@ async function getImageDetails(submissionUrl, includeWords) {
 
     const imagePHash = await getImageSize(imagePath, submissionUrl); 
     if (imagePHash != null) {
-        if (imagePHash.height > 3000 || imagePHash.width > 3000) {
+        if (imagePHash.height > 5000 || imagePHash.width > 5000) {
             return { tooLarge: true };
         }
 
