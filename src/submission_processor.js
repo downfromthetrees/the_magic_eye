@@ -56,7 +56,10 @@ async function processSubmission(submission, masterSettings, database, reddit, a
         return;
     }
 
-    log.debug(chalk.yellow('Starting process for submission by: '), await submission.author.name, ', submitted: ', new Date(await submission.created_utc * 1000));
+    // first time init logging
+    if (!activeMode) {
+        log.info(chalk.yellow(`[${subredditName}][first_time_init]`, 'Starting process for submission: '), await printSubmission(submission));
+    }
 
     // get image info
     const imageUrlInfo = await getImageUrl(submission);
