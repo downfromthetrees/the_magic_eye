@@ -68,18 +68,29 @@ async function processOldSubmissions(submissions, alreadyProcessed, name, subred
 
     let startTime = new Date().getTime();
     for (const submission of submissionsToProcess) {
+        let knownPoisonedIds = await getMasterProperty('known_poisoned_ids');
+        if (!knownPoisonedIds) {
+            knownPoisonedIds = [];
+            await setMasterProperty('known_poisoned_ids', knownPoisonedIds);
+        }
         try {
-            const lastAttemptedInitId = await getMasterProperty('last_attempted_init_id');
-            if (!lastAttemptedInitId || lastAttemptedInitId !== submission.id) {
-                await setMasterProperty('last_attempted_init_id', submission.id);
+            if (!knownPoisonedIds.includes(submission.id)) {
+                knownPoisonedIds.push(submission.id);
+                await setMasterProperty('known_poisoned_ids', knownPoisonedIds);
                 await processSubmission(submission, masterSettings, database, null, false);
+
             } else {
-                await setMasterProperty('last_attempted_init_id', 'skip');
                 log.info(`[${subredditName}][first_time_init]`, 'Skipping poison submission:', printSubmission(submission), e);    
             }
         } catch (e) {
             log.info(`[${subredditName}][first_time_init]`, 'Error thrown while processing:', printSubmission(submission), e);
         }
+
+        var submissionIndex = knownPoisonedIds.indexOf(submission.id);
+        if (submissionIndex > -1) {
+            knownPoisonedIds.splice(submissionIndex, 1);
+        }
+        await setMasterProperty('known_poisoned_ids', knownPoisonedIds);
 
         processedCount++;
         if (processedCount % 30 == 0) {
