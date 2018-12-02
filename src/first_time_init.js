@@ -4,7 +4,7 @@ const outdent = require('outdent');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 const { processSubmission } = require('./submission_processor.js');
-const { setSubredditSettings } = require('./mongodb_master_data.js');
+const { setSubredditSettings, getMasterProperty, setMasterProperty } = require('./mongodb_master_data.js');
 const { printSubmission } = require('./reddit_utils.js');
 
 let inProgress = [];
@@ -68,12 +68,28 @@ async function processOldSubmissions(submissions, alreadyProcessed, name, subred
 
     let startTime = new Date().getTime();
     for (const submission of submissionsToProcess) {
+        let knownPoisonedIds = await getMasterProperty('known_poisoned_ids');
+        if (!knownPoisonedIds) {
+            knownPoisonedIds = [];
+            await setMasterProperty('known_poisoned_ids', knownPoisonedIds);
+        }
         try {
-            await processSubmission(submission, masterSettings, database, null, false);
+            if (!knownPoisonedIds.includes(submission.id)) {
+                knownPoisonedIds.push(submission.id);
+                await setMasterProperty('known_poisoned_ids', knownPoisonedIds);
+                await processSubmission(submission, masterSettings, database, null, false);
+
+                var submissionIndex = knownPoisonedIds.indexOf(submission.id);
+                if (submissionIndex > -1) {
+                    knownPoisonedIds.splice(submissionIndex, 1);
+                }
+                await setMasterProperty('known_poisoned_ids', knownPoisonedIds);
+            } else {
+                log.info(`[${subredditName}][first_time_init]`, 'Skipping poison submission:', printSubmission(submission));    
+            }
         } catch (e) {
             log.info(`[${subredditName}][first_time_init]`, 'Error thrown while processing:', printSubmission(submission), e);
         }
-
         processedCount++;
         if (processedCount % 30 == 0) {
             log.info(`[${subredditName}]`, processedCount, '/', submissionsToProcess.length, name, 'posts for', subredditName, 'completed');
