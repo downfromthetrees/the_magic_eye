@@ -141,22 +141,28 @@ Other details:
 
     "removeBlacklisted": {},
 
-Removes images permanently. This feature requires the [Toolbox extension](http://www.reddit.com/r/toolbox)  and toolbox removal reasons.
+Images can be blacklisted permanently by removing a thread and making a comment in the thread with this format:
 
-In the toolbox removal reason settings, add these special links (invisible to the user):
-* `[](#start_removal)` to the end of the header
-* `[](#end_removal)` to the start of the footer
+    [](#start_removal)
 
-If these don't exist, or the last moderators post is removed, or there is no removal message, Magic Eye will just ignore the post and let you deal with it.
+    * My special removal message to the user
 
-If you have a toolbox repost removal you'll want Magic Eye not to blacklist those images, so add this to it:
+    [](#end_removal)
 
-* `[](#repost)`
+When Magic Eye sees the image again, it will extract the removal message from that comment and post it to the new user like [this](https://www.reddit.com/r/hmmm/comments/a2x5d0/hmmm/eb1tdf1/) example from r/hmmm.
 
-If you have a toolbox removal you just want to be ignored altogether::
+The `[](#something)` tags are empty links which reddit doesn't display to users. Several subs make use of this for other tricks like css emotes. If you click the `source` button on [this](https://www.reddit.com/r/hmmm/comments/a2yedw/hmmm/eb213ua/) example comment you'll see them hidden in the comment.
 
-* `[](#repost_only_by_user)`: Ignore the removal if it's posted by the same user (i.e. "you had a username visible, please remove it and repost")
-* `[](#magic_ignore)`: Ignore the removal altogether
+Notes: 
+
+* If a moderator hasn't made a comment in this format (or if the moderator comment is been removed), Magic Eye will just ignore the removed post and let you deal with the new one.
+
+* We recommend using the [Toolbox extension](http://www.reddit.com/r/toolbox) to add these tags to all removals. Just add the `[](#start_removal)` to the start of the removal header and `[](#end_removal)` to the start of the footer.
+
+* If you use toolbox as recommended above, you'll also want a way to use toolbox removals but not blacklist the image. For example, you might say to a user "Your title sucks, please resubmit the picture with a better title.". In this case, just add `[](#ignore_removal)` to the removal with toolbox as well.
+
+* If you're a real perfectionist, `[](#repost)` is another supported tag for when the bot fails to detect a recent repost and you manually remove it as one. In this case you don't want the bot to blacklist it, but you do want it and future ones to be removed until the repost period is up. You can see an example of this [here](https://www.reddit.com/r/hmmm/comments/a2sseh/hmmm/eb0vmwv/) where the bot adds a line to the removal.
+
 
 ### Remove broken image links
 

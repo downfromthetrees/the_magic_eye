@@ -14,7 +14,11 @@ async function getModComment(reddit, submissionId) {
 }
 
 async function isMagicIgnore(modComment) {
-    return modComment != null && (await modComment.body).includes('[](#magic_ignore)'); // mod wants removal ignored
+    if (modComment == null) {
+        return false;
+    }
+    const commentBody = await modComment.body;
+    return commentBody.includes('[](#magic_ignore)') || commentBody.includes('[](#ignore_removal)'); // mod wants removal ignored
 }
 
 async function isRepostRemoval(modComment) {
