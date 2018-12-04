@@ -62,15 +62,17 @@ See [settings](#settings) documentation for more features/tweaking for your sub.
 
 * If users reply to MAGIC_EYE_BOT, it will report the comment so you can check it out.
 
+* Magic Eye has sensible default settings so is safe to just add and forget. By default, it has a 15-50 day repost limit depending on how much karma the last submission got (i.e. bigger post, wait longer between allowing it to be reposted). See the [Remove reposts](#remove-reposts) for more detail.
+
+* Feature requests should be made in r/MAGIC_EYE_BOT
+
 * Magic Eye runs every 30s or so, so if you want it to pick up a post then avoid moderating posts in the /new queue that are under a minute old.
 
 * You can reply to MAGIC_EYE_BOT with `clear` and it'll remove the image from it's database. This is handy if one image is ever causing a problem.
 
-* Feature requests should be made in r/MAGIC_EYE_BOT
-
-* Magic Eye is designed to also match slightly altered versions of images, but because of this it will occasionally get detection wrong. Normally that means missing reposts because it's conservative, but occasionally (under 1%) it's a false positive. Just keep in mind: the bot doesn't *see* images like we do, so what's obviously to your eyes as a repost/not the same image doesn't mean the bot is broken. ([algorithm info](http://www.hackerfactor.com/blog/?/archives/529-Kind-of-Like-That.html)).
-
 * If you want to stop MAGIC_EYE_BOT for any reason, just demod it. You can safely remod it at any time and it will carry on as normal.
+
+* The default Magic Eye settings are set to also match slightly altered versions of images, but because of this it can occasionally get detection wrong. Normally that means missing reposts because it's conservative, but occasionally (under 1%) it's a false positive. Just keep in mind: the bot doesn't *see* images like we do, so forgive it's occasionally for being weird. This problem is inherent to the difficulty of image detection, you can read about the algorithm Magic Eye uses ([here](http://www.hackerfactor.com/blog/?/archives/529-Kind-of-Like-That.html)).
 
 ## Settings 
 
@@ -123,17 +125,18 @@ Optional fields:
         "allTimeTopRemovalMessage": "Bad luck buckaroo, this image is an all time classic!"
     },
 
-Aside from removing reposts, this setting will auto approve reposts over the limit, and reflair them with the same flair.
-
-Action options:
-* `"remove"`: removes the post and posts a message to the user
-* `"warn"`: reports the post and posts a removed comment in the thread with links
-
-Other details:
-* `removeRepostsIfDeleted`: Removes reposts even if the previous post was deleted. (`true`/`false`)
-* Scores thresholds: These are intemediary thresholds for reposts. i.e. if the previous image got `mediumScore`, it'll be removed if it's under `mediumScoreRepostDays`.
-    * If `smallScore` if set higher than 0 it will auto-approve anything that gets under this score
+Notes:
+* `action`: This can be one of:
+    * `"remove"`: removes the post and posts a message to the user
+    * `"warn"`: reports the post and posts a removed comment in the thread with links
+* `actionRepostsIfDeleted`: Performs `action` on reposts even if the previous post was deleted. (`true`/`false`)
+* `reflairApprovedReposts`: Reflairs reposts with the same flair as the last one had
+* `approveIfOverRepostDays`: Auto-approves a repost over the time limit to save you doing it
+* Scores thresholds: Magic Eye keeps track of the last successful post of an image. These are granular time thresholds to determine whether or not it can be posted again yet. For example in the default settings: if the last matching submission got over `mediumScore` (set to 400 karma), it'll be removed if it's less than `mediumScoreRepostDays` days old (set to 25 days).
+    * If `smallScore` if set higher than 0 it will auto-approve it if the last matching submission got under this score
     * If `topScore` is set lower it will remove any post that ever got over this threshold permanently, with a message saying it's an all time subreddit top post.
+
+
 
 ### Remove blacklisted images
 
@@ -157,9 +160,9 @@ Notes:
 
 * If a moderator hasn't made a comment in this format (or if the moderator comment is been removed), Magic Eye will just ignore the removed post and let you deal with the new one.
 
-* We recommend using the [Toolbox extension](http://www.reddit.com/r/toolbox) to add these tags to all removals. Just add the `[](#start_removal)` to the start of the removal header and `[](#end_removal)` to the start of the footer.
+* We recommend using the [Toolbox extension](http://www.reddit.com/r/toolbox) to add these tags to all removals. In the `Removal Reason Settings` tab just add the `[](#start_removal)` to the end of the header and `[](#end_removal)` to the start of the footer.
 
-* If you use toolbox as recommended above, you'll also want a way to use toolbox removals but not blacklist the image. For example, you might say to a user "Your title sucks, please resubmit the picture with a better title.". In this case, just add `[](#ignore_removal)` to the removal with toolbox as well.
+* If you use toolbox as recommended above, you may also have some toolbox removals that you don't want blacklisting images. For example, you might have a removal that says "Your title sucks, please resubmit the picture again with a better one". In this case, just add `[](#ignore_removal)` to those removals and it will ignore the removal allowing it to be submitted again.
 
 * If you're a real perfectionist, `[](#repost)` is another supported tag for when the bot fails to detect a recent repost and you manually remove it as one. In this case you don't want the bot to blacklist it, but you do want it and future ones to be removed until the repost period is up. You can see an example of this [here](https://www.reddit.com/r/hmmm/comments/a2sseh/hmmm/eb0vmwv/) where the bot adds a line to the removal.
 
