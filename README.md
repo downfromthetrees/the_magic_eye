@@ -144,17 +144,17 @@ Notes:
 
     "removeBlacklisted": {},
 
-Images can be blacklisted permanently by removing a thread and making a comment in the thread with this format:
+Images can be blacklisted permanently by removing a thread and making a comment in it with this format:
 
     [](#start_removal)
 
-    * My special removal message to the user
+    * My cool removal reason
 
     [](#end_removal)
 
-When Magic Eye sees the image again, it will extract the removal message from that comment and post it to the new user like [this](https://www.reddit.com/r/hmmm/comments/a2x5d0/hmmm/eb1tdf1/) example from r/hmmm.
+When Magic Eye sees the image again, it will extract the removal message from that comment and post it to the user. [Here](https://www.reddit.com/r/hmmm/comments/a2x5d0/hmmm/eb1tdf1/) is an example of it in action in r/hmmm.
 
-The `[](#something)` tags are empty links which reddit doesn't display to users. Several subs make use of this for other tricks like css emotes. If you click the `source` button on [this](https://www.reddit.com/r/hmmm/comments/a2yedw/hmmm/eb213ua/) example comment you'll see them hidden in the comment.
+The `[](#something)` tags are empty links which reddit doesn't display to users. Several subs make use of this for other tricks like CSS emotes. If you click the `source` button on [this](https://www.reddit.com/r/hmmm/comments/a2yedw/hmmm/eb213ua/) example comment you'll see them hidden in the comment.
 
 Notes: 
 
