@@ -1,7 +1,9 @@
 
 # Magic Eye
 
-Magic Eye is an image detection bot for reddit that detects reposts, as well as several other image processing and moderation features.
+Magic Eye is an image detection bot for reddit that detects reposts, as well as several other image processing and moderation features. 
+
+Check out r/MAGIC_EYE_BOT for support.
 
 
 <!-- TOC -->
@@ -29,26 +31,26 @@ Magic Eye is an image detection bot for reddit that detects reposts, as well as 
 ## Current features
 
 * Remove or warn about reposts
-* Remove blacklisted images and repeat the removal reason to the user (requires toolbox)
+* Remove blacklisted images (works best with toolbox)
 * Remove broken image links
 * Remove small images
 * Remove uncropped images
 * Private message first time posters with a custom message
-* Report unmoderated posts over a certain threshold
+* Report unmoderated posts over a karma threshold
 
-Magic Eye supports normal image urls as well as imgur posts, for both images and gifs/videos (detected based on the thumbnail).
+Magic Eye supports images, imgur posts and gifs/reddit videos (detected based on the thumbnail).
 
 
 ## Prerequisites
 
-* You must have wikis enabled for your sub (i.e. in your sub settings, wiki should be set to mod editing)
-* If you intend to use the blacklisting feature, you must remove images with the [Toolbox extension](http://www.reddit.com/r/toolbox)
+* You must have wikis enabled for your sub (set wiki to "mod editing" in your sub settings)
+* Blacklisting images can be done manually, but is best implemented with the [Toolbox extension](http://www.reddit.com/r/toolbox). See [Remove blacklisted images](#remove-blacklisted-images).
 
 ## Setup
 
 * Invite www.reddit.com/u/MAGIC_EYE_BOT as a moderator to your subreddit with `flair`, `posts` and `wiki` permissions
+    * The bot will accept the invite, and build a database for your subreddit from all the posts sub it can access. Once it's done it will send you a modmail to let you know it has begun monitoring new posts made to your subreddit (will take roughly an hour) 
     * A settings page will be created by the bot in your wiki at: http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
-    * The bot will then trawl through all the top/new posts in your sub it can, and send you a modmail once it's up and running (will take roughly an hour) 
 
 By default Magic Eye will:
 
@@ -56,31 +58,31 @@ By default Magic Eye will:
 * Remove blacklisted images and repeat the removal reason to the user (once toolbox configuration is in place, see [here](#remove-blacklisted-images))
 * Remove broken image links
     
-See [settings](#settings) documentation for more features/tweaking for your sub.
+See the [settings](#settings) documentation for enabling more features and tweaking the settings.
 
 ## General info / FAQ
 
 * If users reply to MAGIC_EYE_BOT, it will report the comment so you can check it out.
 
-* Magic Eye has sensible default settings so is safe to just add and forget. By default, it has a 15-50 day repost limit depending on how much karma the last submission got (i.e. bigger post, wait longer between allowing it to be reposted). See the [Remove reposts](#remove-reposts) for more detail.
-
-* Feature requests should be made in r/MAGIC_EYE_BOT
+* Magic Eye has sensible default settings so is safe to just add and forget. By default, it has a 15-50 day repost limit depending on how much karma the last submission got (i.e. bigger post, wait longer between allowing it to be reposted). See the the [Remove reposts](#remove-reposts) section for details.
 
 * Magic Eye runs every 30s or so, so if you want it to pick up a post then avoid moderating posts in the /new queue that are under a minute old.
 
-* You can reply to MAGIC_EYE_BOT with `clear` and it'll remove the image from it's database. This is handy if one image is ever causing a problem.
+* If you want to stop MAGIC_EYE_BOT for any reason, just demod it. You can safely demod/remod it at any time without affecting your database of images.
 
-* If you want to stop MAGIC_EYE_BOT for any reason, just demod it. You can safely remod it at any time and it will carry on as normal.
+* Magic Eye detects images with a technique based on greyscale gradients (read about the algorithm [here](http://www.hackerfactor.com/blog/?/archives/529-Kind-of-Like-That.html)). It's a great technique, however no image detection is perfect so on rare occasions it will misdetect images AND when it does the images may not look anything like each other to your human eyes. The bot ain't broken, it's just not human (like a bat is different because it uses echolocation). On the other side - if an image is cropped slightly it may no longer match the original. It's a trade off, and you can tweak the tolerance in the settings.
 
-* The default Magic Eye settings are set to also match slightly altered versions of images, but because of this it can occasionally get detection wrong. Normally that means missing reposts because it's conservative, but occasionally (under 1%) it's a false positive. Just keep in mind: the bot doesn't *see* images like we do, so forgive it's occasionally for being weird. This problem is inherent to the difficulty of image detection, you can read about the algorithm Magic Eye uses ([here](http://www.hackerfactor.com/blog/?/archives/529-Kind-of-Like-That.html)).
+* You can reply to MAGIC_EYE_BOT with `clear` and it'll remove the image from it's database. This can be is handy for problematic images that match a little aggressively (they tend to look like [this](https://i.imgur.com/Avp2Y57.png)), or if it's being annoying for any reason.
 
 ## Settings 
 
-You can configure the bot to do more by editing the magic_eye wiki page. The settings are in JSON format.
+Magic Eye can be configured by editing the magic_eye wiki page. 
 
 http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 
-MAGIC_EYE_BOT will let you know if your updates are sucessful. If you're having trouble with it you can use [this JSON validator](https://jsonformatter.curiousconcept.com/) for help.
+* The settings are in JSON format.
+
+* MAGIC_EYE_BOT will let you know if your updates are sucessful. If you're having trouble with it you can use [this JSON validator](https://jsonformatter.curiousconcept.com/) for help.
 
 
 ### Media types
