@@ -27,7 +27,7 @@ async function mainHolding() {
         const targetSubreddit = await reddit.getSubreddit(process.env.HOLDING_TARGET_SUBREDDIT);
 
         // get new target submissions
-        const submissions = await targetSubreddit.getNew({'limit': 50});
+        const submissions = await targetSubreddit.getNew({'limit': 25});
         if (!submissions) {
             log.error(chalk.red('[HOLDING] Cannot get new submissions to process - api is probably down for maintenance.'));
             setTimeout(main, 60 * 1000); // run again in 60 seconds
@@ -45,7 +45,7 @@ async function mainHolding() {
         const unprocessedHoldingItems = await consumeUnprocessedModlog(approvedLinks);
         await processApprovedPosts(unprocessedHoldingItems, reddit);
 
-        const removedLinks = await holdingSubreddit.getModerationLog({type: 'removelink'}).fetchAll({amount: 300});
+        const removedLinks = await holdingSubreddit.getModerationLog({type: 'removelink'}).fetchMore({amount: 200});
         const unprocessedRemovedHoldingItems = await consumeUnprocessedModlog(removedLinks, 'removed');
         await processRemovedPosts(unprocessedRemovedHoldingItems, reddit);
 
