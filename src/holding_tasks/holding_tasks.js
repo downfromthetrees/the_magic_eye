@@ -45,7 +45,7 @@ async function mainHolding() {
         const unprocessedHoldingItems = await consumeUnprocessedModlog(approvedLinks);
         await processApprovedPosts(unprocessedHoldingItems, reddit);
 
-        const removedLinks = await holdingSubreddit.getModerationLog({type: 'removelink'});
+        const removedLinks = await holdingSubreddit.getModerationLog({type: 'removelink'}).fetchAll({amount: 300});
         const unprocessedRemovedHoldingItems = await consumeUnprocessedModlog(removedLinks, 'removed');
         await processRemovedPosts(unprocessedRemovedHoldingItems, reddit);
 
@@ -55,7 +55,7 @@ async function mainHolding() {
         log.error(chalk.red("[HOLDING] Main loop error: ", err));
     }
     
-    setTimeout(mainHolding, 120 * 1000); // run again in 120 seconds
+    setTimeout(mainHolding, 30 * 1000); // run again in 30 seconds
 }
 
 async function crossPostFromTargetSubreddit(unprocessedSubmissions, reddit) {
