@@ -254,14 +254,14 @@ async function getModdedSubreddits(after) {
         }
         
         if (moddedSubsData.length == 0) {
+            log.info(chalk.red('Nothing left'));
             return [];
         }
         
-        log.info(chalk.red('moddedSubsData.length'), moddedSubsData.length);
-
         let moddedSubs = moddedSubsData.map(moddedSub => moddedSub.display_name);
         if (moddedSubs == 25) { // pagination, get more
             const newAfter = moddedSubsData[moddedSubsData.length-1].name;
+            log.info(chalk.red('newAfter'), newAfter);
             return moddedSubs.concat(await getModdedSubreddits(newAfter));
         } else {
             return moddedSubs;
