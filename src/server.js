@@ -80,6 +80,9 @@ async function main() {
             return;
         }
         const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions); 
+
+        log.info(chalk.blue("Modded subs:"), moddedSubs);
+        
         for (const subredditName of moddedSubs) {
             try {
                 const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
