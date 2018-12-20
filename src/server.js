@@ -259,7 +259,7 @@ async function getModdedSubreddits(after) {
         }
         
         let moddedSubs = moddedSubsData.map(moddedSub => moddedSub.display_name);
-        if (moddedSubs == 25) { // pagination, get more
+        if (moddedSubs.length == 25) { // pagination, get more
             const newAfter = moddedSubsData[moddedSubsData.length-1].name;
             log.info(chalk.red('newAfter'), newAfter);
             return moddedSubs.concat(await getModdedSubreddits(newAfter));
