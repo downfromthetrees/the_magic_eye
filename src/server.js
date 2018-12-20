@@ -250,11 +250,14 @@ async function getModdedSubreddits(after) {
             return [];
         }
         
+        if (moddedSubsData.length == 0) {
+            return [];
+        }
         
         let moddedSubs = moddedSubsData.map(moddedSub => moddedSub.display_name);
-        log.info(chalk.blue("Modded subs data after:"), moddedSubsData.after);
-        if (moddedSubsData.after) { 
-            return moddedSubs.concat(addModdedSubreddits(moddedSubs.after));
+        if (moddedSubs == 25) { // pagination, get more
+            const newAfter = moddedSubsData[moddedSubsData.length-1].name;
+            return moddedSubs.concat(await getModdedSubreddits(newAfter));
         } else {
             return moddedSubs;
         }
