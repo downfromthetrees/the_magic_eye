@@ -72,6 +72,9 @@ async function main() {
         const moddedSubsMulti = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
         const subredditMulti = await reddit.getSubreddit(moddedSubsMulti);
 
+        log.info('constmoddedSubsMulti:', constmoddedSubsMulti);
+        
+
         // submissions for all subs
         const submissions = await subredditMulti.getNew({'limit': 500});
         if (!submissions) {
@@ -253,6 +256,8 @@ async function getModdedSubreddits(after) {
         if (moddedSubsData.length == 0) {
             return [];
         }
+        
+        log.info(chalk.red('moddedSubsData.length'), moddedSubsData.length);
         
         let moddedSubs = moddedSubsData.map(moddedSub => moddedSub.display_name);
         if (moddedSubs == 25) { // pagination, get more
