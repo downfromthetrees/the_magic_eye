@@ -252,7 +252,7 @@ async function getModdedSubreddits(after) {
         
         
         let moddedSubs = moddedSubsData.map(moddedSub => moddedSub.display_name);
-        log.info(chalk.blue("Modded subs data:"), JSON.stringify(moddedSubsData));
+        log.info(chalk.blue("Modded subs data after:"), moddedSubsData.after);
         if (moddedSubsData.after) { 
             return moddedSubs.concat(addModdedSubreddits(moddedSubs.after));
         } else {
