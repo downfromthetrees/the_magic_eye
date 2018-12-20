@@ -81,8 +81,6 @@ async function main() {
         }
         const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions); 
 
-        log.info(chalk.blue("Modded subs:"), moddedSubs);
-        
         for (const subredditName of moddedSubs) {
             try {
                 const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
@@ -252,8 +250,10 @@ async function getModdedSubreddits(after) {
             return [];
         }
         
+        
         let moddedSubs = moddedSubsData.map(moddedSub => moddedSub.display_name);
-        if (moddedSubs.after) { 
+        log.info(chalk.blue("Modded subs data:"), JSON.stringify(moddedSubsData));
+        if (moddedSubsData.after) { 
             return moddedSubs.concat(addModdedSubreddits(moddedSubs.after));
         } else {
             return moddedSubs;
