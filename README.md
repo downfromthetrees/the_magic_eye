@@ -101,8 +101,9 @@ Self explanatory, individually turns on/off processing of images or animated med
 
     "similarityTolerance": 6,
 
-The tolerance to image differences. Low number = match more exact images.
+The tolerance to image differences.
 
+* Range is 0-16, where 0 matches exact images and 16 matches every image
 * Set to 0 to only match exact as possible images
 * Default is 6, if you're a subreddit that sees any issue with similar memes/tweets, experiment with smaller numbers.
 
