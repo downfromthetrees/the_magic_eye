@@ -38,8 +38,13 @@ Check out r/MAGIC_EYE_BOT for support.
 * Private message first time posters with a custom message
 * Report unmoderated posts over a karma threshold
 
-Magic Eye supports images, imgur posts and gifs/reddit videos (detected based on the thumbnail).
+Magic Eye supports 
 
+* images (png/jpg/jpeg/bmp), imgur posts, reddit videos, animated media (gif/gifv/mp4/webm)
+
+Currently not supported:
+
+* gfycat links without extensions, reddit video x-posts, youtube videos
 
 ## Prerequisites
 
@@ -121,22 +126,26 @@ The tolerance to image differences. Low number = match more exact images.
 
 Optional fields:
 
-    "removeReposts": {
+    "reposts": {
         ...
         "removalMessage": "Bad luck buckaroo, this image is a repost!",
-        "allTimeTopRemovalMessage": "Bad luck buckaroo, this image is an all time classic!"
+        "allTimeTopRemovalMessage": "Bad luck buckaroo, this image is an all time classic!",
+        "actionAll": false
     },
 
 Notes:
 * `action`: This can be one of:
     * `"remove"`: removes the post and posts a message to the user
     * `"warn"`: reports the post and posts a removed comment in the thread with links
-* `actionRepostsIfDeleted`: Performs `action` on reposts even if the previous post was deleted. (`true`/`false`)
-* `reflairApprovedReposts`: Reflairs reposts with the same flair as the last one had
+* `actionRepostsIfDeleted`: Performs `action` on reposts even if the previous post was deleted.
 * `approveIfOverRepostDays`: Auto-approves a repost over the time limit to save you doing it
 * Scores thresholds: Magic Eye keeps track of the last successful post of an image. These are granular time thresholds to determine whether or not it can be posted again yet. For example in the default settings: if the last matching submission got over `mediumScore` (set to 400 karma), it'll be removed if it's less than `mediumScoreRepostDays` days old (set to 25 days).
     * If `smallScore` if set higher than 0 it will auto-approve it if the last matching submission got under this score
     * If `topScore` is set lower it will remove any post that ever got over this threshold permanently, with a message saying it's an all time subreddit top post.
+* `actionAll`: If you want to remove or warn on any repost, add this field with the value `true` and it will override the threshold settings
+* `reflairApprovedReposts`: Reflairs reposts with the same flair as the last one had
+
+
 
 
 
