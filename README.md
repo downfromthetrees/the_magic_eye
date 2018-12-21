@@ -192,10 +192,10 @@ If the image can't download the image, it will remove it as broken and ask the u
         "smallDimension": 330
     },
 
-Removes images under a size threshold.
+Removes images under a certain size (pixel density). When added, the `height`\*`width` of the image must be larger than `smallDimension`\*`smallDimension`.
 
 Details:
-* `smallDimension`: pixels size, `smallDimension` by `smallDimension`. Example of 330px*330px image: https://i.imgur.com/7jTFozp.png
+* `smallDimension`: Pixel dimention. Example of 330px*330px image: https://i.imgur.com/7jTFozp.png
 
 ### Remove uncropped images
 
