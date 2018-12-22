@@ -52,7 +52,7 @@ async function firstTimeInit(reddit, subredditName, database, masterSettings) {
         text: outdent`
             I'm all set up and checking new posts made in your subreddit.
 
-            You can find my documentation and features here: https://github.com/downfromthetrees/the_magic_eye
+            You can find my documentation and features here: https://github.com/downfromthetrees/the_magic_eye/blob/master/README.md
 
             You can change the settings for your subreddit here: r/${subredditName}/wiki/magic_eye
 
