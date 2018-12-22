@@ -101,7 +101,7 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
     "processImages": true,
     "processAnimatedMedia": true,
 
-Self explanatory, individually turns on/off processing of images or animated media (i.e. gifs/videos which are detected by the thumbnail).
+Individually turn on/off processing of images or animated media (i.e. gifs/videos).
 
 ### Tolerance
 
