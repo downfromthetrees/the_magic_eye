@@ -1,7 +1,7 @@
 
 # Magic Eye
 
-Magic Eye is an image detection bot for reddit that detects reposts, as well as several other image processing and moderation features. 
+Magic Eye is a repost moderation bot made for moderators. It also has several other image and misc moderation features.
 
 Check out r/MAGIC_EYE_BOT for support.
 
@@ -93,8 +93,6 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 * The settings are in JSON format.
 
 * MAGIC_EYE_BOT will let you know if your updates are sucessful. If you're having trouble with it you can use [this JSON validator](https://jsonformatter.curiousconcept.com/) for help. 
-
-* 
 
 
 ### Media types
