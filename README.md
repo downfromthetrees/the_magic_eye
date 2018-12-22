@@ -75,7 +75,7 @@ See the [settings](#settings) documentation for enabling more features and tweak
 
 * If you want to stop MAGIC_EYE_BOT for any reason, just demod it. You can safely demod/remod it at any time without affecting your database of images.
 
-* Magic Eye detects images with a technique based on greyscale gradients (read about the algorithm [here](http://www.hackerfactor.com/blog/?/archives/529-Kind-of-Like-That.html)). It's a great technique, however no image detection is perfect so on rare occasions it will misdetect images AND when it does the images may not look anything like each other to your human eyes. The bot ain't broken, it's just not human (like a bat is different because it uses echolocation). On the other side - if an image is cropped slightly it may no longer match the original. It's a trade off, and you can tweak the tolerance in the settings.
+* Magic Eye detects images based on greyscale gradients, if you're interested you can read about the algorithm [here](image_detection.md)). It's a great technique, however no image detection is perfect so on rare occasions it can misdetect images AND when it does the images may not look anything like each other. It isn't a bug, what's important to remember is it just doesn't "see" the image like your eyes and brain do. On the other side - if an image is cropped slightly it may no longer match the original. It's a trade off, and you can tweak the tolerance in the settings.
 
 * You can reply to MAGIC_EYE_BOT with `clear` and it'll remove the image from it's database. This can be is handy for problematic images that match a little aggressively (they tend to look like [this](https://i.imgur.com/Avp2Y57.png)), or if it's being annoying for any reason.
 
