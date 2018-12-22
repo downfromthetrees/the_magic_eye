@@ -49,7 +49,7 @@ Currently not supported:
 ## Prerequisites
 
 * You must have wikis enabled for your sub (set wiki to "mod editing" in your sub settings)
-* Blacklisting images can be done manually, but is best implemented with the [Toolbox extension](http://www.reddit.com/r/toolbox). See [Remove blacklisted images](#remove-blacklisted-images).
+* Blacklisting images can be done manually, but is best implemented with the [Toolbox extension](http://www.reddit.com/r/toolbox). See [Removing blacklisted images](#remove-blacklisted-images).
 
 ## Setup
 
@@ -60,10 +60,10 @@ Currently not supported:
 By default Magic Eye will:
 
 * Remove reposts
-* Remove blacklisted images and repeat the removal reason to the user (once toolbox configuration is in place, see [here](#remove-blacklisted-images))
+* Remove blacklisted images and repeat the removal reason to the user (once toolbox configuration is in place, see [Removing blacklisted images](#remove-blacklisted-images))
 * Remove broken image links
-    
-See the [settings](#settings) documentation for enabling more features and tweaking the settings.
+
+See the [settings documentation](#settings) for enabling more features and tweaking the settings.
 
 ## General info / FAQ
 
@@ -75,9 +75,9 @@ See the [settings](#settings) documentation for enabling more features and tweak
 
 * If you want to stop MAGIC_EYE_BOT for any reason, just demod it. You can safely demod/remod it at any time without affecting your database of images.
 
-* Magic Eye detects images based on greyscale gradients, if you're interested you can read about the algorithm [here](image_detection.md)). It's a great technique, however no image detection is perfect so on rare occasions it can misdetect images AND when it does the images may not look anything like each other. It isn't a bug, what's important to remember is it just doesn't "see" the image like your eyes and brain do. On the other side - if an image is cropped slightly it may no longer match the original. It's a trade off, and you can tweak the tolerance in the settings.
+* Magic Eye detects images based on greyscale gradients, if you're interested in the math you can [read more about the algorithm](docs/image_detection.md)). It's a great technique, however no image detection is perfect so on rare occasions it can misdetect images AND when it does the images may not look anything like each other. It isn't a bug, what's important to remember is it just doesn't "see" the image like your eyes and brain do. On the other side - if an image is cropped slightly it may no longer match the original. It's a trade off, and you can tweak the tolerance in the settings.
 
-* You can reply to MAGIC_EYE_BOT with `clear` and it'll remove the image from it's database. This can be is handy for problematic images that match a little aggressively (they tend to look like [this](https://i.imgur.com/Avp2Y57.png)), or if it's being annoying for any reason.
+* You can reply to MAGIC_EYE_BOT with `clear` and it'll remove the image from it's database. This can be is handy for problematic images that match a little aggressively (they tend to have [lots of grey space](https://i.imgur.com/Avp2Y57.png)), or if it's being annoying for any reason.
 
 ## Settings 
 
