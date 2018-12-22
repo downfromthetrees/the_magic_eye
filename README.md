@@ -92,7 +92,9 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 
 * The settings are in JSON format.
 
-* MAGIC_EYE_BOT will let you know if your updates are sucessful. If you're having trouble with it you can use [this JSON validator](https://jsonformatter.curiousconcept.com/) for help.
+* MAGIC_EYE_BOT will let you know if your updates are sucessful. If you're having trouble with it you can use [this JSON validator](https://jsonformatter.curiousconcept.com/) for help. 
+
+* 
 
 
 ### Media types
@@ -212,19 +214,19 @@ Removes images with [black bars](https://i.imgur.com/6a4SCcw.png) at the bottom 
 ### Message first time submitters 
 
     "messageFirstTimeUser": {
-           "firstTimeUserMessageTitle": "RULES REMINDER",
-           "firstTimeUserMessage": "I am an bot to remind new users *posts in r/hmmm cannot contain text*. \n\nIf your post contains text, then delete it."
+           "firstTimeUserMessageTitle": "Yo dude",
+           "firstTimeUserMessage": "I am an bot to remind new users that posts must be *good* and not *bad!*"
     },
 
 Private messages users the first time they make a submission to the subreddit.
 
 Details:
-* Use \n\n to create a new line in your message.
+* Use \n\n to create a new paragraph in your message.
 
 
 ### Custom footer
 
-    "customFooter": "I'm a bot but check out our ([rules faq](https://www.reddit.com/r/hmmm/wiki/rules))",
+    "customFooter": "I hate answering questions, [so read the damn rules](https://www.reddit.com/r/mrplow/wiki/rules)",
 
 Replaces the default bot footer statement to a custom version.
 
