@@ -38,7 +38,7 @@ Check out r/MAGIC_EYE_BOT for support.
 * Private message first time posters with a custom message
 * Report unmoderated posts over a karma threshold
 
-Supported posts:
+Supported links:
 
 * images (png/jpg/jpeg/bmp)
 * imgur links
@@ -53,19 +53,20 @@ Currently not supported:
 
 ## Prerequisites
 
-* You must have wikis enabled for your sub (set wiki to "mod editing" in your sub settings)
+* You must have wikis enabled (set wiki to "mod editing" in your subreddit settings)
 * Blacklisting images can be done manually, but is best implemented with the [Toolbox extension](http://www.reddit.com/r/toolbox). See [Removing blacklisted images](#remove-blacklisted-images).
 
 ## Setup
 
 * Invite www.reddit.com/u/MAGIC_EYE_BOT as a moderator to your subreddit with `flair`, `posts` and `wiki` permissions
-    * The bot will accept the invite, and build a database for your subreddit from all the posts sub it can access. Once it's done it will send you a modmail to let you know it has begun monitoring new posts made to your subreddit (will take roughly an hour) 
+    * The bot will accept the invite, and build a database for your subreddit from all the posts sub it can access.
+    * Once it's done it will send you a modmail to let you know it has begun monitoring new posts made to your subreddit. This will take roughly an hour.
     * A settings page will be created by the bot in your wiki at: http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 
 By default Magic Eye will:
 
 * Remove reposts
-* Remove blacklisted images and repeat the removal reason to the user (once toolbox configuration is in place, see [Removing blacklisted images](#remove-blacklisted-images))
+* Remove blacklisted images and repeat the removal reason to the user (see [Removing blacklisted images](#remove-blacklisted-images))
 * Remove broken image links
 
 See the [settings documentation](#settings) for enabling more features and tweaking the settings.
@@ -80,9 +81,9 @@ See the [settings documentation](#settings) for enabling more features and tweak
 
 * If you want to stop MAGIC_EYE_BOT for any reason, just demod it. You can safely demod/remod it at any time without affecting your database of images.
 
-* Magic Eye detects images based on greyscale gradients, if you're interested in the math you can [read more about the algorithm](docs/image_detection.md)). It's a great technique, however no image detection is perfect so on rare occasions it can misdetect images AND when it does the images may not look anything like each other. It isn't a bug, what's important to remember is it just doesn't "see" the image like your eyes and brain do. On the other side - if an image is cropped slightly it may no longer match the original. It's a trade off, and you can tweak the tolerance in the settings.
+* Magic Eye detects images based on greyscale gradients, if you're interested in what that means you can [read about the algorithm](docs/image_detection.md)). It's a great technique, however no image detection is perfect. On rare occasions it can misdetect images AND when it does the images may not look anything like each other. It isn't a bug, the algorithm just doesn't "see" the image like your eyes and brain do. On the other side - if an image is cropped slightly it may no longer match the original. It's a trade off, and you can tweak the tolerance in the settings.
 
-* You can reply to MAGIC_EYE_BOT with `clear` and it'll remove the image from it's database. This can be is handy for problematic images that match a little aggressively (they tend to have [lots of grey space](https://i.imgur.com/Avp2Y57.png)), or if it's being annoying for any reason.
+* You can reply to MAGIC_EYE_BOT with `clear` and it'll remove the image from it's database. This can be is handy for rare problematic images (they tend to have [lots of grey space](https://i.imgur.com/Avp2Y57.png)), but you can use it for any reason.
 
 ## Settings 
 
@@ -202,6 +203,7 @@ Removes images under a certain size (pixel density). When added, the `height`\*`
 
 Details:
 * `smallDimension`: Pixel dimention. Example of 330px*330px image: https://i.imgur.com/7jTFozp.png
+* Does not work on animated media
 
 ### Remove uncropped images
 
