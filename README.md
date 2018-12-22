@@ -38,13 +38,18 @@ Check out r/MAGIC_EYE_BOT for support.
 * Private message first time posters with a custom message
 * Report unmoderated posts over a karma threshold
 
-Magic Eye supports 
+Supported posts:
 
-* images (png/jpg/jpeg/bmp), imgur posts, reddit videos, animated media (gif/gifv/mp4/webm)
+* images (png/jpg/jpeg/bmp)
+* imgur links
+* reddit videos
+* animated media (gif/gifv/mp4/webm)
 
 Currently not supported:
 
-* gfycat links without extensions, reddit video x-posts, youtube videos
+* gfycat links without extensions
+* reddit video x-posts
+* youtube videos
 
 ## Prerequisites
 
