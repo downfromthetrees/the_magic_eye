@@ -68,6 +68,10 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
 }
 
 async function isRecentRepost(currentSubmission, lastSubmission, processorSettings) {
+    if (processorSettings.actionAll === true) {
+        return true;
+    }
+
     const currentDate = moment(await currentSubmission.created_utc * 1000);
     const lastPosted = moment(await lastSubmission.created_utc * 1000);
 

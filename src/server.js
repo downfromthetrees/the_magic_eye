@@ -82,6 +82,7 @@ async function main() {
             return;
         }
         const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions); 
+
         for (const subredditName of moddedSubs) {
             try {
                 const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
@@ -251,9 +252,14 @@ async function getModdedSubreddits(after) {
             return [];
         }
         
+        if (moddedSubsData.length == 0) {
+            return [];
+        }
+        
         let moddedSubs = moddedSubsData.map(moddedSub => moddedSub.display_name);
-        if (moddedSubs.after) { 
-            return moddedSubs.concat(addModdedSubreddits(moddedSubs.after));
+        if (moddedSubs.length == 25) { // pagination, get more
+            const newAfter = moddedSubsData[moddedSubsData.length-1].name;
+            return moddedSubs.concat(await getModdedSubreddits(newAfter));
         } else {
             return moddedSubs;
         }

@@ -149,7 +149,7 @@ async function processExistingSubmission(submission, existingMagicSubmission, ma
         modComment = await getModComment(reddit, existingMagicSubmission.reddit_id);
         const magicIgnore = await isMagicIgnore(modComment);
         if (modComment == null || magicIgnore) {
-            log.info(`[${subredditName}]`, 'Found repost of removed submission, but no relevant removal message exists. Ignoring submission: ', await printSubmission(submission, submissionType), 'magicIgnore: ', magicIgnore);
+            log.info(`[${subredditName}]`, 'Found repost of removed submission (http://redd.it/' + existingMagicSubmission.reddit_id, '), but no relevant removal message exists. Ignoring submission: ', await printSubmission(submission, submissionType), 'magicIgnore: ', magicIgnore);
             existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
             return;
         }

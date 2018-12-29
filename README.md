@@ -1,7 +1,7 @@
 
 # Magic Eye
 
-Magic Eye is an image detection bot for reddit that detects reposts, as well as several other image processing and moderation features. 
+Magic Eye is a repost moderation bot made for moderators. It also has several other image and misc moderation features.
 
 Check out r/MAGIC_EYE_BOT for support.
 
@@ -38,27 +38,38 @@ Check out r/MAGIC_EYE_BOT for support.
 * Private message first time posters with a custom message
 * Report unmoderated posts over a karma threshold
 
-Magic Eye supports images, imgur posts and gifs/reddit videos (detected based on the thumbnail).
+Supported links:
 
+* images (png/jpg/jpeg/bmp)
+* imgur links
+* reddit videos
+* animated media (gif/gifv/mp4/webm)
+
+Currently not supported:
+
+* gfycat links without extensions
+* reddit video x-posts
+* youtube videos
 
 ## Prerequisites
 
-* You must have wikis enabled for your sub (set wiki to "mod editing" in your sub settings)
-* Blacklisting images can be done manually, but is best implemented with the [Toolbox extension](http://www.reddit.com/r/toolbox). See [Remove blacklisted images](#remove-blacklisted-images).
+* You must have wikis enabled (set wiki to "mod editing" in your subreddit settings)
+* Blacklisting images can be done manually, but is best implemented with the [Toolbox extension](http://www.reddit.com/r/toolbox). See [Removing blacklisted images](#remove-blacklisted-images).
 
 ## Setup
 
 * Invite www.reddit.com/u/MAGIC_EYE_BOT as a moderator to your subreddit with `flair`, `posts` and `wiki` permissions
-    * The bot will accept the invite, and build a database for your subreddit from all the posts sub it can access. Once it's done it will send you a modmail to let you know it has begun monitoring new posts made to your subreddit (will take roughly an hour) 
+    * The bot will accept the invite, and build a database for your subreddit from all the posts sub it can access.
+    * Once it's done it will send you a modmail to let you know it has begun monitoring new posts made to your subreddit. This will take roughly an hour.
     * A settings page will be created by the bot in your wiki at: http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 
 By default Magic Eye will:
 
 * Remove reposts
-* Remove blacklisted images and repeat the removal reason to the user (once toolbox configuration is in place, see [here](#remove-blacklisted-images))
+* Remove blacklisted images and repeat the removal reason to the user (see [Removing blacklisted images](#remove-blacklisted-images))
 * Remove broken image links
-    
-See the [settings](#settings) documentation for enabling more features and tweaking the settings.
+
+See the [settings documentation](#settings) for enabling more features and tweaking the settings.
 
 ## General info / FAQ
 
@@ -70,9 +81,9 @@ See the [settings](#settings) documentation for enabling more features and tweak
 
 * If you want to stop MAGIC_EYE_BOT for any reason, just demod it. You can safely demod/remod it at any time without affecting your database of images.
 
-* Magic Eye detects images with a technique based on greyscale gradients (read about the algorithm [here](http://www.hackerfactor.com/blog/?/archives/529-Kind-of-Like-That.html)). It's a great technique, however no image detection is perfect so on rare occasions it will misdetect images AND when it does the images may not look anything like each other to your human eyes. The bot ain't broken, it's just not human (like a bat is different because it uses echolocation). On the other side - if an image is cropped slightly it may no longer match the original. It's a trade off, and you can tweak the tolerance in the settings.
+* Magic Eye detects images based on greyscale gradients, if you're interested in what that means you can [read about the algorithm](docs/image_detection.md)). It's a great technique, however no image detection is perfect. On rare occasions it can misdetect images AND when it does the images may not look anything like each other. It isn't a bug, the algorithm just doesn't "see" the image like your eyes and brain do. On the other side - if an image is cropped slightly it may no longer match the original. It's a trade off, and you can tweak the tolerance in the settings.
 
-* You can reply to MAGIC_EYE_BOT with `clear` and it'll remove the image from it's database. This can be is handy for problematic images that match a little aggressively (they tend to look like [this](https://i.imgur.com/Avp2Y57.png)), or if it's being annoying for any reason.
+* You can reply to MAGIC_EYE_BOT with `clear` and it'll remove the image from it's database. This can be is handy for rare problematic images (they tend to have [lots of grey space](https://i.imgur.com/Avp2Y57.png)), but you can use it for any reason.
 
 ## Settings 
 
@@ -82,7 +93,7 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 
 * The settings are in JSON format.
 
-* MAGIC_EYE_BOT will let you know if your updates are sucessful. If you're having trouble with it you can use [this JSON validator](https://jsonformatter.curiousconcept.com/) for help.
+* MAGIC_EYE_BOT will let you know if your updates are sucessful. If you're having trouble with it you can use [this JSON validator](https://jsonformatter.curiousconcept.com/) for help. 
 
 
 ### Media types
@@ -90,14 +101,15 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
     "processImages": true,
     "processAnimatedMedia": true,
 
-Self explanatory, individually turns on/off processing of images or animated media (i.e. gifs/videos which are detected by the thumbnail).
+Individually turn on/off processing of images or animated media (i.e. gifs/videos).
 
 ### Tolerance
 
     "similarityTolerance": 6,
 
-The tolerance to image differences. Low number = match more exact images.
+The tolerance to image differences.
 
+* Range is 0-16, where 0 matches exact images and 16 matches every image
 * Set to 0 to only match exact as possible images
 * Default is 6, if you're a subreddit that sees any issue with similar memes/tweets, experiment with smaller numbers.
 
@@ -121,22 +133,26 @@ The tolerance to image differences. Low number = match more exact images.
 
 Optional fields:
 
-    "removeReposts": {
+    "reposts": {
         ...
         "removalMessage": "Bad luck buckaroo, this image is a repost!",
-        "allTimeTopRemovalMessage": "Bad luck buckaroo, this image is an all time classic!"
+        "allTimeTopRemovalMessage": "Bad luck buckaroo, this image is an all time classic!",
+        "actionAll": false
     },
 
 Notes:
 * `action`: This can be one of:
     * `"remove"`: removes the post and posts a message to the user
     * `"warn"`: reports the post and posts a removed comment in the thread with links
-* `actionRepostsIfDeleted`: Performs `action` on reposts even if the previous post was deleted. (`true`/`false`)
-* `reflairApprovedReposts`: Reflairs reposts with the same flair as the last one had
+* `actionRepostsIfDeleted`: Performs `action` on reposts even if the previous post was deleted.
 * `approveIfOverRepostDays`: Auto-approves a repost over the time limit to save you doing it
 * Scores thresholds: Magic Eye keeps track of the last successful post of an image. These are granular time thresholds to determine whether or not it can be posted again yet. For example in the default settings: if the last matching submission got over `mediumScore` (set to 400 karma), it'll be removed if it's less than `mediumScoreRepostDays` days old (set to 25 days).
     * If `smallScore` if set higher than 0 it will auto-approve it if the last matching submission got under this score
     * If `topScore` is set lower it will remove any post that ever got over this threshold permanently, with a message saying it's an all time subreddit top post.
+* `actionAll`: If you want to remove or warn on any repost, add this field with the value `true` and it will override the threshold settings
+* `reflairApprovedReposts`: Reflairs reposts with the same flair as the last one had
+
+
 
 
 
@@ -183,10 +199,11 @@ If the image can't download the image, it will remove it as broken and ask the u
         "smallDimension": 330
     },
 
-Removes images under a size threshold.
+Removes images under a certain size (pixel density). When added, the `height`\*`width` of the image must be larger than `smallDimension`\*`smallDimension`.
 
 Details:
-* `smallDimension`: pixels size, `smallDimension` by `smallDimension`. Example of 330px*330px image: https://i.imgur.com/7jTFozp.png
+* `smallDimension`: Pixel dimention. Example of 330px*330px image: https://i.imgur.com/7jTFozp.png
+* Does not work on animated media
 
 ### Remove uncropped images
 
@@ -197,19 +214,19 @@ Removes images with [black bars](https://i.imgur.com/6a4SCcw.png) at the bottom 
 ### Message first time submitters 
 
     "messageFirstTimeUser": {
-           "firstTimeUserMessageTitle": "RULES REMINDER",
-           "firstTimeUserMessage": "I am an bot to remind new users *posts in r/hmmm cannot contain text*. \n\nIf your post contains text, then delete it."
+           "firstTimeUserMessageTitle": "Yo dude",
+           "firstTimeUserMessage": "I am an bot to remind new users that posts must be *good* and not *bad!*"
     },
 
 Private messages users the first time they make a submission to the subreddit.
 
 Details:
-* Use \n\n to create a new line in your message.
+* Use \n\n to create a new paragraph in your message.
 
 
 ### Custom footer
 
-    "customFooter": "I'm a bot but check out our ([rules faq](https://www.reddit.com/r/hmmm/wiki/rules))",
+    "customFooter": "I hate answering questions, [so read the damn rules](https://www.reddit.com/r/mrplow/wiki/rules)",
 
 Replaces the default bot footer statement to a custom version.
 
