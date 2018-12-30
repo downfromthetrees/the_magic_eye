@@ -68,11 +68,15 @@ async function mainHolding() {
 async function crossPostFromTargetSubreddit(unprocessedSubmissions, reddit) {
     for (let submission of unprocessedSubmissions) {
         try {
-            await reddit.submitCrosspost({  
-                title: submission.id,
-                originalPost: submission,
-                subredditName: process.env.HOLDING_SUBREDDIT
-            });
+            const submissionUrl = await submission.url;
+            const isAnimated = submissionUrl.includes('v.redd.it') || submissionUrl.includes('gif');
+            if (!isAnimated) {
+                await reddit.submitCrosspost({  
+                    title: submission.id,
+                    originalPost: submission,
+                    subredditName: process.env.HOLDING_SUBREDDIT
+                });
+            }
         } catch (e) {
             // must be subscribed to subreddit to x-post
             log.error('[HOLDING] Error crossPosting from target subreddit for:' + submission.id, e);
