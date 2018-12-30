@@ -20,6 +20,51 @@ const reddit = new snoowrap({
 }); 
 reddit.config({requestDelay: 1000, continueAfterRatelimitError: true});
 
+const garbageCollectionTime = 2 * 60 * 60 * 1000; // 2 hours
+
+async function garbageCollectionHolding(firstTimeDelay) {
+    if (firstTimeDelay){ // prevent a large task if starting up repeatedly
+        log.info("[HOLDING] First time startup, ignoring holding garbage collection");
+        setTimeout(garbageCollectionHolding, garbageCollectionTime);
+        return;
+    }
+
+    try {
+        log.debug(chalk.blue("[HOLDING] Starting garbage collection processing cycle"));
+
+        const holdingSubreddit = await reddit.getSubreddit(process.env.HOLDING_SUBREDDIT);
+
+        // get new target submissions
+        const submissions = await holdingSubreddit.getNew({'limit': 100});
+        if (!submissions) {
+            log.error(chalk.red('[HOLDING] Cannot get new submissions to garbage collect - api is probably down for maintenance.'));
+            setTimeout(garbageCollectionHolding, 10 * 60 * 1000); // run again in 10 minutes
+            return;
+        }
+
+        for (let submission of submissions) {
+            try {
+                const imagePath = await downloadImage(await submission.url);
+                if (!imagePath) {
+                    log.info('[HOLDING] Garbage collecting post:', submission.target_permalink);    
+                    submission.delete();
+                }
+            } catch (e) {
+                // must be subscribed to subreddit to x-post
+                log.error('[HOLDING] Error garbage collecting post:' + submission.id, e);
+            }
+        };
+
+        // done
+        log.debug(chalk.green('[HOLDING] End garbage collection processing cycle.'));
+    } catch (err) {
+        log.error(chalk.red("[HOLDING] Main garbage loop error: ", err));
+    }
+    
+    setTimeout(garbageCollectionHolding, garbageCollectionTime);
+}
+
+
 async function mainHolding() {
     try {
         log.debug(chalk.blue("[HOLDING] Starting holding processing cycle"));
@@ -30,7 +75,7 @@ async function mainHolding() {
         const submissions = await targetSubreddit.getNew({'limit': 25});
         if (!submissions) {
             log.error(chalk.red('[HOLDING] Cannot get new submissions to process - api is probably down for maintenance.'));
-            setTimeout(main, 60 * 1000); // run again in 60 seconds
+            setTimeout(mainHolding, 60 * 1000); // run again in 60 seconds
             return;
         }
 
@@ -52,10 +97,10 @@ async function mainHolding() {
         // done
         log.debug(chalk.green('[HOLDING] End Holding processing cycle, running again soon.'));
     } catch (err) {
-        log.error(chalk.red("[HOLDING] Main loop error: ", err));
+        log.error(chalk.red("[HOLDING] Main holding loop error: ", err));
     }
     
-    setTimeout(mainHolding, 120 * 1000); // run again in 30 seconds
+    setTimeout(mainHolding, 120 * 1000); // run again in 120 seconds
 }
 
 async function crossPostFromTargetSubreddit(unprocessedSubmissions, reddit) {
@@ -234,4 +279,5 @@ async function consumeTargetSubmissions(latestItems) {
 
 module.exports = {
     mainHolding,
+    garbageCollectionHolding,
 };

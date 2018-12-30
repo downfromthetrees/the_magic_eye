@@ -42,7 +42,7 @@ const { processUnmoderated } = require('./unmoderated_processor.js');
 const { firstTimeInit, isAnythingInitialising } = require('./first_time_init.js');
 const { SubredditSettings, getSubredditSettings, setSubredditSettings, getMasterProperty, setMasterProperty, initMasterDatabase, refreshDatabaseList, upgradeMasterSettings, needsUpgrade } = require('./mongodb_master_data.js');
 const { updateSettings, createDefaultSettings, writeSettings } = require('./wiki_utils.js');
-const { mainHolding } = require('./holding_tasks/holding_tasks.js');
+const { mainHolding, garbageCollectionHolding } = require('./holding_tasks/holding_tasks.js');
 
 
 // Create a new snoowrap requester with OAuth credentials
@@ -287,6 +287,7 @@ async function startServer() {
         log.info('The magic eye is ONLINE.');
         main(); // start mains loop
         mainHolding();
+        garbageCollectionHolding(true);
     } catch (e) {
         log.error(chalk.red(e));
     }
