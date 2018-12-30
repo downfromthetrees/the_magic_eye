@@ -26,10 +26,10 @@ async function mainHolding() {
         if (!process.env.HOLDING_TARGET_SUBREDDITS) {
             return;
         }
+        log.debug(chalk.blue("[HOLDING] Starting holding processing cycle"));
 
         const targetSubredditNames = process.env.HOLDING_TARGET_SUBREDDITS.split(',');
         for (const targetSubredditName of targetSubredditNames) {
-            log.debug(chalk.blue("[HOLDING] Starting holding processing cycle for"), targetSubredditName);
             const targetSubreddit = await reddit.getSubreddit(targetSubredditName);
 
             // get new target submissions
@@ -54,14 +54,14 @@ async function mainHolding() {
             const removedLinks = await holdingSubreddit.getModerationLog({type: 'removelink'}).fetchMore({amount: 200});
             const unprocessedRemovedHoldingItems = await consumeUnprocessedModlog(removedLinks, 'removed');
             await processRemovedPosts(unprocessedRemovedHoldingItems, reddit);
-            
-            // done
-            log.debug(chalk.blue("[HOLDING] End holding processing cycle for"), targetSubredditName);
         }
     } catch (err) {
         log.error(chalk.red("[HOLDING] Main holding loop error: ", err));
     }
     
+    
+    // done
+    log.debug(chalk.blue("[HOLDING] End holding processing cycle"));
     setTimeout(mainHolding, 120 * 1000); // run again in 120 seconds
 }
 
