@@ -20,9 +20,7 @@ const reddit = new snoowrap({
 }); 
 reddit.config({requestDelay: 1000, continueAfterRatelimitError: true});
 
-//const garbageCollectionTime = 2 * 60 * 60 * 1000; // 2 hours
-const garbageCollectionTime = 10 * 60 * 1000; // 2 hours
-
+const garbageCollectionTime = 2 * 60 * 60 * 1000; // 2 hours
 
 async function garbageCollectionHolding(firstTimeDelay) {
     if (firstTimeDelay){ // prevent a large task if starting up repeatedly
@@ -48,7 +46,7 @@ async function garbageCollectionHolding(firstTimeDelay) {
             try {
                 const imagePath = await downloadImage(await submission.url);
                 if (!imagePath) {
-                    log.info('[HOLDING] Garbage collecting post:', submission.target_permalink);    
+                    log.info('[HOLDING] Garbage collecting post:', submission.id);    
                     submission.delete();
                 }
             } catch (e) {
