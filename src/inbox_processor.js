@@ -11,8 +11,7 @@ const { getImageDetails } = require('./image_utils.js');
 const { sliceSubmissionId } = require('./reddit_utils.js');
 
 
-async function processInboxMessage(inboxMessage, reddit, database) {
-    const messageSubreddit = await inboxMessage.subreddit;
+async function processInboxMessage(inboxMessage, reddit, database, messageSubreddit) {
     const subredditName = messageSubreddit ? messageSubreddit.display_name : null;
     const subreddit = messageSubreddit ? await reddit.getSubreddit(subredditName) : null;
     
@@ -30,7 +29,7 @@ async function processInboxMessage(inboxMessage, reddit, database) {
             await processUserComment(subredditName, inboxMessage);
         }
     } else {
-        await processUserPrivateMessage(inboxMessage, subreddit);
+        await processUserPrivateMessage(inboxMessage, subreddit, reddit);
     }
 }
 
@@ -70,12 +69,20 @@ async function processUserComment(subredditName, inboxMessage) {
     log.info(`[${subredditName}]`, 'User requesting assistance:', inboxMessage.id);
 }
 
-async function processUserPrivateMessage(inboxMessage, subreddit) {
+async function processUserPrivateMessage(inboxMessage, subreddit, reddit) {
     if (inboxMessage.subject.includes('invitation to moderate')) {
         try {
             if (process.env.ALLOW_INVITES) {
                 log.info(`[${await subreddit.display_name}]`, 'Accepting mod invite for: ', await subreddit.display_name);
                 await subreddit.acceptModeratorInvite();
+
+                if (process.env.MAINTAINER) {
+                    reddit.composeMessage({
+                        to: process.env.MAINTAINER,
+                        subject: "New subreddit added",
+                        text: `I have been modded to: r/${subreddit.display_name}`
+                      });
+                }
             } else {
                 log.warn('User attempted mod invite for: ', await subreddit.display_name, ", but ALLOW_INVITES is not set.");
             }
@@ -83,10 +90,17 @@ async function processUserPrivateMessage(inboxMessage, subreddit) {
             log.error(`[${await subreddit.display_name}]`, 'Error accepting mod invite: ', inboxMessage.id, e);
         }
         return;
+    } else if (inboxMessage.subject.includes('Has Been Removed As A Moderator')) {
+        log.info('Removed as moderator from subreddit: ', inboxMessage.subject);
+        return;
     }
 
-    inboxMessage.reply("I am a robot so I cannot answer your message. Contact the moderators of the subreddit for information.");
-    log.info('Processed inbox private message:', inboxMessage.id);
+    if (await inboxMessage.distinguished !== 'moderator') { // don't spam modmail
+        inboxMessage.reply("I am a robot so I cannot answer your message. Contact the moderators of the subreddit for information.");
+        log.info('Processed inbox private message with standard reply:', inboxMessage.id);
+    } else {
+        log.info('Processed inbox private message - ignored mod thread:', inboxMessage.id);    
+    }
 }
 
 

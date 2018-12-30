@@ -42,7 +42,8 @@ async function firstTimeInit(reddit, subredditName, database, masterSettings) {
     inProgress = inProgress.filter(item => item !== subredditName);
 
     const endTime = new Date().getTime();
-    log.info(`[${subredditName}]`, chalk.blue('Top and new posts successfully processed for', subredditName, '. Took: '), (endTime - startTime) / 1000, 's');
+    const totalTimeMinutes = Math.floor(((endTime - startTime) / 1000) / 60);
+    log.info(`[${subredditName}]`, chalk.blue('Top and new posts successfully processed for', subredditName, '. Took: '), totalTimeMinutes, 'minutes');
 
     masterSettings.config.firstTimeInit = true;
     await setSubredditSettings(subredditName, masterSettings);
@@ -59,6 +60,11 @@ async function firstTimeInit(reddit, subredditName, database, masterSettings) {
             Questions/issues/feature requests can be made at r/MAGIC_EYE_BOT`
       });
       log.info(`[${subredditName}]`, chalk.blue('Success modmail sent and init set true for', subredditName));
+    await reddit.composeMessage({
+        to: process.env.MAINTAINER,
+        subject: "First time init complete",
+        text: `First time init complete for: r/${subreddit.display_name}\n\n Took ${totalTimeMinutes} minutes.`
+      });      
 }
 
 async function processOldSubmissions(submissions, alreadyProcessed, name, subredditName, database, masterSettings) {
