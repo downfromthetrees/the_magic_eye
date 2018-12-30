@@ -24,7 +24,6 @@ const garbageCollectionTime = 2 * 60 * 60 * 1000; // 2 hours
 
 async function garbageCollectionHolding(firstTimeDelay) {
     if (firstTimeDelay){ // prevent a large task if starting up repeatedly
-        log.info("[HOLDING] First time startup, ignoring holding garbage collection");
         setTimeout(garbageCollectionHolding, garbageCollectionTime);
         return;
     }
@@ -68,32 +67,37 @@ async function garbageCollectionHolding(firstTimeDelay) {
 async function mainHolding() {
     try {
         log.debug(chalk.blue("[HOLDING] Starting holding processing cycle"));
-
-        const targetSubreddit = await reddit.getSubreddit(process.env.HOLDING_TARGET_SUBREDDIT);
-
-        // get new target submissions
-        const submissions = await targetSubreddit.getNew({'limit': 25});
-        if (!submissions) {
-            log.error(chalk.red('[HOLDING] Cannot get new submissions to process - api is probably down for maintenance.'));
-            setTimeout(mainHolding, 60 * 1000); // run again in 60 seconds
+        if (!process.env.HOLDING_TARGET_SUBREDDITS) {
             return;
         }
 
-        const unprocessedTargetSubmissions = await consumeTargetSubmissions(submissions, 'target');
+        const targetSubredditNames = process.env.HOLDING_TARGET_SUBREDDITS.split(',');
+        for (const targetSubredditName of targetSubredditNames) {
+            const targetSubreddit = await reddit.getSubreddit(targetSubredditName);
 
-        // crosspost
-        await crossPostFromTargetSubreddit(unprocessedTargetSubmissions, reddit);
+            // get new target submissions
+            const submissions = await targetSubreddit.getNew({'limit': 25});
+            if (!submissions) {
+                log.error(chalk.red('[HOLDING] Cannot get new submissions to process - api is probably down for maintenance.'));
+                setTimeout(mainHolding, 60 * 1000); // run again in 60 seconds
+                return;
+            }
 
-        // check for approved posts
-        const holdingSubreddit = await reddit.getSubreddit(process.env.HOLDING_SUBREDDIT);
-        const approvedLinks = await holdingSubreddit.getModerationLog({type: 'approvelink'});
-        const unprocessedHoldingItems = await consumeUnprocessedModlog(approvedLinks);
-        await processApprovedPosts(unprocessedHoldingItems, reddit);
+            const unprocessedTargetSubmissions = await consumeTargetSubmissions(submissions, 'target');
 
-        const removedLinks = await holdingSubreddit.getModerationLog({type: 'removelink'}).fetchMore({amount: 200});
-        const unprocessedRemovedHoldingItems = await consumeUnprocessedModlog(removedLinks, 'removed');
-        await processRemovedPosts(unprocessedRemovedHoldingItems, reddit);
+            // crosspost
+            await crossPostFromTargetSubreddit(unprocessedTargetSubmissions, reddit);
 
+            // check for approved posts
+            const holdingSubreddit = await reddit.getSubreddit(process.env.HOLDING_SUBREDDIT);
+            const approvedLinks = await holdingSubreddit.getModerationLog({type: 'approvelink'});
+            const unprocessedHoldingItems = await consumeUnprocessedModlog(approvedLinks);
+            await processApprovedPosts(unprocessedHoldingItems, reddit);
+
+            const removedLinks = await holdingSubreddit.getModerationLog({type: 'removelink'}).fetchMore({amount: 200});
+            const unprocessedRemovedHoldingItems = await consumeUnprocessedModlog(removedLinks, 'removed');
+            await processRemovedPosts(unprocessedRemovedHoldingItems, reddit);
+        }
         // done
         log.debug(chalk.green('[HOLDING] End Holding processing cycle, running again soon.'));
     } catch (err) {
