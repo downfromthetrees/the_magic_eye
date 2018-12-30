@@ -29,7 +29,7 @@ async function mainHolding() {
 
         const targetSubredditNames = process.env.HOLDING_TARGET_SUBREDDITS.split(',');
         for (const targetSubredditName of targetSubredditNames) {
-            log.info(chalk.blue("[HOLDING] Starting holding processing cycle for"), targetSubredditName);
+            log.debug(chalk.blue("[HOLDING] Starting holding processing cycle for"), targetSubredditName);
             const targetSubreddit = await reddit.getSubreddit(targetSubredditName);
 
             // get new target submissions
@@ -56,7 +56,7 @@ async function mainHolding() {
             await processRemovedPosts(unprocessedRemovedHoldingItems, reddit);
             
             // done
-            log.info(chalk.blue("[HOLDING] End holding processing cycle for"), targetSubredditName);
+            log.debug(chalk.blue("[HOLDING] End holding processing cycle for"), targetSubredditName);
         }
     } catch (err) {
         log.error(chalk.red("[HOLDING] Main holding loop error: ", err));
