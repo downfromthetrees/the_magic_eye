@@ -102,13 +102,13 @@ async function main() {
         }
         for (let message of unreadMessages) {
             const messageSubreddit = await message.subreddit;
-            const messageSubredditName = await messageSubreddit.display_name;
-             const masterSettings = await getSubredditSettings(messageSubredditName);
              let database = null;
-             if (masterSettings) {
+             if (messageSubreddit) {
+                const messageSubredditName = await messageSubreddit.display_name;
+                const masterSettings = await getSubredditSettings(messageSubredditName);                 
                 database = await initDatabase(messageSubredditName, masterSettings.config.databaseUrl);
             }
-            await processInboxMessage(message, reddit, database);
+            await processInboxMessage(message, reddit, database, messageSubreddit);
         }
         log.debug(chalk.blue('Processed', unreadMessages.length, ' new inbox messages'));
         

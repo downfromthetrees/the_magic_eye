@@ -11,8 +11,7 @@ const { getImageDetails } = require('./image_utils.js');
 const { sliceSubmissionId } = require('./reddit_utils.js');
 
 
-async function processInboxMessage(inboxMessage, reddit, database) {
-    const messageSubreddit = await inboxMessage.subreddit;
+async function processInboxMessage(inboxMessage, reddit, database, messageSubreddit) {
     const subredditName = messageSubreddit ? messageSubreddit.display_name : null;
     const subreddit = messageSubreddit ? await reddit.getSubreddit(subredditName) : null;
     
@@ -96,8 +95,12 @@ async function processUserPrivateMessage(inboxMessage, subreddit, reddit) {
         return;
     }
 
-    inboxMessage.reply("I am a robot so I cannot answer your message. Contact the moderators of the subreddit for information.");
-    log.info('Processed inbox private message:', inboxMessage.id);
+    if (await inboxMessage.distinguished !== 'moderator') { // don't spam modmail
+        inboxMessage.reply("I am a robot so I cannot answer your message. Contact the moderators of the subreddit for information.");
+        log.info('Processed inbox private message with standard reply:', inboxMessage.id);
+    } else {
+        log.info('Processed inbox private message - ignored mod thread:', inboxMessage.id);    
+    }
 }
 
 
