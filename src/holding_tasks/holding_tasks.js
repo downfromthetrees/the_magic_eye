@@ -54,9 +54,10 @@ async function mainHolding() {
             const removedLinks = await holdingSubreddit.getModerationLog({type: 'removelink'}).fetchMore({amount: 200});
             const unprocessedRemovedHoldingItems = await consumeUnprocessedModlog(removedLinks, 'removed');
             await processRemovedPosts(unprocessedRemovedHoldingItems, reddit);
+            
+            // done
+            log.info(chalk.blue("[HOLDING] End holding processing cycle for"), targetSubredditName);
         }
-        // done
-        log.info(chalk.blue("[HOLDING] End holding processing cycle for"), targetSubredditName);
     } catch (err) {
         log.error(chalk.red("[HOLDING] Main holding loop error: ", err));
     }
