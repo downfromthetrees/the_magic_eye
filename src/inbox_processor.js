@@ -96,7 +96,7 @@ async function processUserPrivateMessage(inboxMessage, subreddit, reddit) {
         return;
     }
 
-    inboxMessage.reply("I am a robot so I cannot answer your message. Contact the moderators of the subreddit for information.");
+    //inboxMessage.reply("I am a robot so I cannot answer your message. Contact the moderators of the subreddit for information.");
     log.info('Processed inbox private message:', inboxMessage.id);
 }
 
