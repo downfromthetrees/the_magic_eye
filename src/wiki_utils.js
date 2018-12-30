@@ -144,7 +144,7 @@ async function sendFailureReply(username, reddit) {
     await reddit.composeMessage({
         to: await username,
         subject: 'Settings update failed',
-        text: `The changes you made to your settings aren't formatted right so I haven't updated them. Either restore the last settings, or use https://jsonlint.com/ to find the issue.`
+        text: `The changes you made to your settings aren't formatted right so I haven't updated them. Either restore the last settings, or use https://jsonlint.com/ to find the issue (watch for trailing commas).`
       });
 }
 

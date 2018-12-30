@@ -157,7 +157,7 @@ async function getLinkText(header, lastSubmission) {
     let removalReason = outdent`
     ${header}
 
-    * [Submission link](${permalink})
+    * [Click here to see the submission](${permalink})
     * [Direct image link](${await lastSubmission.url})`;
 
     return removalReason;
