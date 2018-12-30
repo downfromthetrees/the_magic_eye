@@ -132,13 +132,13 @@ async function processApprovedPosts(unprocessedItems, reddit) {
             const imagePath = await downloadImage(await submission.url);
             if (!imagePath) {
                 log.error('[HOLDING] Error processing approved posts:', item.target_permalink);    
-                submission.delete();
+                await submission.delete();
                 return;
             }
             const uploadResponse = await uploadToImgur(imagePath);
             const finalSubmission = await destinationSubreddit.submitLink({title: 'hmmm', url: `https://imgur.com/${uploadResponse.data.id}.png`});
             const finalSubmissionId = await finalSubmission.id;
-            submission.delete();
+            await submission.delete();
             log.info(chalk.blue(`[HOLDING] Uploaded https://www.redd.it/${finalSubmissionId} to target`));
         } catch (e) {
             log.error('[HOLDING] Error processing approved posts:', item.target_permalink, e);
@@ -276,8 +276,14 @@ async function consumeTargetSubmissions(latestItems) {
     return newItems;
 }
 
+async function deleteHoldingPost(submissionId) {
+    log.info('[HOLDING] Deleting ', `http://redd.it/${submissionId}`, 'as holding repost');
+    const submission = await reddit.getSubmission(submissionId);
+    await submission.delete();
+}
 
 module.exports = {
     mainHolding,
     garbageCollectionHolding,
+    deleteHoldingPost
 };

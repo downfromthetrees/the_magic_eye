@@ -7,6 +7,8 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 // reddit modules
 const chalk = require('chalk');
 
+const { deleteHoldingPost } = require('./holding_tasks/holding_tasks.js');
+
 async function getModComment(reddit, submissionId) {
     const submission = reddit.getSubmission(submissionId);
     const comments = await submission.comments;
@@ -42,6 +44,10 @@ async function removePost(submission, removalReason, subSettings) {
     await submission.remove();
     const replyable = await submission.reply(removalReason + removalFooter);
     replyable.distinguish();
+
+    if (await submission.author.name === process.env.HOLDING_ACCOUNT_USERNAME) {
+        await deleteHoldingPost(submission.id);
+    }
 }
 
 async function printSubmission(submission, submissionType) {
