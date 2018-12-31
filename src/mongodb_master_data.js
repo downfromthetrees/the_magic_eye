@@ -38,7 +38,7 @@ class SubredditSettings {
         this.settings = {
             processImages: true,
             processAnimatedMedia: true,
-            similarityTolerance: 6,            
+            similarityTolerance: 5,            
             reposts: {
                 smallScore: 0,
                 smallScoreRepostDays: 15,
