@@ -158,8 +158,6 @@ Notes:
 
 ### Remove blacklisted images
 
-**(Included in default settings)**
-
     "removeBlacklisted": {},
 
 Images can be blacklisted permanently by removing a thread and making a comment in it with this format:

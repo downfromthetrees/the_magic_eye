@@ -52,6 +52,7 @@ class SubredditSettings {
                 actionRepostsIfDeleted: false,
                 action: "remove"
             },
+            removeBlacklisted: {},
             removeBrokenImages: {}
         }
     }
@@ -68,28 +69,28 @@ function upgradeMasterSettings(masterSettings) {
     // upgrade version
     newMasterSettings.version = currentVersion; 
 
-    // upgrade reposts
-    if (newMasterSettings.settings.removeReposts) {
-        newMasterSettings.settings.reposts = newMasterSettings.settings.removeReposts;
-        delete newMasterSettings.settings.removeReposts;
+    // // upgrade reposts
+    // if (newMasterSettings.settings.removeReposts) {
+    //     newMasterSettings.settings.reposts = newMasterSettings.settings.removeReposts;
+    //     delete newMasterSettings.settings.removeReposts;
         
-        newMasterSettings.settings.reposts.action = "remove";     
+    //     newMasterSettings.settings.reposts.action = "remove";     
 
-        if (newMasterSettings.settings.reposts.removeRepostsIfDeleted !== undefined) {
-            newMasterSettings.settings.reposts.actionRepostsIfDeleted = newMasterSettings.settings.reposts.removeRepostsIfDeleted;
-            delete newMasterSettings.settings.reposts.removeRepostsIfDeleted;
-        }
-        if (newMasterSettings.settings.reposts.approveIfOverRepostDays === undefined) {
-            newMasterSettings.settings.reposts.approveIfOverRepostDays = true;
-        }
-        if (masterSettings.settings.reposts.reflairApprovedReposts === undefined) {
-            newMasterSettings.settings.reposts.reflairApprovedReposts = false;
-        }
-    }
+    //     if (newMasterSettings.settings.reposts.removeRepostsIfDeleted !== undefined) {
+    //         newMasterSettings.settings.reposts.actionRepostsIfDeleted = newMasterSettings.settings.reposts.removeRepostsIfDeleted;
+    //         delete newMasterSettings.settings.reposts.removeRepostsIfDeleted;
+    //     }
+    //     if (newMasterSettings.settings.reposts.approveIfOverRepostDays === undefined) {
+    //         newMasterSettings.settings.reposts.approveIfOverRepostDays = true;
+    //     }
+    //     if (masterSettings.settings.reposts.reflairApprovedReposts === undefined) {
+    //         newMasterSettings.settings.reposts.reflairApprovedReposts = false;
+    //     }
+    // }
 
-    // new stuff
-    newMasterSettings.settings.processImages = true;
-    newMasterSettings.settings.processAnimatedMedia = false;
+    // // new stuff
+    // newMasterSettings.settings.processImages = true;
+    // newMasterSettings.settings.processAnimatedMedia = false;
 
     return newMasterSettings;
 }
