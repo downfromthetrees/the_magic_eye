@@ -111,7 +111,7 @@ async function uploadToTwitter(fileName, reddit_id) {
 async function uploadToTumblr(url, reddit_id) {
     log.info('[SOCIAL] Posting to tumblr:', `http://redd.it/${reddit_id}`);
 
-    const result = await tumblrClient.createPhotoPost('hmmm-official.tumblr.com', { source: url });
+    const result = await tumblrClient.createPhotoPost('hmmm-official.tumblr.com', { source: url, caption: "hmmm" });
     if (!result || result.error) {
         log.error('Error uploading to tumblr: ' + result);
     }
