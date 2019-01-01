@@ -32,9 +32,9 @@ Check out r/MAGIC_EYE_BOT for support.
 
 ## Current features
 
-* Remove or warn about reposts (default)
-* Remove blacklisted images (default - but requires toolbox)
-* Remove broken image links (default)
+* Remove or warn about reposts (**enabled by default**)
+* Remove blacklisted images (**enabled by default**)
+* Remove broken image links (**enabled by default**)
 * Remove small images
 * Remove uncropped images
 * Private message first time posters with a custom message
@@ -66,12 +66,6 @@ Currently not supported:
     * The bot will accept the invite, and build a database for your subreddit from all the posts sub it can access.
     * Once it's done it will send you a modmail to let you know it has begun monitoring new posts made to your subreddit. This will take roughly an hour.
     * A settings page will be created by the bot in your wiki at: http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
-
-By default Magic Eye will:
-
-* Remove reposts
-* Remove blacklisted images and repeat the removal reason to the user (see [Removing blacklisted images](#remove-blacklisted-images))
-* Remove broken image links
 
 See the [settings documentation](#settings) for enabling more features and tweaking the settings.
 
