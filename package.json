@@ -46,6 +46,7 @@
     "moment": "^2.22.1",
     "mongodb": "^3.1.4",
     "node-fetch": "^2.2.0",
+    "node-instagram": "^4.2.0",
     "outdent": "^0.5.0",
     "parse-database-url": "^0.3.0",
     "pg": "^7.4.1",
@@ -61,6 +62,8 @@
     "stripchar": "^1.2.1",
     "style-loader": "^0.20.3",
     "tesseract.js": "^1.0.10",
+    "tumblr.js": "^2.0.0",
+    "twitter": "^1.7.1",
     "webpack-cli": "^2.0.14",
     "webpack-dev-middleware": "^3.1.2",
     "webpack-livereload-plugin": "^2.1.1"
