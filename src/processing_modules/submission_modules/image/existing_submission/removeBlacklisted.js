@@ -24,7 +24,7 @@ async function removeBlacklisted(reddit, modComment, submission, lastSubmission,
         if (removalReason == null) {
             log.info(`[${subredditName}]`, chalk.red("Ignoring submission because couldn't read the last removal message. Submission: ", await printSubmission(submission), ", removal message thread: http://redd.it/" + existingMagicSubmission.reddit_id));
             existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
-            await logModcomment(reddit, await lastSubmission.id);
+            await logModcomment(reddit, await lastSubmission.id, subredditName);
         } else {
             removeAsBlacklisted(reddit, submission, lastSubmission, removalReason, subSettings, subredditName);
         }
@@ -59,7 +59,7 @@ async function getRemovalReason(modComment, subredditName) {
     return body.substring(body.indexOf(startRemoval) + startRemoval.length, body.lastIndexOf(endRemoval));
 }
 
-async function logModcomment(reddit, submissionId) {
+async function logModcomment(reddit, submissionId, subredditName) {
     log.info(`[${subredditName}]`, chalk.red("TEMP LOGGING TO DEBUG AUTOMOD AUTHOR: ", submissionId));
     const submission = reddit.getSubmission(submissionId);
     const comments = await submission.comments;

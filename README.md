@@ -58,7 +58,7 @@ Currently not supported:
 ### Prerequisites
 
 * You must have wikis enabled (set wiki to "mod editing" in your subreddit settings)
-* Blacklisting images can be done manually, but is best implemented with the [Toolbox extension](http://www.reddit.com/r/toolbox). See [Removing blacklisted images](#remove-blacklisted-images).
+* Blacklisting images can be done manually, but is best implemented with [Reddit Toolbox removal messages](http://www.reddit.com/r/toolbox). See [Removing blacklisted images](#remove-blacklisted-images).
 
 ### Setup
 
