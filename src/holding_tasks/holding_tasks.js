@@ -1,14 +1,14 @@
 const chalk = require('chalk');
 const fs = require('fs');
-const imageDownloader = require('image-downloader');
 const fetch = require("node-fetch");
-const  http = require("https");
+const http = require("https");
 
 require('dotenv').config();
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 const { getMasterProperty, setMasterProperty } = require('../mongodb_master_data.js');
+const { downloadImage, deleteImage } = require('../image_utils.js');
 
 const snoowrap = require('snoowrap');
 const reddit = new snoowrap({
@@ -102,6 +102,7 @@ async function processApprovedPosts(unprocessedItems, reddit) {
             const finalSubmission = await destinationSubreddit.submitLink({title: 'hmmm', url: `https://imgur.com/${uploadResponse.data.id}.png`});
             const finalSubmissionId = await finalSubmission.id;
             await submission.delete();
+            await deleteImage(imagePath);
             log.info(chalk.blue(`[HOLDING] Uploaded https://www.redd.it/${finalSubmissionId} to target`));
         } catch (e) {
             log.error('[HOLDING] Error processing approved posts:', item.target_permalink, e);
@@ -146,20 +147,6 @@ async function uploadToImgur(imagePath) {
     return await response.json();
 }
 
-export async function downloadImage(submissionUrl) {
-    const options = {
-        url: submissionUrl,
-        dest: './tmp'
-      }
-
-    try {
-        const { filename, image } = await imageDownloader.image(options);
-        return filename;
-    } catch (err) {
-        log.warn("[HOLDING] Error: Couldn't download image (probably deleted): ", submissionUrl)
-        return null;
-    }
-}
 
 
 // overkill, but well tested
@@ -267,6 +254,7 @@ async function garbageCollectionHolding(firstTimeDelay) {
                     log.info('[HOLDING] Garbage collecting post:', submission.id);    
                     submission.delete();
                 }
+                await deleteImage(imagePath);
             } catch (e) {
                 // must be subscribed to subreddit to x-post
                 log.error('[HOLDING] Error garbage collecting post:' + submission.id, e);
