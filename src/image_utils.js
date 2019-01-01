@@ -250,5 +250,7 @@ async function getWordsInImage(originalImagePath, height) {
 
 module.exports = {
     getImageDetails,
-    getImageUrl
+    getImageUrl,
+    downloadImage,
+    deleteImage
 };    

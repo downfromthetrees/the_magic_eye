@@ -43,7 +43,7 @@ const { firstTimeInit, isAnythingInitialising } = require('./first_time_init.js'
 const { SubredditSettings, getSubredditSettings, setSubredditSettings, getMasterProperty, setMasterProperty, initMasterDatabase, refreshDatabaseList, upgradeMasterSettings, needsUpgrade } = require('./mongodb_master_data.js');
 const { updateSettings, createDefaultSettings, writeSettings } = require('./wiki_utils.js');
 const { mainHolding, garbageCollectionHolding } = require('./holding_tasks/holding_tasks.js');
-
+const { mainSocial } = require('./holding_tasks/social.js');
 
 // Create a new snoowrap requester with OAuth credentials
 // See here: https://github.com/not-an-aardvark/reddit-oauth-helper
@@ -288,6 +288,7 @@ async function startServer() {
         main(); // start mains loop
         mainHolding();
         garbageCollectionHolding(true);
+        mainSocial(reddit, true);
     } catch (e) {
         log.error(chalk.red(e));
     }
