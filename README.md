@@ -10,12 +10,13 @@ Check out r/MAGIC_EYE_BOT for support.
 
 - [Magic Eye](#magic-eye)
     - [Current features](#current-features)
-    - [Prerequisites](#prerequisites)
-    - [Setup](#setup)
-    - [General info / FAQ](#general-info--faq)
-    - [Settings](#settings)
-        - [Media types](#media-types)
-        - [Tolerance](#tolerance)
+    - [Getting Started](#getting-started)
+        - [Prerequisites](#prerequisites)
+        - [Setup](#setup)
+        - [General info / FAQ](#general-info--faq)
+    - [Feature Documentation](#feature-documentation)
+        - [Configure media types](#configure-media-types)
+        - [Set the tolerance](#set-the-tolerance)
         - [Remove reposts](#remove-reposts)
         - [Remove blacklisted images](#remove-blacklisted-images)
         - [Remove broken image links](#remove-broken-image-links)
@@ -24,21 +25,22 @@ Check out r/MAGIC_EYE_BOT for support.
         - [Message first time submitters](#message-first-time-submitters)
         - [Custom footer](#custom-footer)
         - [Report unmoderated posts](#report-unmoderated-posts)
+    - [How does it work?](#how-does-it-work)
     - [Thanks](#thanks)
 
 <!-- /TOC -->
 
 ## Current features
 
-* Remove or warn about reposts
-* Remove blacklisted images (works best with toolbox)
-* Remove broken image links
+* Remove or warn about reposts (default)
+* Remove blacklisted images (default - but requires toolbox)
+* Remove broken image links (default)
 * Remove small images
 * Remove uncropped images
 * Private message first time posters with a custom message
 * Report unmoderated posts over a karma threshold
 
-Supported links:
+Supported link types:
 
 * images (png/jpg/jpeg/bmp)
 * imgur links
@@ -51,12 +53,14 @@ Currently not supported:
 * reddit video x-posts
 * youtube videos
 
-## Prerequisites
+## Getting Started
+
+### Prerequisites
 
 * You must have wikis enabled (set wiki to "mod editing" in your subreddit settings)
 * Blacklisting images can be done manually, but is best implemented with the [Toolbox extension](http://www.reddit.com/r/toolbox). See [Removing blacklisted images](#remove-blacklisted-images).
 
-## Setup
+### Setup
 
 * Invite www.reddit.com/u/MAGIC_EYE_BOT as a moderator to your subreddit with `flair`, `posts` and `wiki` permissions
     * The bot will accept the invite, and build a database for your subreddit from all the posts sub it can access.
@@ -71,7 +75,7 @@ By default Magic Eye will:
 
 See the [settings documentation](#settings) for enabling more features and tweaking the settings.
 
-## General info / FAQ
+### General info / FAQ
 
 * If users reply to MAGIC_EYE_BOT, it will report the comment so you can check it out.
 
@@ -81,11 +85,11 @@ See the [settings documentation](#settings) for enabling more features and tweak
 
 * If you want to stop MAGIC_EYE_BOT for any reason, just demod it. You can safely demod/remod it at any time without affecting your database of images.
 
-* Magic Eye detects images based on greyscale gradients, if you're interested in what that means you can [read about the algorithm](docs/image_detection.md)). It's a great technique, however no image detection is perfect. On rare occasions it can misdetect images AND when it does the images may not look anything like each other. It isn't a bug, the algorithm just doesn't "see" the image like your eyes and brain do. On the other side - if an image is cropped slightly it may no longer match the original. It's a trade off, and you can tweak the tolerance in the settings.
+* On rare occasions Magic Eye can misdetect images AND when it does the images may not look anything like each other. It isn't a bug, Magic Eye just doesn't "see" the image like your eyes and brain do. Similarly if an image is cropped in specific ways it may no longer match. It's a trade off, and you can tweak the tolerance in the settings.
 
 * You can reply to MAGIC_EYE_BOT with `clear` and it'll remove the image from it's database. This can be is handy for rare problematic images (they tend to have [lots of grey space](https://i.imgur.com/Avp2Y57.png)), but you can use it for any reason.
 
-## Settings 
+## Feature Documentation
 
 Magic Eye can be configured by editing the magic_eye wiki page. 
 
@@ -96,14 +100,14 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 * MAGIC_EYE_BOT will let you know if your updates are sucessful. If you're having trouble with it you can use [this JSON validator](https://jsonformatter.curiousconcept.com/) for help. 
 
 
-### Media types
+### Configure media types
 
     "processImages": true,
     "processAnimatedMedia": true,
 
 Individually turn on/off processing of images or animated media (i.e. gifs/videos).
 
-### Tolerance
+### Set the tolerance
 
     "similarityTolerance": 5,
 
@@ -240,6 +244,9 @@ Details:
 * `reportUnmoderatedScore`: karma threshold to report umoderated post
 
 
+## How does it work?
+
+ Magic Eye detects images using brightness gradients in images, if you're interested in what that means you can [read more about the algorithm](docs/image_detection.md)).
 
 ## Thanks
 
