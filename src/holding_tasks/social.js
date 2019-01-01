@@ -13,7 +13,7 @@ const facebook = require('fb');
 facebook.setAccessToken(process.env.FACEBOOK_PAGE_ACCESS_TOKEN); // https://stackoverflow.com/questions/17197970/facebook-permanent-page-access-token
 
 //const socialTime = 4 * 60 * 60 * 1000; // 4 hours
-const socialTime = 1 * 60 * 60 * 1000; // 1 hour
+const socialTime = 5 * 60 * 1000; // 1 hour
 
 async function mainSocial(reddit, firstTimeDelay) {
     if (firstTimeDelay){ // prevent a large task if starting up repeatedly
