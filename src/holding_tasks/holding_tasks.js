@@ -253,8 +253,9 @@ async function garbageCollectionHolding(firstTimeDelay) {
                 if (!imagePath) {
                     log.info('[HOLDING] Garbage collecting post:', submission.id);    
                     submission.delete();
+                } else {
+                    await deleteImage(imagePath);
                 }
-                await deleteImage(imagePath);
             } catch (e) {
                 // must be subscribed to subreddit to x-post
                 log.error('[HOLDING] Error garbage collecting post:' + submission.id, e);
