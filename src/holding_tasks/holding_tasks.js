@@ -66,7 +66,7 @@ async function crossPostFromTargetSubreddit(unprocessedSubmissions, reddit) {
     for (let submission of unprocessedSubmissions) {
         try {
             const submissionUrl = await submission.url;
-            const isAnimated = submissionUrl.includes('v.redd.it') || submissionUrl.includes('gif');
+            const isAnimated = submissionUrl.includes('v.redd.it') || submissionUrl.includes('gif') || submissionUrl.includes('youtu)');
             if (!isAnimated) {
                 await reddit.submitCrosspost({  
                     title: submission.id,
