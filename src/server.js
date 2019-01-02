@@ -104,11 +104,13 @@ async function main() {
         }
         for (let message of unreadMessages) {
             const messageSubreddit = await message.subreddit;
-             let database = null;
-             if (messageSubreddit) {
+            let database = null;
+            if (messageSubreddit) {
                 const messageSubredditName = await messageSubreddit.display_name;
                 const masterSettings = await getSubredditSettings(messageSubredditName);                 
-                database = await initDatabase(messageSubredditName, masterSettings.config.databaseUrl);
+                if (masterSettings) {
+                    database = await initDatabase(messageSubredditName, masterSettings.config.databaseUrl);
+                }
             }
             await processInboxMessage(message, reddit, database, messageSubreddit);
         }
