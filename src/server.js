@@ -86,10 +86,14 @@ async function main() {
         for (const subredditName of moddedSubs) {
             try {
                 const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
-                await processSubreddit(subredditName, unprocessedForSub, reddit);
+                try {
+                    await processSubreddit(subredditName, unprocessedForSub, reddit);
+                } catch (e) {
+                    const possibleErrorIds = unprocessedForSub.map(item => item.id);
+                    log.error('Error processing subreddit: ', subredditName, ',', e, ', possible error threads:', possibleErrorIds);
+                }
             } catch (e) {
-                const possibleErrorIds = unprocessedForSub.map(item => item.id);
-                log.error('Error processing subreddit: ', subredditName, ',', e, ', possible error threads:', possibleErrorIds);
+                log.error('Error processing subreddit: ', subredditName, ',', e);
             }
         }
 
