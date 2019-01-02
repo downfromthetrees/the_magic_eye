@@ -88,7 +88,8 @@ async function main() {
                 const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
                 await processSubreddit(subredditName, unprocessedForSub, reddit);
             } catch (e) {
-                log.error('Error processing subreddit: ', subredditName, ',', e);
+                const possibleErrorIds = unprocessedForSub.map(item => item.id);
+                log.error('Error processing subreddit: ', subredditName, ',', e, ', possible error threads:', possibleErrorIds);
             }
         }
 
