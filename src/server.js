@@ -291,7 +291,7 @@ async function startServer() {
         main(); // start mains loop
         mainHolding();
         garbageCollectionHolding(true);
-        mainSocial(reddit, false);
+        mainSocial(reddit, true);
     } catch (e) {
         log.error(chalk.red(e));
     }

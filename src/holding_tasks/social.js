@@ -42,7 +42,7 @@ const tumblrClient = tumblr.createClient({
 });
 
 
-const socialTime = 3 * 60 * 60 * 1000; // 4 hours
+const socialTime = 3 * 60 * 60 * 1000; // hours
 
 async function mainSocial(reddit, firstTimeDelay) {
     try {
@@ -52,7 +52,7 @@ async function mainSocial(reddit, firstTimeDelay) {
         }
 
         if (process.env.NODE_ENV !== 'production') {
-            log.info('[SOCIAL] Not in production mode - ignoring:');
+            log.info('[SOCIAL] Not in production mode - ignoring social routine');
             return;
         } 
 
