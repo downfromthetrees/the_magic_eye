@@ -38,7 +38,6 @@ export async function downloadImage(submissionUrl) {
         const { filename, image } = await imageDownloader.image(options);
         return filename;
     } catch (err) {
-        log.warn("Error: Couldn't download image (probably deleted): ", submissionUrl)
         return null;
     }
 }

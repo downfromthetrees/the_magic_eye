@@ -94,7 +94,7 @@ async function processApprovedPosts(unprocessedItems, reddit) {
             const submission = await reddit.getSubmission(submissionId);
             const imagePath = await downloadImage(await submission.url);
             if (!imagePath) {
-                log.error('[HOLDING] Error processing approved posts:', item.target_permalink);    
+                log.error('[HOLDING] Error downloading approved post (probably deleted):', item.target_permalink);    
                 await submission.delete();
                 return;
             }
