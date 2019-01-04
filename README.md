@@ -117,7 +117,7 @@ The tolerance to image differences.
     "removalMethod": "default",
 
 * `default`: (or the setting is absent): Reply in the thread
-* `replyAsSubreddit`: Reply (required `mail` permission)
+* `replyAsSubreddit`: Reply on behalf of the subreddit, so it can be seen in modmail (**requires** `mail` **permission**)
 
 ### Remove reposts
 
