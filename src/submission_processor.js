@@ -180,7 +180,8 @@ async function processNewSubmission(submission, imageDetails, database, activeMo
     const newMagicSubmission = new MagicSubmission(imageDetails.dhash, submission, await submission.score, submissionType);
     await database.saveMagicSubmission(newMagicSubmission, true);
 
-    let username = (await submission.author) ? (await submission.author.name) : null;
+    const author = await submission.author;
+    let username = author ? author.name : null;
     if (activeMode && username == process.env.HOLDING_ACCOUNT_USERNAME || username == 'CosmicKeys') {
         submission.approve();
         return;
