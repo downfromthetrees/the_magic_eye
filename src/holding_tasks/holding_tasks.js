@@ -66,7 +66,7 @@ async function crossPostFromTargetSubreddit(unprocessedSubmissions, reddit) {
     for (let submission of unprocessedSubmissions) {
         try {
             const submissionUrl = await submission.url;
-            const isImage = (submissionUrl.includes('imgur') || submissionUrl.includes('i.red')) && !submissionUrl.includes('gif');
+            const isImage = (submissionUrl.includes('imgur') || submissionUrl.includes('i.red')) && !submissionUrl.includes('.gif');
             if (isImage) {
                 await reddit.submitCrosspost({  
                     title: submission.id,
