@@ -17,6 +17,7 @@ Check out r/MAGIC_EYE_BOT for support.
     - [Feature Documentation](#feature-documentation)
         - [Configure media types](#configure-media-types)
         - [Set the tolerance](#set-the-tolerance)
+        - [Removal message type](#removal-message-type)
         - [Remove reposts](#remove-reposts)
         - [Remove blacklisted images](#remove-blacklisted-images)
         - [Remove broken image links](#remove-broken-image-links)
@@ -111,6 +112,13 @@ The tolerance to image differences.
 * Set to 0 to only match exact as possible images
 * Default is 5, if you're a subreddit that sees any issue with similar memes/tweets, experiment with smaller numbers.
 
+### Removal message type
+
+    "removalMethod": "default",
+
+* `default`: (or the setting is absent): Reply in the thread
+* `replyAsSubreddit`: Reply on behalf of the subreddit, so it can be seen in modmail (**requires** `mail` **permission**)
+
 ### Remove reposts
 
 **(Included in default settings)**
@@ -149,10 +157,6 @@ Notes:
     * If `topScore` is set lower it will remove any post that ever got over this threshold permanently, with a message saying it's an all time subreddit top post.
 * `actionAll`: If you want to remove or warn on any repost, add this field with the value `true` and it will override the threshold settings
 * `reflairApprovedReposts`: Reflairs reposts with the same flair as the last one had
-
-
-
-
 
 ### Remove blacklisted images
 

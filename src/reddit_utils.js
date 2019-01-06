@@ -31,7 +31,37 @@ function sliceSubmissionId(submissionId) {
     return submissionId.slice(3, submissionId.length); // id is prefixed with "id_"
 }
 
-async function removePost(submission, removalReason, subSettings) {
+async function removePost(submission, removalReason, subSettings, reddit) {
+    await submission.remove();
+
+    if (subSettings.removalMethod === 'replyAsSubreddit') {
+        await removePostWithPrivateMessage(submission, removalReason, subSettings, reddit);
+    } else {
+        await removePostWithReply(submission, removalReason, subSettings);
+    }
+}
+
+async function removePostWithPrivateMessage(submission, removalReason, subSettings, reddit) {   
+    const footerText = subSettings.customFooter ? subSettings.customFooter : "";
+    const removalFooter = 
+    outdent`
+    
+
+    -----------------------
+
+    ([link to your submission](${await submission.permalink}))
+
+    ${footerText}`;
+
+    reddit.composeMessage({
+        to: await submission.author.name,
+        subject: "Your post has been automatically removed",
+        text: removalReason + removalFooter,
+        fromSubreddit: await submission.subreddit
+        });
+}
+
+async function removePostWithReply(submission, removalReason, subSettings) {
     const footerText = subSettings.customFooter ? subSettings.customFooter : "*I'm a bot so if I was wrong, reply to me and a moderator will check it.*";
     const removalFooter = 
     outdent`
@@ -41,7 +71,6 @@ async function removePost(submission, removalReason, subSettings) {
 
     ${footerText}`;
     
-    await submission.remove();
     const replyable = await submission.reply(removalReason + removalFooter);
     replyable.distinguish();
 
