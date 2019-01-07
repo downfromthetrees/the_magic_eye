@@ -5,7 +5,7 @@ const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 // magic eye modules
-const { printSubmission } = require('../../../../reddit_utils.js');
+const { printSubmission, isRepostOnlyByUserRemoval } = require('../../../../reddit_utils.js');
 
 //=====================================
 
@@ -27,10 +27,6 @@ async function allowRepostsOnlyByUser(reddit, modComment, submission, lastSubmis
     }
 
     return true;
-}
-
-async function isRepostOnlyByUserRemoval(modComment) {
-    return modComment != null && (await modComment.body).includes('[](#repost_only_by_user)'); // mod has told them to resubmit an altered/cropped version
 }
 
 module.exports = {

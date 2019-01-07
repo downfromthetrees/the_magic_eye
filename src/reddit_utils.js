@@ -25,6 +25,21 @@ async function isRepostRemoval(modComment) {
     return modComment != null && (await modComment.body).includes('[](#repost)'); // mod has told them to resubmit an altered/cropped version
 }
 
+async function isBlacklistRemoval(modComment) {
+    return modComment != null && (await modComment.body).includes('[](#start_removal)' && (await modComment.body).includes('[](#end_removal)'));
+}
+
+async function isRepostOnlyByUserRemoval(modComment) {
+    return modComment != null && (await modComment.body).includes('[](#repost_only_by_user)'); // mod has told them to resubmit an altered/cropped version
+}
+
+async function isAnyTagRemoval(modComment) {
+    const isRepostOnlyByUser = await isRepostOnlyByUserRemoval(modComment);
+    const isBlacklisted = await isBlacklistRemoval(modComment);
+    const isRepost = await isRepostRemoval(modComment);
+    return isRepostOnlyByUser || isBlacklisted || isRepost;
+}
+
 function sliceSubmissionId(submissionId) {
     return submissionId.slice(3, submissionId.length); // id is prefixed with "id_"
 }
@@ -84,8 +99,11 @@ async function printSubmission(submission, submissionType) {
 module.exports = {
     getModComment,
     isMagicIgnore,
-    isRepostRemoval,
+    isRepostRemoval,    
     sliceSubmissionId,
     removePost,
     printSubmission,
+    isRepostOnlyByUserRemoval,
+    isBlacklistRemoval,
+    isAnyTagRemoval
 };
