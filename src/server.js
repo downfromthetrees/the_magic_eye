@@ -84,6 +84,7 @@ async function main() {
         const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions); 
 
         for (const subredditName of moddedSubs) {
+            const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
             try {
                 const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
                 try {

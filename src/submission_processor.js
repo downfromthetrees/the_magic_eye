@@ -8,7 +8,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 // magic eye general
 const { getImageDetails, getImageUrl } = require('./image_utils.js');
 const { MagicSubmission } = require('./mongodb_data.js');
-const { getModComment, isMagicIgnore, removePost, printSubmission } = require('./reddit_utils.js');
+const { getModComment, isMagicIgnore, isAnyTagRemoval, removePost, printSubmission } = require('./reddit_utils.js');
 
 // precheck modules
 const { messageFirstTimeUser } = require('./processing_modules/submission_modules/image/precheck/messageFirstTimeUser.js');
@@ -148,8 +148,15 @@ async function processExistingSubmission(submission, existingMagicSubmission, ma
     if (lastSubmissionRemoved) {
         modComment = await getModComment(reddit, existingMagicSubmission.reddit_id);
         const magicIgnore = await isMagicIgnore(modComment);
-        if (modComment == null || magicIgnore) {
-            log.info(`[${subredditName}]`, 'Found repost of removed submission (http://redd.it/' + existingMagicSubmission.reddit_id, '), but no relevant removal message exists. Ignoring submission: ', await printSubmission(submission, submissionType), 'magicIgnore: ', magicIgnore);
+        if (magicIgnore) {
+            log.info(`[${subredditName}]`, 'Found repost of removed submission (http://redd.it/' + existingMagicSubmission.reddit_id, '), but magicIgnore/ignoreRemoval exists. Ignoring submission: ', await printSubmission(submission, submissionType));
+            existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
+            return;
+        }
+
+        const hasRemovalTags = await isAnyTagRemoval(modComment);
+        if (modComment == null || !hasRemovalTags) {
+            log.info(`[${subredditName}]`, 'Found repost of removed submission (http://redd.it/' + existingMagicSubmission.reddit_id, '), but no relevant removal message exists. Ignoring submission: ', await printSubmission(submission, submissionType));
             existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
             return;
         }
