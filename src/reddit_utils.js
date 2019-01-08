@@ -26,7 +26,7 @@ async function isRepostRemoval(modComment) {
 }
 
 async function isBlacklistRemoval(modComment) {
-    return modComment != null && (await modComment.body).includes('[](#start_removal)' && (await modComment.body).includes('[](#end_removal)'));
+    return modComment != null && (await modComment.body).includes('[](#start_removal)') && (await modComment.body).includes('[](#end_removal)');
 }
 
 async function isRepostOnlyByUserRemoval(modComment) {
