@@ -49,7 +49,7 @@ async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklist
 async function getRemovalReason(modComment, subredditName) {
     const body = await modComment.body;   
     const startRemoval = '[](#start_removal)';
-    const endRemoval = '[](#end_removal';
+    const endRemoval = '[](#end_removal)';
 
     if (!body.includes(startRemoval) || !body.includes(endRemoval) ) {
         log.info(chalk.magenta("Moderator comment doesn't include correct bookend tags", `[${subredditName}]`, ));
