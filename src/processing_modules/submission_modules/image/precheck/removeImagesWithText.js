@@ -12,7 +12,7 @@ const { removePost, printSubmission } = require('../../../../reddit_utils.js');
 //=====================================
 
 async function removeImagesWithText(reddit, submission, imageDetails, subSettings, subredditName, submissionType) {
-    if (!subSettings.removeImagesWithText || submissionType !== 'image' || node.env.ALLOW_INVITES) { // private bots only
+    if (!subSettings.removeImagesWithText || submissionType !== 'image' || process.env.ALLOW_INVITES) { // private bots only
         return true;
     }
 
