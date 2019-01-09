@@ -34,7 +34,7 @@ This was initially intended for an audience when the bot was "if you can set it 
     * `NODE_ENV`=`production`
     * `PASSWORD`=your bots password    
     * `MONGODB_URI`=your database (will be auto-generated in next step)
-    * `EXTERNAL_DATABASES`=your database (need to paste after next step autogenerates above. Or can be list of them as you can create multiple in mlab - good for many subs, lots of data)
+    * `EXTERNAL_DATABASES`=your database (need to paste after next step autogenerates above. Or can be a comma separated list of them as you can create multiple in mlab - good for many subs, lots of data)
     * `DAYS_EXPIRY`=days until items expire (depends on how much data, but 360 is fine)
     * `LOG_LEVEL`=`info`
 ----
