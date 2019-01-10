@@ -11,21 +11,40 @@ const { removePost, printSubmission } = require('../../../../reddit_utils.js');
 
 //=====================================
 
-// Custom processor for r/hmmm
-
 async function removeImagesWithText(reddit, submission, imageDetails, subSettings, subredditName, submissionType) {
     if (!subSettings.removeImagesWithText || submissionType !== 'image') {
         return true;
     }
 
-    if (imageDetails.words.length > 2 || imageDetails.words.includes('hmmm')) {
-        log.info(`[${subredditName}]`, "Text detected, removing - removing submission: ", await printSubmission(submission));
-        const removalReason = `This image has been removed because text was automatically detected in it: \n\n>` + imageDetails.words + `\n\n See [Rule 1: No text](https://www.reddit.com/r/hmmm/wiki/rules#wiki_1._no_text). Read the entire rules faq section closely to understand the rule.`;
-        removePost(submission, removalReason, subSettings, reddit);
-        return false;
+    const blacklistedWords = subSettings.removeImagesWithText.blacklistedWords;
+    if (blacklistedWords) {
+        const containsBlacklistedWord = imageDetails.words.some(word => blacklistedWords.includes(word));
+        if (containsBlacklistedWord) {
+            const removalReason = subSettings.removeImagesWithText.message ? subSettings.removeImagesWithText.message : `This image has been removed because it contains banned text. Detected words:` + imageDetails.words;
+            await action(submission, removalReason, subSettings, reddit);
+            return false;
+        }
+    } else {
+        // remove all text, above 2 words since 2 can be yeild false positives
+        if (imageDetails.words.length > 2) {
+            log.info(`[${subredditName}]`, "Text detected, removing - actioning submission: ", await printSubmission(submission));
+            const removalReasonMessage = subSettings.removeImagesWithText.message ? subSettings.removeImagesWithText.message : '';
+            const removalReason = `This image has been removed because text was automatically detected in it: \n\n>` + imageDetails.words + `\n\n` + removalReasonMessage;
+            await action(submission, removalReason, subSettings, reddit);
+            return false;
+        }
     }
 
-    return true;
+    return true; // continue
+}
+
+
+async function action(submission, removalReason, subSettings, reddit){
+    if (subSettings.removeImagesWithText.action === 'warn') {
+        await submission.report({'reason': 'Blacklisted text detected'});
+    } else {
+        removePost(submission, removalReason, subSettings, reddit);
+    }
 }
 
 module.exports = {

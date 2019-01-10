@@ -145,7 +145,7 @@ export async function getImageUrl(submission) {
     return null;
 }
 
-async function getImageDetails(submissionUrl, includeWords) {
+async function getImageDetails(submissionUrl, includeWords, blacklistedWords) {
     const imagePath = await downloadImage(submissionUrl);
     if (imagePath == null) {
         return null;
@@ -177,7 +177,7 @@ async function getImageDetails(submissionUrl, includeWords) {
         return null; // must generate a dhash to be valid details
     }
 
-    imageDetails.words = includeWords ? await getWordsInImage(imagePath, imagePHash.height) : [];
+    imageDetails.words = includeWords ? await getWordsInImage(imagePath, imagePHash.height, blacklistedWords) : [];
 
     try {
         const trimmedPath = imagePath + '_trimmed';
@@ -213,7 +213,7 @@ function getFilesizeInMegaBytes(filename) {
     return fileSizeInBytes / 1000000.0;
 }
 
-async function getWordsInImage(originalImagePath, height) {
+async function getWordsInImage(originalImagePath, height, blacklistedWords) {
     try {
         // resize it first, issues with large images
         let imagePath = originalImagePath;
@@ -228,8 +228,8 @@ async function getWordsInImage(originalImagePath, height) {
         log.debug(chalk.blue("Begin text detection in image:", imagePath));
         await tesseract.recognize(imagePath).then(data => result = data);
         const detectedStrings = result.words.map(word => stripchar.RSExceptUnsAlpNum(word.text.toLowerCase()));
-        const detectedWords = detectedStrings.filter(item => (item.length > 3 && commonWords.has(item)));
-        log.debug(chalk.blue("Text detected in image:"), detectedWords);
+        const detectedWords = detectedStrings.filter(item => (item.length > 3 && (blacklistedWords ? blacklistedWords.includes(item) : commonWords.has(item))));
+        log.debug(chalk.blue("Text detected in image:"), detectedWords, 'blacklisted:', blacklistedWords);
         const endTime = new Date().getTime();
         const timeTaken = (endTime - startTime) / 1000;
         if (timeTaken > 20) {

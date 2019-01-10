@@ -75,7 +75,9 @@ async function processSubmission(submission, masterSettings, database, reddit, a
         }
 
     const { imageUrl, submissionType } = imageUrlInfo;
-    const imageDetails = await getImageDetails(imageUrl, activeMode && masterSettings.settings.removeImagesWithText);
+    const isRemoveImagesWithText = masterSettings.settings.removeImagesWithText;
+    const imageDetails = await getImageDetails(imageUrl, activeMode && isRemoveImagesWithText,
+        isRemoveImagesWithText ? masterSettings.settings.removeImagesWithText.blacklistedWords : null);
     if (imageDetails == null){
         log.info(`[${subredditName}]`, "Could not download image (probably deleted - ignoring if gif): ", await printSubmission(submission));
         if (activeMode && submissionType == 'image' && masterSettings.settings.removeBrokenImages) {
