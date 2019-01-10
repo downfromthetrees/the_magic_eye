@@ -12,17 +12,16 @@ const { removePost, printSubmission } = require('../../../../reddit_utils.js');
 //=====================================
 
 async function removeImagesWithText(reddit, submission, imageDetails, subSettings, subredditName, submissionType) {
-    if (!subSettings.removeImagesWithText || submissionType !== 'image' || process.env.ALLOW_INVITES) { // private bots only
+    if (!subSettings.removeImagesWithText || submissionType !== 'image') {
         return true;
     }
 
-    const wordBlacklist = subSettings.removeImagesWithText.wordBlacklist;
-    if (wordBlacklist) {
-        const containsBlacklistedWord = imageDetails.words.some(word => wordBlacklist.includes(word));
+    const blacklistedWords = subSettings.removeImagesWithText.blacklistedWords;
+    if (blacklistedWords) {
+        const containsBlacklistedWord = imageDetails.words.some(word => blacklistedWords.includes(word));
         if (containsBlacklistedWord) {
-            log.info(`[${subredditName}]`, `Blacklisted word detected in [${imageDetails.words}], actioning - actioning submission: `, await printSubmission(submission));
             const removalReason = subSettings.removeImagesWithText.message ? subSettings.removeImagesWithText.message : `This image has been removed because it contains banned text. Detected words:` + imageDetails.words;
-            action(submission, removalReason, subSettings, reddit);
+            await action(submission, removalReason, subSettings, reddit);
             return false;
         }
     } else {
@@ -31,7 +30,7 @@ async function removeImagesWithText(reddit, submission, imageDetails, subSetting
             log.info(`[${subredditName}]`, "Text detected, removing - actioning submission: ", await printSubmission(submission));
             const removalReasonMessage = subSettings.removeImagesWithText.message ? subSettings.removeImagesWithText.message : '';
             const removalReason = `This image has been removed because text was automatically detected in it: \n\n>` + imageDetails.words + `\n\n` + removalReasonMessage;
-            action(submission, removalReason, subSettings, reddit);
+            await action(submission, removalReason, subSettings, reddit);
             return false;
         }
     }
