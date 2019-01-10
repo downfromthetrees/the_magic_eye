@@ -71,12 +71,12 @@ Heroku apps need interaction to keep running, so follow the last step below:
 
 You can also use Magic Eye to detect text in images over 3 characters long. The required setting is:
 
-`
+
     "removeImagesWithText": {
            "action":"remove",
            "message": "You need some skin? This skin I am in!",
            "blacklistedWords": ["skin", "ape"]
     },
-`
+
 
 action can be `warn` or `remove`.
