@@ -7,6 +7,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 // magic eye modules
 const { removePost, printSubmission } = require('../../../../reddit_utils.js');
+const { logRemoveUncropped } = require('../../../../master_stats.js');
 
 //=====================================
 
@@ -20,6 +21,7 @@ async function removeUncroppedImages(reddit, submission, imageDetails, subSettin
         const removalReason = 
             `This image appears to be uncropped (i.e. black/white bars at the top and bottom). Images must be cropped before posting to this subreddit.`;
         removePost(submission, removalReason, subSettings, reddit);
+        logRemoveUncropped(subredditName, null);
         return false;
     }
 

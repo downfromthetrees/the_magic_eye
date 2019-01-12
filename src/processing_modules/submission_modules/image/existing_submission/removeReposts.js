@@ -8,6 +8,8 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 // magic eye modules
 const { isRepostRemoval, removePost, printSubmission } = require('../../../../reddit_utils.js');
+const { logActionRepost } = require('../../../../master_stats.js');
+
 
 //=====================================
 
@@ -106,6 +108,8 @@ async function actionAsRepost(submission, lastSubmission, noOriginalSubmission, 
     } else {
         log.error(`[${subredditName}]`, 'Unknown action', subSettings.reposts.action);
     }
+
+    logActionRepost(subredditName);
 }
 
 async function warnAsRepost(submission, lastSubmission) {

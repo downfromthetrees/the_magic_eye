@@ -7,7 +7,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 // magic eye modules
 const { removePost, printSubmission } = require('../../../../reddit_utils.js');
-
+const { logRemoveText } = require('../../../../master_stats.js');
 
 //=====================================
 
@@ -21,7 +21,7 @@ async function removeImagesWithText(reddit, submission, imageDetails, subSetting
         const containsBlacklistedWord = imageDetails.words.some(word => blacklistedWords.includes(word));
         if (containsBlacklistedWord) {
             const removalReason = subSettings.removeImagesWithText.message ? subSettings.removeImagesWithText.message : `This image has been removed because it contains banned text. Detected words:` + imageDetails.words;
-            await action(submission, removalReason, subSettings, reddit);
+            await action(submission, removalReason, subSettings, reddit, subredditName);
             return false;
         }
     } else {
@@ -30,7 +30,7 @@ async function removeImagesWithText(reddit, submission, imageDetails, subSetting
             log.info(`[${subredditName}]`, "Text detected, removing - actioning submission: ", await printSubmission(submission));
             const removalReasonMessage = subSettings.removeImagesWithText.message ? subSettings.removeImagesWithText.message : '';
             const removalReason = `This image has been removed because text was automatically detected in it: \n\n>` + imageDetails.words + `\n\n` + removalReasonMessage;
-            await action(submission, removalReason, subSettings, reddit);
+            await action(submission, removalReason, subSettings, reddit, subredditName);
             return false;
         }
     }
@@ -45,6 +45,8 @@ async function action(submission, removalReason, subSettings, reddit){
     } else {
         removePost(submission, removalReason, subSettings, reddit);
     }
+
+    logRemoveText(subredditName, null);
 }
 
 module.exports = {

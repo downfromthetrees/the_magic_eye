@@ -7,7 +7,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 // magic eye modules
 const { removePost, printSubmission } = require('../../../../reddit_utils.js');
-
+const { logRemoveSmall } = require('../../../../master_stats.js');
 //=====================================
 
 // 330px https://i.imgur.com/7jTFozp.png
@@ -23,6 +23,7 @@ async function removeSmallImages(reddit, submission, imageDetails, subSettings, 
         log.info(`[${subredditName}]`, "Image is too small, removing - removing submission: ", await printSubmission(submission));
         const removalReason = `Your image has been removed because it is too small. Image submissions to this subreddit must be larger than ${smallDimension}px*${smallDimension}px.`;
         removePost(submission, removalReason, subSettings, reddit);
+        logRemoveSmall(subredditName, null);
         return false;
     }   
 

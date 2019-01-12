@@ -9,6 +9,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 const { getImageDetails, getImageUrl } = require('./image_utils.js');
 const { MagicSubmission } = require('./mongodb_data.js');
 const { getModComment, isMagicIgnore, isAnyTagRemoval, removePost, printSubmission } = require('./reddit_utils.js');
+const { logRemoveBroken } = require('./master_stats.js');
 
 // precheck modules
 const { messageFirstTimeUser } = require('./processing_modules/submission_modules/image/precheck/messageFirstTimeUser.js');
@@ -81,6 +82,7 @@ async function processSubmission(submission, masterSettings, database, reddit, a
         log.info(`[${subredditName}]`, "Could not download image (probably deleted - ignoring if gif): ", await printSubmission(submission));
         if (activeMode && submissionType == 'image' && masterSettings.settings.removeBrokenImages) {
             removePost(submission, `This post has been automatically removed because the link is broken or deleted. You will need to fix it and resubmit.`, masterSettings.settings, reddit);
+            logRemoveBroken(subredditName, null);
         }
         return;
     } else if (imageDetails.tooLarge || imageDetails.ignore) {
