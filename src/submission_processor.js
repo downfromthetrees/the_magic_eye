@@ -74,10 +74,7 @@ async function processSubmission(submission, masterSettings, database, reddit, a
         }
 
     const { imageUrl, submissionType } = imageUrlInfo;
-    const isRemoveImagesWithText = masterSettings.settings.removeImagesWithText;
-    
-    log.info(`[${subredditName}]`, "isRemoveImagesWithText: ", isRemoveImagesWithText, "value:", activeMode && isRemoveImagesWithText);
-
+    const isRemoveImagesWithText = masterSettings.settings.removeImagesWithText;   
     const imageDetails = await getImageDetails(imageUrl, activeMode && isRemoveImagesWithText,
         isRemoveImagesWithText ? masterSettings.settings.removeImagesWithText.blacklistedWords : null);
     if (imageDetails == null){
