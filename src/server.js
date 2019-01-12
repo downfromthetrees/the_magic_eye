@@ -40,7 +40,9 @@ const { processSubmission, } = require('./submission_processor.js');
 const { processInboxMessage } = require('./inbox_processor.js');
 const { processUnmoderated } = require('./unmoderated_processor.js');
 const { firstTimeInit, isAnythingInitialising } = require('./first_time_init.js');
-const { SubredditSettings, getSubredditSettings, setSubredditSettings, getMasterProperty, setMasterProperty, initMasterDatabase, refreshDatabaseList, upgradeMasterSettings, needsUpgrade } = require('./mongodb_master_data.js');
+const { SubredditSettings, getSubredditSettings, setSubredditSettings,
+    getMasterProperty, setMasterProperty, initMasterDatabase,
+    refreshDatabaseList, upgradeMasterSettings, needsUpgrade } = require('./mongodb_master_data.js');
 const { updateSettings, createDefaultSettings, writeSettings } = require('./wiki_utils.js');
 const { mainHolding, garbageCollectionHolding } = require('./holding_tasks/holding_tasks.js');
 const { mainSocial } = require('./holding_tasks/social.js');
@@ -209,7 +211,11 @@ async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
         const database = await initDatabase(subredditName, masterSettings.config.databaseUrl);
         if (database) {
             for (let submission of unprocessedSubmissions) {
+                let submissionStartTime = new Date().getTime();
                 await processSubmission(submission, masterSettings, database, reddit, true);
+                let submissionEndTime = new Date().getTime();
+                log.info(chalk.green('Processing took: '), (submissionEndTime - submissionStartTime) / 1000, 's to complete');
+
             };
         }
     }

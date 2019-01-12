@@ -8,6 +8,8 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 // magic eye modules
 const { isRepostRemoval, removePost, printSubmission } = require('../../../../reddit_utils.js');
 
+const { logActionBlacklisted } = require('../../../../master_stats.js');
+
 //=====================================
 
 async function removeBlacklisted(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings, subredditName, submissionType) {
@@ -43,6 +45,7 @@ async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklist
 
         ${blacklistReason}`;
     removePost(submission, removalReason, subSettings, reddit);
+    logActionBlacklisted(subredditName, null);
 }
 
 

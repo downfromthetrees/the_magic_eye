@@ -14,6 +14,8 @@ const imageSize = require('image-size');
 
 const commonWords = require('./common_words.js').getCommonWords();
 
+const { logDetectText } = require('./master_stats.js');
+
 require('dotenv').config();
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
@@ -232,6 +234,7 @@ async function getWordsInImage(originalImagePath, height, blacklistedWords) {
         log.debug(chalk.blue("Text detected in image:"), detectedWords, 'blacklisted:', blacklistedWords);
         const endTime = new Date().getTime();
         const timeTaken = (endTime - startTime) / 1000;
+        logDetectText(timeTaken);
         if (timeTaken > 20) {
             log.info(chalk.red('End text detection, took: '), timeTaken, 's to load ');
         }

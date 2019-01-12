@@ -16,6 +16,21 @@ class MasterProperty {
     }
 }
 
+class Stats {
+    subredditName;
+    action;
+    timeTaken;
+    date;
+
+    constructor(subredditName, action, timeTaken, date) {
+        this.subredditName = subredditName;
+        this.action = action;
+        this.timeTaken = timeTaken;
+        this.date = date;
+    }
+}
+
+
 const currentVersion = "1";
 
 // mod editable settings
@@ -108,6 +123,20 @@ async function getSubredditSettingsCollection() {
 
 async function getPropertyCollection() {
     return masterConnection.collection(getCollectionName('properties'));
+}
+
+async function getStatsCollection() {
+    return masterConnection.collection(getCollectionName('stats'));
+}
+
+async function addSubredditStat(statistic) {   
+    try {
+        const collection = await getStatsCollection();
+        await collection.save(statistic);
+    } catch (err) {
+        log.error(chalk.red('MongoDb error:'), err);
+        return null;
+    }
 }
 
 async function setSubredditSettings(subredditName, settings) {   
@@ -204,5 +233,7 @@ module.exports = {
     getMasterProperty,
     setMasterProperty,
     needsUpgrade,
-    upgradeMasterSettings
+    upgradeMasterSettings,
+    addSubredditStat,
+    Stats
 };
