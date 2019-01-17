@@ -39,7 +39,7 @@ async function removeImagesWithText(reddit, submission, imageDetails, subSetting
 }
 
 
-async function action(submission, removalReason, subSettings, reddit){
+async function action(submission, removalReason, subSettings, reddit, subredditName){
     if (subSettings.removeImagesWithText.action === 'warn') {
         await submission.report({'reason': 'Blacklisted text detected'});
     } else {
