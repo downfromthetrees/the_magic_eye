@@ -211,11 +211,7 @@ async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
         const database = await initDatabase(subredditName, masterSettings.config.databaseUrl);
         if (database) {
             for (let submission of unprocessedSubmissions) {
-                let submissionStartTime = new Date().getTime();
                 await processSubmission(submission, masterSettings, database, reddit, true);
-                let submissionEndTime = new Date().getTime();
-                log.info(chalk.green('Processing took: '), (submissionEndTime - submissionStartTime) / 1000, 's to complete');
-
             };
         }
     }
