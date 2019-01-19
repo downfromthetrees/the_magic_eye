@@ -84,37 +84,48 @@ async function mainSocial(reddit, firstTimeDelay) {
 }
 
 async function uploadToFacebook(fileName, reddit_id) {
-    log.info('[SOCIAL] Posting to facebook:', `http://redd.it/${reddit_id}`);
-    const result = await facebook.api('me/photos', 'post', { source: fs.createReadStream(fileName), caption: 'hmmm' });
-    if (!result || result.error) {
-        log.error('Error uploading to facebook: ' + result);
-    }
+    try {
+        log.info('[SOCIAL] Posting to facebook:', `http://redd.it/${reddit_id}`);
+        const result = await facebook.api('me/photos', 'post', { source: fs.createReadStream(fileName), caption: 'hmmm' });
+        if (!result || result.error) {
+            log.error('Error uploading to facebook: ' + result);
+        }
+    } catch(e) {
+        log.error('[SOCIAL] Error posting to facebook: ', e);
+    }  
 }
 
 async function uploadToTwitter(fileName, reddit_id) {
-    log.info('[SOCIAL] Posting to twitter:', `http://redd.it/${reddit_id}`);
+    try {
+        log.info('[SOCIAL] Posting to twitter:', `http://redd.it/${reddit_id}`);
+        const data = fs.readFileSync(fileName);
+        const mediaResult = await twitterClient.post('media/upload', {media: data}); 
+        if (!mediaResult || mediaResult.error) {
+            log.error('Error uploading to twitter: ' + result);
+            return;
+        } 
 
-    const data = fs.readFileSync(fileName);
-    const mediaResult = await twitterClient.post('media/upload', {media: data}); 
-    if (!mediaResult || mediaResult.error) {
-        log.error('Error uploading to twitter: ' + result);
-        return;
-    } 
-
-    const tweetResult = await twitterClient.post('statuses/update', { status: 'hmmm', media_ids: mediaResult.media_id_string });
-    if (!tweetResult || tweetResult.error) {
-        log.error('Error uploading to twitter: ' + result);
-        return;
-    }
+        const tweetResult = await twitterClient.post('statuses/update', { status: 'hmmm', media_ids: mediaResult.media_id_string });
+        if (!tweetResult || tweetResult.error) {
+            log.error('Error uploading to twitter: ' + result);
+            return;
+        }
+    } catch(e) {
+        log.error('[SOCIAL] Error posting to twitter: ', e);
+    }  
 }
 
 async function uploadToTumblr(url, reddit_id) {
-    log.info('[SOCIAL] Posting to tumblr:', `http://redd.it/${reddit_id}`);
+    try {
+        log.info('[SOCIAL] Posting to tumblr:', `http://redd.it/${reddit_id}`);
 
-    const result = await tumblrClient.createPhotoPost('hmmm-official.tumblr.com', { source: url, caption: "hmmm" });
-    if (!result || result.error) {
-        log.error('Error uploading to tumblr: ' + result);
-    }
+        const result = await tumblrClient.createPhotoPost('hmmm-official.tumblr.com', { source: url, caption: "hmmm" });
+        if (!result || result.error) {
+            log.error('Error uploading to tumblr: ' + result);
+        }
+    } catch(e) {
+        log.error('[SOCIAL] Error posting to tumblr: ', e);
+    }  
 }
 
 
