@@ -152,31 +152,35 @@ Either restore the last settings, or use https://jsonlint.com/ to find the issue
 }
 
 
-async function enableFilterMode(subredditName, reddit, enabled) {
+async function enableFilterMode(subredditName, reddit, enable) {
     try {
         const wikiPage = await reddit.getSubreddit(subredditName).getWikiPage('config/automoderator');
 
         let autoModeratorConfig = await wikiPage.content_md;
         if (!autoModeratorConfig) {
-            log.info(chalk.magenta(`[${subredditName}]`, 'Wiki settings already exist when trying to create defaults. Ignoring and using existing settings for '), subredditName);
-            sendErrorToMaintainer(subredditName, reddit, 'Settings were null');
+            log.info(`[${subredditName}]`, 'Failed to set filter mode, could not get automod page');
+            await reddit.composeMessage({
+                to: process.env.MAINTAINER,
+                subject: "Failed to set filter mode",
+                text: `Setting the filter mode failed for ${subredditName}. Could not get automod page`
+              });            
             return;
         }
-        
-        const newAutoModeratorConfig = enabled ? addFilteringConfig(autoModeratorConfig, reddit, subredditName) : removeFilteringConfig(autoModeratorConfig, reddit, subredditName);
-        await wikiPage.edit({text: newAutoModeratorConfig, reason: `Set filter mode ${enabled}`});
+
+        const newAutoModeratorConfig = modifyFilteringConfig(autoModeratorConfig, enable);
+        await wikiPage.edit({text: newAutoModeratorConfig, reason: `Set filter mode ${enable}`});
     } catch (e) {
         log.info(`[${subredditName}]`, 'Failed to set filter mode:', e);
         await reddit.composeMessage({
             to: process.env.MAINTAINER,
             subject: "Failed to set filter mode",
             text: `Setting the filter mode failed for ${subredditName}. ${e}`
-          });    
+          });
     }
 }
 
-const filterConfig = `
-
+const filterConfig =
+`
 ---
 type: submission
 action: filter
@@ -185,24 +189,34 @@ message: |
 
     r/hmmm now only accepts a limited amount of posts per day. Your post has now been entered for selection, and will be come visible to users when approved.
     
-    If you're bored you can [read everything about how this process works](http://www.google.com)!
+    If you're bored you can [read everything about how this process works!](http://www.google.com)
 `;
 
-function addFilteringConfig(currentConfig, reddit, subredditName) {
-    if (currentConfig.includes(filterConfig)) {
+const nonFilterConfig = 
+`
+---
+type: submission
+message: |
+    Thanks for your post!
+
+    r/hmmm now only accepts a limited amount of posts per day. Your post is visibile to all users, and will be reviewed shortly.
+    
+    If you're bored you can [read everything about how this process works!](http://www.google.com)
+`;
+
+
+function modifyFilteringConfig(currentConfig, enable) {
+    const configAddition = enable ? filterConfig : nonFilterConfig;
+    const configRemoval = enable ? nonFilterConfig : filterConfig;
+
+    const baseConfig = currentConfig.replace(configRemoval, '');
+
+    if (currentConfig.includes(configAddition)) {
         log.warn('Filtering already enabled for subreddit. Ignoring.');
         return currentConfig;
     }
-    return currentConfig + filterConfig;
-}
 
-function removeFilteringConfig(currentConfig, reddit, subredditName) {
-    const newConfig = currentConfig.replace(filterConfig, '');
-    if (currentConfig === newConfig) {
-        log.warn('Filtering already disabled for subreddit. Ignoring.');
-    }
-
-    return newConfig;
+    return baseConfig + configAddition;
 }
 
 

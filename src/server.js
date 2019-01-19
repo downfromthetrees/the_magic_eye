@@ -312,7 +312,7 @@ app.get('/keepalive', async function(req, res) {
 });
 
 
-const filterSubreddit = 'the_cretinous_eye';
+const filterSubreddit = 'hmmm';
 app.get('/filter/enable', async function(req, res) {
     log.info(`[${filterSubreddit}]`, 'Enabling filter mode');
     enableFilterMode(filterSubreddit, reddit, true);
