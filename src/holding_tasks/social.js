@@ -72,7 +72,7 @@ async function mainSocial(reddit, firstTimeDelay) {
             setTimeout(mainSocial, socialTime, reddit);
             return;            
         }
-        await uploadToFacebook(imagePath, chosenSubmission.id);
+        //await uploadToFacebook(imagePath, chosenSubmission.id);
         await uploadToTwitter(imagePath, chosenSubmission.id);
         await uploadToTumblr(chosenSubmission.url, chosenSubmission.id);
         deleteImage(imagePath);
