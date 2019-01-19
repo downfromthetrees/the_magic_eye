@@ -1,7 +1,7 @@
 
 # Magic Eye
 
-Magic Eye is a bot created to help moderate image subreddits. It's main feature is detecting and removing reposted images, but it has several other image and general moderation features.
+Magic Eye is a bot created to help moderate image subreddits. It's main feature is detecting and removing reposted images, but it has several other image and general moderation features. It is designed to be flexible and configurable and can work with a variety of workflows.
 
 Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support.
 
@@ -43,23 +43,18 @@ Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support
 
 Supported link types:
 
-* images (png/jpg/jpeg/bmp)
-* imgur links
-* reddit videos
-* animated media (gif/gifv/mp4/webm)
+* images (png/jpg/jpeg/bmp), imgur links, reddit videos, animated media (gif/gifv/mp4/webm)
 
 Currently not supported:
 
-* gfycat links without extensions
-* reddit video x-posts
-* youtube videos
+* gfycat links without extensions, reddit video x-posts, youtube videos
 
 ## Getting Started
 
 ### Prerequisites
 
 * Enable wikis for your subreddit (set wiki to "mod editing" in your subreddit settings)
-* If you want to blacklisted images you'll need to:
+* If you want to blacklist images:
     * Get [Reddit Toolbox](http://www.reddit.com/r/toolbox)
     * Add the removal tags as described in [Removing blacklisted images](#remove-blacklisted-images)
 
