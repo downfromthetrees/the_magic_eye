@@ -43,10 +43,11 @@ const { firstTimeInit, isAnythingInitialising } = require('./first_time_init.js'
 const { SubredditSettings, getSubredditSettings, setSubredditSettings,
     getMasterProperty, setMasterProperty, initMasterDatabase,
     refreshDatabaseList, upgradeMasterSettings, needsUpgrade } = require('./mongodb_master_data.js');
-const { updateSettings, createDefaultSettings, writeSettings } = require('./wiki_utils.js');
+const { updateSettings, createDefaultSettings, writeSettings, enableFilterMode } = require('./wiki_utils.js');
 const { mainHolding, garbageCollectionHolding } = require('./holding_tasks/holding_tasks.js');
 const { mainSocial } = require('./holding_tasks/social.js');
 
+// https://not-an-aardvark.github.io/snoowrap/snoowrap.html
 // Create a new snoowrap requester with OAuth credentials
 // See here: https://github.com/not-an-aardvark/reddit-oauth-helper
 const snoowrap = require('snoowrap');
@@ -77,7 +78,7 @@ async function main() {
         const subredditMulti = await reddit.getSubreddit(moddedSubsMulti);
 
         // submissions for all subs
-        const submissions = await subredditMulti.getNew({'limit': 500});
+        const submissions = await subredditMulti.getModqueue({'limit': 500, 'only': 'links'});
         if (!submissions) {
             log.error(chalk.red('Cannot get new submissions to process - api is probably down for maintenance.'));
             setTimeout(main, 30 * 1000); // run again in 30 seconds
@@ -298,6 +299,7 @@ async function startServer() {
         mainHolding();
         garbageCollectionHolding(true);
         mainSocial(reddit, true);
+        scheduleFiltering();
     } catch (e) {
         log.error(chalk.red(e));
     }
@@ -308,3 +310,33 @@ app.get('/keepalive', async function(req, res) {
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify({ status: 'ok' }));
 });
+
+
+const filterSubreddit = 'the_cretinous_eye';
+app.get('/filter/enable', async function(req, res) {
+    log.info(`[${filterSubreddit}]`, 'Enabling filter mode');
+    enableFilterMode(filterSubreddit, reddit, true);
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify({ status: 'Enabled!' }));
+});
+
+app.get('/filter/disable', async function(req, res) {
+    log.info(`[${filterSubreddit}]`, 'Disabling filter mode');
+    enableFilterMode(filterSubreddit, reddit, false);
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify({ status: 'Disabled!' }));
+});
+
+function scheduleFiltering() {
+    var current_hour = new Date().getHours();
+    if (current_hour == 9) {
+        log.info(`[${filterSubreddit}]`, 'Auto-enabling filter mode');
+        enableFilterMode(filterSubreddit, reddit, false);
+    }
+    if (current_hour == 1) {
+        log.info(`[${filterSubreddit}]`, 'Auto-disabling filter mode');
+        enableFilterMode(filterSubreddit, reddit, true);
+    }
+    const nextCheck = 1000 * 60 * 60; // 1hr
+    setTimeout(scheduleFiltering, nextCheck);
+}

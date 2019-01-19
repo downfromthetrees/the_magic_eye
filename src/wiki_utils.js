@@ -152,10 +152,66 @@ Either restore the last settings, or use https://jsonlint.com/ to find the issue
 }
 
 
+async function enableFilterMode(subredditName, reddit, enabled) {
+    try {
+        const wikiPage = await reddit.getSubreddit(subredditName).getWikiPage('config/automoderator');
+
+        let autoModeratorConfig = await wikiPage.content_md;
+        if (!autoModeratorConfig) {
+            log.info(chalk.magenta(`[${subredditName}]`, 'Wiki settings already exist when trying to create defaults. Ignoring and using existing settings for '), subredditName);
+            sendErrorToMaintainer(subredditName, reddit, 'Settings were null');
+            return;
+        }
+        
+        const newAutoModeratorConfig = enabled ? addFilteringConfig(autoModeratorConfig, reddit, subredditName) : removeFilteringConfig(autoModeratorConfig, reddit, subredditName);
+        await wikiPage.edit({text: newAutoModeratorConfig, reason: `Set filter mode ${enabled}`});
+    } catch (e) {
+        log.info(`[${subredditName}]`, 'Failed to set filter mode:', e);
+        await reddit.composeMessage({
+            to: process.env.MAINTAINER,
+            subject: "Failed to set filter mode",
+            text: `Setting the filter mode failed for ${subredditName}. ${e}`
+          });    
+    }
+}
+
+const filterConfig = `
+
+---
+type: submission
+action: filter
+message: |
+    Thanks for your post!
+
+    r/hmmm now only accepts a limited amount of posts per day. Your post has now been entered for selection, and will be come visible to users when approved.
+    
+    If you're bored you can [read everything about how this process works](http://www.google.com)!
+`;
+
+function addFilteringConfig(currentConfig, reddit, subredditName) {
+    if (currentConfig.includes(filterConfig)) {
+        log.warn('Filtering already enabled for subreddit. Ignoring.');
+        return currentConfig;
+    }
+    return currentConfig + filterConfig;
+}
+
+function removeFilteringConfig(currentConfig, reddit, subredditName) {
+    const newConfig = currentConfig.replace(filterConfig, '');
+    if (currentConfig === newConfig) {
+        log.warn('Filtering already disabled for subreddit. Ignoring.');
+    }
+
+    return newConfig;
+}
+
+
+
 const settingsSchema = ``;
 
 module.exports = {
     updateSettings,
     createDefaultSettings,
     writeSettings,
+    enableFilterMode
 };
