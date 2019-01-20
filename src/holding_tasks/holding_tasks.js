@@ -195,7 +195,7 @@ async function consumeTargetSubmissions(latestItems) {
 
     const propertyId = 'holding_processed_target_ids';
 
-    const maxCheck = 6;
+    const maxCheck = 10;
     if (latestItems.length > maxCheck) {
         // log.info('[HOLDING] Passed more than maxCheck items:', latestItems.length);  // MUSTFIX - uncomment and make sane
         latestItems = latestItems.slice(latestItems.length - maxCheck, latestItems.length);

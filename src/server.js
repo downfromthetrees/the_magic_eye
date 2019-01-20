@@ -39,11 +39,13 @@ const { initDatabase } = require('./mongodb_data.js');
 const { processSubmission, } = require('./submission_processor.js');
 const { processInboxMessage } = require('./inbox_processor.js');
 const { processUnmoderated } = require('./unmoderated_processor.js');
+const { processModlog } = require('./hmmm/modlog_processor.js');
 const { firstTimeInit, isAnythingInitialising } = require('./first_time_init.js');
 const { SubredditSettings, getSubredditSettings, setSubredditSettings,
     getMasterProperty, setMasterProperty, initMasterDatabase,
     refreshDatabaseList, upgradeMasterSettings, needsUpgrade } = require('./mongodb_master_data.js');
-const { updateSettings, createDefaultSettings, writeSettings, enableFilterMode } = require('./wiki_utils.js');
+const { updateSettings, createDefaultSettings, writeSettings } = require('./wiki_utils.js');
+const { enableFilterMode } = require('./hmmm/automod_updater.js');
 const { mainHolding, garbageCollectionHolding } = require('./holding_tasks/holding_tasks.js');
 const { mainSocial } = require('./holding_tasks/social.js');
 
@@ -216,6 +218,9 @@ async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
             };
         }
     }
+
+    // hmmm modlog
+    processModlog(subredditName, reddit);
 }
 
 
@@ -312,17 +317,14 @@ app.get('/keepalive', async function(req, res) {
 });
 
 
-const filterSubreddit = 'hmmm';
 app.get('/filter/enable', async function(req, res) {
-    log.info(`[${filterSubreddit}]`, 'Enabling filter mode');
-    enableFilterMode(filterSubreddit, reddit, true);
+    enableFilterMode(reddit, true);
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify({ status: 'Enabled!' }));
 });
 
 app.get('/filter/disable', async function(req, res) {
-    log.info(`[${filterSubreddit}]`, 'Disabling filter mode');
-    enableFilterMode(filterSubreddit, reddit, false);
+    enableFilterMode(reddit, false);
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify({ status: 'Disabled!' }));
 });
@@ -330,12 +332,12 @@ app.get('/filter/disable', async function(req, res) {
 function scheduleFiltering() {
     var current_hour = new Date().getHours();
     if (current_hour == 9) {
-        log.info(`[${filterSubreddit}]`, 'Auto-enabling filter mode');
-        enableFilterMode(filterSubreddit, reddit, false);
+        log.info(`[HMMM]`, 'Auto-enabling filter mode');
+        enableFilterMode(reddit, true);
     }
     if (current_hour == 1) {
-        log.info(`[${filterSubreddit}]`, 'Auto-disabling filter mode');
-        enableFilterMode(filterSubreddit, reddit, true);
+        log.info(`[HMMM]`, 'Auto-disabling filter mode');
+        enableFilterMode(reddit, false);
     }
     const nextCheck = 1000 * 60 * 60; // 1hr
     setTimeout(scheduleFiltering, nextCheck);
