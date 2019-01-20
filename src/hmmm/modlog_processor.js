@@ -29,7 +29,6 @@ async function processRemovedPosts(unprocessedItems, reddit) {
             const submissionId = item.target_permalink.split('/')[4]; // "/r/hmmm/comments/a0uwkf/hmmm/eakgqi3/"
             const submission = await reddit.getSubmission(submissionId);
             await submission.assignFlair({text: 'Not selected'});
-            log.info('[HMMMM_MODLOG] Flairing removed post:', item.target_permalink);
         } catch (e) {
             log.error('[HMMMM_MODLOG] Error processing approved posts:', item.target_permalink, e);
         }
