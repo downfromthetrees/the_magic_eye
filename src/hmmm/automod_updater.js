@@ -7,7 +7,7 @@ const indentString = require('indent-string');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 async function enableFilterMode(reddit, enable) {
-    const subredditName = 'the_cretinous_eye';
+    const subredditName = 'hmmm';
     log.info(`[${subredditName}]`, 'Setting filter mode:', enable);
 
     try {
