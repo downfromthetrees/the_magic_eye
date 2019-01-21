@@ -36,6 +36,20 @@ async function enableFilterMode(reddit, enable) {
     }
 }
 
+
+// const nonFilterConfig = 
+// `
+// ---
+// type: submission
+// message: |
+//     Thanks for your hmmm!
+
+//     r/hmmm now only accepts a limited amount of posts per day. Your post has now been entered for selection and will be reviewed shortly.
+    
+//     But if you're bored you can [read everything about how this process works](https://www.reddit.com/r/hmmm/wiki/submission_process).
+// `;
+
+
 const filterConfig =
 `
 ---
@@ -43,22 +57,10 @@ type: submission
 action: filter
 message: |
     Thanks for your hmmm!
-
-    r/hmmm only accepts a limited amount of posts per day, your post has now been entered for selection. It will become visible to users when approved.
     
-    If you're bored you can [read everything about how this process works](https://www.reddit.com/r/hmmm/wiki/submission_process).
-`;
-
-const nonFilterConfig = 
-`
----
-type: submission
-message: |
-    Thanks for your hmmm!
-
-    r/hmmm now only accepts a limited amount of posts per day. Your post has now been entered for selection and will be reviewed shortly.
+    Your post is not yet visible to users, but a moderator will review it shortly.
     
-    But if you're bored you can [read everything about how this process works](https://www.reddit.com/r/hmmm/wiki/submission_process).
+    If you're bored you can [read everything about how our subreddit works](https://www.reddit.com/r/hmmm/wiki/submission_process).
 `;
 
 
