@@ -81,8 +81,8 @@ async function main() {
         
 
         // submissions for all subs
-        const modqueueSubmissions = await subredditMulti.getModqueue({'limit': 500, 'only': 'links'});
-        const newSubmissions = await subredditMulti.getNew({'limit': 500});
+        const modqueueSubmissions = await subredditMulti.getModqueue({'limit': 100, 'only': 'links'});
+        const newSubmissions = await subredditMulti.getNew({'limit': 100});
         const submissions = newSubmissions.concat(modqueueSubmissions);
         
         if (!submissions) {
