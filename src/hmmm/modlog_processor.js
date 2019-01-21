@@ -10,11 +10,11 @@ const { getMasterProperty, setMasterProperty } = require('../mongodb_master_data
 
 async function processModlog(subredditName, reddit) {
     try {       
-        const modlogSubreddit = await reddit.getSubreddit(subredditName);
-        const removedSubmissions = await modlogSubreddit.getModerationLog({type: 'removelink', 'limit': 200});
-        log.info('removedSubmissions.length', removedSubmissions.length);
-        const unprocessedRemovedSubmissions = await consumeRemovedSubmissions(removedSubmissions, 'removed');
-        await processRemovedPosts(unprocessedRemovedSubmissions, reddit);
+        // const modlogSubreddit = await reddit.getSubreddit(subredditName);
+        // const removedSubmissions = await modlogSubreddit.getModerationLog({type: 'removelink', 'limit': 200});
+        // log.info('removedSubmissions.length', removedSubmissions.length);
+        // const unprocessedRemovedSubmissions = await consumeRemovedSubmissions(removedSubmissions, 'removed');
+        // await processRemovedPosts(unprocessedRemovedSubmissions, reddit);
     } catch (err) {
         log.error(chalk.red("[HMMM_MODLOG] modlog error: ", err));
     }
