@@ -331,15 +331,14 @@ app.get('/filter/disable', async function(req, res) {
 
 function scheduleFiltering() {
     var current_hour = new Date().getHours();
-    log.info('Current hour is:', current_hour);
-    // if (current_hour == 9) {
-    //     log.info(`[HMMM]`, 'Auto-enabling filter mode');
-    //     enableFilterMode(reddit, true);
-    // }
-    // if (current_hour == 1) {
-    //     log.info(`[HMMM]`, 'Auto-disabling filter mode');
-    //     enableFilterMode(reddit, false);
-    // }
+    if (current_hour == 9) {
+        log.info(`[HMMM]`, 'Auto-disabling filter mode');
+        enableFilterMode(reddit, false);
+    }
+    if (current_hour == 1) {
+        log.info(`[HMMM]`, 'Auto-enabling filter mode');
+        enableFilterMode(reddit, true);
+    }
     const nextCheck = 1000 * 60 * 60; // 1hr
     setTimeout(scheduleFiltering, nextCheck);
 }
