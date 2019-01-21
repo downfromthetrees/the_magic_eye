@@ -330,7 +330,9 @@ app.get('/filter/disable', async function(req, res) {
 });
 
 function scheduleFiltering() {
-    var current_hour = new Date().getHours();
+    const nzTimeString = new Date().toLocaleString("en-NZ", {timeZone: "Pacific/Auckland"});
+    const nzTime = new Date(nzTimeString);
+    var current_hour = nzTime.getHours();
     if (current_hour == 9) {
         log.info(`[HMMM]`, 'Auto-disabling filter mode');
         enableFilterMode(reddit, false);
