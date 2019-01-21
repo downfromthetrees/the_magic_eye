@@ -78,9 +78,13 @@ async function main() {
 
         const moddedSubsMulti = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
         const subredditMulti = await reddit.getSubreddit(moddedSubsMulti);
+        
 
         // submissions for all subs
-        const submissions = await subredditMulti.getModqueue({'limit': 500, 'only': 'links'});
+        const modqueueSubmissions = await subredditMulti.getModqueue({'limit': 500, 'only': 'links'});
+        const newSubmissions = await subredditMulti.getNew({'limit': 500});
+        const submissions = newSubmissions.concat(modqueueSubmissions);
+        
         if (!submissions) {
             log.error(chalk.red('Cannot get new submissions to process - api is probably down for maintenance.'));
             setTimeout(main, 30 * 1000); // run again in 30 seconds
@@ -236,9 +240,7 @@ async function consumeUnprocessedSubmissions(latestItems) {
 
     // don't process anything over 3 hours old for safeguard. created_utc is in seconds/getTime is in millis.
     const threeHoursAgo = new Date().getTime() - 1000*60*60*3;
-    log.info('latestItems.length prefilter: ', latestItems.length);
     latestItems = latestItems.filter(item => (item.created_utc * 1000) > threeHoursAgo); 
-    log.info('latestItems.length postfilter: ', latestItems.length);
 
     const processedIds = await getMasterProperty('new_processed_ids');
     if (!processedIds) {
@@ -250,6 +252,7 @@ async function consumeUnprocessedSubmissions(latestItems) {
 
     // update the processed list before processing so we don't retry any submissions that cause exceptions
     const newItems = latestItems.filter(item => !processedIds.includes(item.id));
+    log.info('newItems.length: ', newItems.length);
     let updatedProcessedIds = processedIds.concat(newItems.map(submission => submission.id)); // [3,2,1] + [new] = [3,2,1,new]
     const processedCacheSize = maxCheck*5; // larger size for any weird/future edge-cases where a mod removes a lot of submissions
     if (updatedProcessedIds.length > processedCacheSize) { 
