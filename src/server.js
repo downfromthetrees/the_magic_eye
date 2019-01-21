@@ -87,6 +87,7 @@ async function main() {
             return;
         }
         const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions); 
+        log.info('unprocessedSubmissions.length: ', unprocessedSubmissions.length);
 
         for (const subredditName of moddedSubs) {
             try {
@@ -235,7 +236,9 @@ async function consumeUnprocessedSubmissions(latestItems) {
 
     // don't process anything over 3 hours old for safeguard. created_utc is in seconds/getTime is in millis.
     const threeHoursAgo = new Date().getTime() - 1000*60*60*3;
+    log.info('latestItems.length prefilter: ', latestItems.length);
     latestItems = latestItems.filter(item => (item.created_utc * 1000) > threeHoursAgo); 
+    log.info('latestItems.length postfilter: ', latestItems.length);
 
     const processedIds = await getMasterProperty('new_processed_ids');
     if (!processedIds) {
