@@ -29,7 +29,7 @@ async function processRemovedPosts(unprocessedItems, reddit) {
             if (item.mod !== 'AutoModerator' && item.mod !== process.env.ACCOUNT_USERNAME) {
                 const submissionId = item.target_permalink.split('/')[4]; // "/r/hmmm/comments/a0uwkf/hmmm/eakgqi3/"
                 const submission = await reddit.getSubmission(submissionId);
-                await submission.assignFlair({text: 'Not selected'});
+                await submission.assignFlair({text: 'Not selected - see wiki'});
             }
         } catch (e) {
             log.error('[HMMMM_MODLOG] Error processing approved posts:', item.target_permalink, e);
