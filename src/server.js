@@ -91,7 +91,6 @@ async function main() {
             return;
         }
         const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions); 
-        log.info('unprocessedSubmissions.length: ', unprocessedSubmissions.length);
 
         for (const subredditName of moddedSubs) {
             try {
@@ -252,7 +251,6 @@ async function consumeUnprocessedSubmissions(latestItems) {
 
     // update the processed list before processing so we don't retry any submissions that cause exceptions
     const newItems = latestItems.filter(item => !processedIds.includes(item.id));
-    log.info('newItems.length: ', newItems.length);
     let updatedProcessedIds = processedIds.concat(newItems.map(submission => submission.id)); // [3,2,1] + [new] = [3,2,1,new]
     const processedCacheSize = maxCheck*5; // larger size for any weird/future edge-cases where a mod removes a lot of submissions
     if (updatedProcessedIds.length > processedCacheSize) { 
