@@ -10,11 +10,11 @@ const { getMasterProperty, setMasterProperty } = require('../mongodb_master_data
 
 async function processModlog(subredditName, reddit) {
     try {       
-        // const modlogSubreddit = await reddit.getSubreddit(subredditName);
-        // const removedSubmissions = await modlogSubreddit.getModerationLog({type: 'removelink', 'limit': 200});
-        // log.info('removedSubmissions.length', removedSubmissions.length);
-        // const unprocessedRemovedSubmissions = await consumeRemovedSubmissions(removedSubmissions, 'removed');
-        // await processRemovedPosts(unprocessedRemovedSubmissions, reddit);
+        const modlogSubreddit = await reddit.getSubreddit(subredditName);
+        const removedSubmissions = await modlogSubreddit.getModerationLog({type: 'removelink', 'limit': 200});
+        log.info('removedSubmissions.length', removedSubmissions.length);
+        const unprocessedRemovedSubmissions = await consumeRemovedSubmissions(removedSubmissions, 'removed');
+        await processRemovedPosts(unprocessedRemovedSubmissions, reddit);
     } catch (err) {
         log.error(chalk.red("[HMMM_MODLOG] modlog error: ", err));
     }
@@ -27,9 +27,11 @@ async function processRemovedPosts(unprocessedItems, reddit) {
 
     for (let item of unprocessedItems) {
         try {
-            const submissionId = item.target_permalink.split('/')[4]; // "/r/hmmm/comments/a0uwkf/hmmm/eakgqi3/"
-            const submission = await reddit.getSubmission(submissionId);
-            await submission.assignFlair({text: 'Not selected'});
+            if (item.mod !== 'AutoModerator') {
+                const submissionId = item.target_permalink.split('/')[4]; // "/r/hmmm/comments/a0uwkf/hmmm/eakgqi3/"
+                const submission = await reddit.getSubmission(submissionId);
+                await submission.assignFlair({text: 'Not selected'});
+            }
         } catch (e) {
             log.error('[HMMMM_MODLOG] Error processing approved posts:', item.target_permalink, e);
         }
