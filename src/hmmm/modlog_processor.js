@@ -9,7 +9,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 const { getMasterProperty, setMasterProperty } = require('../mongodb_master_data.js');
 
 async function processModlog(subredditName, reddit) {
-    try {       
+    try {
         const modlogSubreddit = await reddit.getSubreddit(subredditName);
         const removedSubmissions = await modlogSubreddit.getModerationLog({type: 'removelink', 'limit': 200});
         const unprocessedRemovedSubmissions = await consumeRemovedSubmissions(removedSubmissions, 'removed');
@@ -29,7 +29,10 @@ async function processRemovedPosts(unprocessedItems, reddit) {
             if (item.mod !== 'AutoModerator' && item.mod !== process.env.ACCOUNT_USERNAME) {
                 const submissionId = item.target_permalink.split('/')[4]; // "/r/hmmm/comments/a0uwkf/hmmm/eakgqi3/"
                 const submission = await reddit.getSubmission(submissionId);
-                await submission.assignFlair({text: 'Reviewed and removed - see wiki'});
+                const lastSubmissionRemoved = await lastSubmission.removed;
+                if (lastSubmissionRemoved){
+                    await submission.assignFlair({text: 'Reviewed and removed - see wiki'});
+                }
             }
         } catch (e) {
             log.error('[HMMMM_MODLOG] Error processing approved posts:', item.target_permalink, e);
