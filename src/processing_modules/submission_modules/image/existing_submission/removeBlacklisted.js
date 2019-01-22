@@ -50,7 +50,10 @@ async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklist
 
 
 async function getRemovalReason(modComment, subredditName) {
-    const body = await modComment.body;   
+    if (!modComment) {
+        return null;
+    }
+    const body = await modComment.body;
     const startRemoval = '[](#start_removal)';
     const endRemoval = '[](#end_removal)';
 
