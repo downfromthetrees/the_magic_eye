@@ -40,6 +40,7 @@ async function enableFilterMode(reddit, enable) {
 // const nonFilterConfig = 
 // `
 // ---
+// # Magic Eye auto-filtering config
 // type: submission
 // message: |
 //     Thanks for your hmmm!
@@ -53,15 +54,17 @@ async function enableFilterMode(reddit, enable) {
 const filterConfig =
 `
 ---
+# Magic Eye auto-filtering config
 type: submission
 action: filter
-message: |
-    Thanks for your hmmm!
-    
-    Your post is not yet visible to users, but a moderator will review it shortly.
-    
-    If you're bored you can [read everything about how our subreddit works](https://www.reddit.com/r/hmmm/wiki/submission_process).
 `;
+
+// message: |
+//     Thanks for your hmmm!
+    
+//     Your post is not yet visible to users, but a moderator will review it shortly.
+    
+//     If you're bored you can [read everything about how our subreddit works](https://www.reddit.com/r/hmmm/wiki/submission_process).
 
 
 function modifyFilteringConfig(currentConfig, enable) {
