@@ -29,8 +29,8 @@ async function processRemovedPosts(unprocessedItems, reddit) {
             if (item.mod !== 'AutoModerator' && item.mod !== process.env.ACCOUNT_USERNAME) {
                 const submissionId = item.target_permalink.split('/')[4]; // "/r/hmmm/comments/a0uwkf/hmmm/eakgqi3/"
                 const submission = await reddit.getSubmission(submissionId);
-                const lastSubmissionRemoved = await lastSubmission.removed;
-                if (lastSubmissionRemoved){
+                const submissionRemoved = await submission.removed; // confirm it's still removed
+                if (submissionRemoved) {  
                     await submission.assignFlair({text: 'Reviewed and removed - see wiki'});
                 }
             }
