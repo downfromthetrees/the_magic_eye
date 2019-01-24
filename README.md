@@ -146,6 +146,7 @@ Optional fields:
         ...
         "removalMessage": "Bad luck buckaroo, this image is a repost!",
         "allTimeTopRemovalMessage": "Bad luck buckaroo, this image is an all time classic!",
+        "fullRemovalMessage": "I control this message buckaroo, here's my link: {{last_submission_link}}.\n\nAnd [here's the url]({{last_submission_url}})",
         "actionAll": false
     },
 
@@ -153,6 +154,7 @@ Notes:
 * `action`: This can be one of:
     * `"remove"`: removes the post and posts a message to the user
     * `"warn"`: reports the post and posts a removed comment in the thread with links
+* You can override the first link with `removalMessage`/`allTimeTopRemovalMessage`, or the whole message with `fullRemovalMessage` and use the variables as you like. `\n` for line break.
 * `actionRepostsIfDeleted`: Performs `action` on reposts even if the previous post was deleted.
 * `approveIfOverRepostDays`: Auto-approves a repost over the time limit to save you doing it
 * Scores thresholds: Magic Eye keeps track of the last successful post of an image and uses the score it got + how long ago it was posted to determine what to do. There are a few thresholds so that it can make smarter decisions for reposts of popular vs less popular reposts. For example in the default settings: if the last matching submission got over `mediumScore` points (in this case 400), it'll be removed if it's less than `mediumScoreRepostDays` days old (in this case 25 days).
