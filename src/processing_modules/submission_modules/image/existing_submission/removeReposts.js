@@ -116,7 +116,7 @@ async function warnAsRepost(submission, lastSubmission) {
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
     let message = outdent`
     Detected repost of:
-    
+
     * [Click here to see the submission](${permalink})
     * [Direct image link](${await lastSubmission.url})`;
  
@@ -125,13 +125,6 @@ async function warnAsRepost(submission, lastSubmission) {
     await replyable.distinguish();
     await submission.report({'reason': 'Repost detected: ' + 'http://redd.it/' + await lastSubmission.id});
 }
-
-async function getLinkText(header, lastSubmission) {
-
-
-    return removalReason;
-}
-
 
 async function removeAsRepost(submission, lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, subredditName, submissionType, allTimeTopRemoval, reddit) {
     if (submission.id == await lastSubmission.id) {
@@ -155,7 +148,7 @@ async function createFullCustomRemovalMessage(subSettings, lastSubmission) {
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
     let removalText = subSettings.reposts.fullRemovalMessage;
     removalText = removalText.replace('{{last_submission_link}}', permalink);
-    removalText = removalText.replace('{{last_submission_url}}', permalink);
+    removalText = removalText.replace('{{last_submission_url}}', await lastSubmission.url);
     return removalText;
 }
 

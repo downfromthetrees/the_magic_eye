@@ -172,6 +172,13 @@ When Magic Eye sees the image again, it will extract the removal message from th
 
 The `[](#link)` tags are special empty links that are invisible to users when put in a comment. Several subs make use of this for other tricks like CSS emotes.
 
+
+Optional fields:
+
+    "removeBlacklisted": {
+        "fullRemovalMessage": "I control this message buckaroo, here's my link: {{last_submission_link}}.\n\nAnd [here's the url]({{last_submission_url}}), and here's the blacklist reason: {{blacklist_reason}}"
+    },
+
 Notes: 
 
 * You can automatically add tags to all removals using [Toolbox moderator extension](http://www.reddit.com/r/toolbox). In Toolbox's `Removal Reason Settings` tab just add the `[](#start_removal)` to the end of the header and `[](#end_removal)` to the start of the footer.
@@ -182,10 +189,18 @@ Notes:
 
 * If a moderator hasn't made a comment in this format (or if the moderator comment has been removed/not distinguished) Magic Eye will ignore the removed post and let you deal with the new one.
 
+* You can customize the removal message with the `fullRemovalMessage` parameter, and variables will be substituted in.
+
 
 ### Remove broken image links
 
-    removeBrokenImages: {},
+    "removeBrokenImages": {},
+
+Optional fields:
+
+    "removeBrokenImages": {
+        "fullRemovalMessage": "Hey buckaroo, your horse looks weary and broken. Resubmit a better link."
+    },
 
 If the image can't be downloaded, Magic Eye will remove it as broken and ask the user to fix the link. This is commonly when the user posts a link to a reddit image that's deleted.
 
@@ -197,6 +212,15 @@ You can [see it in action here](https://www.reddit.com/r/hmmm/comments/ah3d4t/hm
         "smallDimension": 330
     },
 
+
+Optional fields:
+
+    "removeSmallImages": {
+        ...
+        "fullRemovalMessage": "Hey buckaroo, that's a tiny little horse. Resubmit a bigger one."
+    },
+
+
 Removes images under a certain size (pixel density). When added, the `height`\*`width` of the image must be larger than `smallDimension`\*`smallDimension`.
 
 Details:
@@ -206,6 +230,12 @@ Details:
 ### Remove uncropped images
 
     "removeUncroppedImages": {},
+
+Optional fields:
+
+    "removeUncroppedImages": {
+        "fullRemovalMessage": "Hey buckaroo, top and bottom gotta go."
+    },
 
 Removes images with [black bars](https://i.imgur.com/6a4SCcw.png) at the bottom and top typical of cellphone screenshots (no support for horizontal cropping yet)
 
