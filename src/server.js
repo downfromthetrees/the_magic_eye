@@ -337,7 +337,7 @@ function scheduleFiltering() {
     const nzTimeString = new Date().toLocaleString("en-NZ", {timeZone: "Pacific/Auckland"});
     const nzTime = new Date(nzTimeString);
     var current_hour = nzTime.getHours();
-    if (current_hour == 9) {
+    if (current_hour == 8) {
         log.info(`[HMMM]`, 'Auto-disabling filter mode');
         enableFilterMode(reddit, false);
     }
