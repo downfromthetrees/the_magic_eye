@@ -1,7 +1,7 @@
 
 # Magic Eye
 
-Magic Eye is a bot created to help moderate image subreddits. It's main feature is detecting and removing reposted images, but it has several other image and general moderation features.
+Magic Eye is a bot created to help moderate image subreddits. It's main feature is detecting and removing reposted images, but it has several other image and general moderation features. It is designed to be flexible and configurable and can work with a variety of workflows.
 
 Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support.
 
@@ -43,23 +43,18 @@ Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support
 
 Supported link types:
 
-* images (png/jpg/jpeg/bmp)
-* imgur links
-* reddit videos
-* animated media (gif/gifv/mp4/webm)
+* images (png/jpg/jpeg/bmp), imgur links, reddit videos, animated media (gif/gifv/mp4/webm)
 
 Currently not supported:
 
-* gfycat links without extensions
-* reddit video x-posts
-* youtube videos
+* gfycat links without extensions, reddit video x-posts, youtube videos
 
 ## Getting Started
 
 ### Prerequisites
 
 * Enable wikis for your subreddit (set wiki to "mod editing" in your subreddit settings)
-* If you want to blacklisted images you'll need to:
+* If you want to blacklist images:
     * Get [Reddit Toolbox](http://www.reddit.com/r/toolbox)
     * Add the removal tags as described in [Removing blacklisted images](#remove-blacklisted-images)
 
@@ -93,9 +88,9 @@ Magic Eye can be configured by editing the magic_eye wiki page.
 
 http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 
-* The settings are in JSON format.
+* The settings are in JSON format, a different format from AutoModerator configuration but still human readable.
 
-* MAGIC_EYE_BOT will let you know if your updates are sucessful. If you're having trouble with it you can use [this JSON validator](https://jsonformatter.curiousconcept.com/) for help.
+* MAGIC_EYE_BOT will let you know if your updates are formatted correctly. If you're having trouble with it you can use a [JSON validator](https://jsonformatter.curiousconcept.com/) for help but Magic Eye will give you some help.
 
 
 ### Configure media types
@@ -103,7 +98,7 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
     "processImages": true,
     "processAnimatedMedia": true,
 
-Individually turn on/off processing of images or animated media (i.e. gifs/videos).
+Individually turn on/off processing of images or animated media (i.e. gifs/videos). Both are enabled by default.
 
 ### Set the tolerance
 
@@ -123,8 +118,6 @@ The tolerance to image differences.
 * `replyAsSubreddit`: Reply on behalf of the subreddit, so it can be seen in modmail (**requires** `mail` **permission**)
 
 ### Remove reposts
-
-**(Included in default settings)**
 
     "reposts": {
         "smallScore": 0,
@@ -167,7 +160,7 @@ Notes:
 
     "removeBlacklisted": {},
 
-Images can be blacklisted permanently by removing a thread and making a comment in it with this format:
+Images can be blacklisted permanently by removing a thread and making a **distinguished** comment in it with this format:
 
     [](#start_removal)
 
@@ -187,12 +180,10 @@ Notes:
 
 * If you're a real perfectionist, `[](#repost)` is another supported tag for when the bot fails to detect a recent repost so you manually remove it as one. In this case you don't want the bot to blacklist it, but you do want future duplicates of it to be removed until the repost period is up! You can [see it in action here](https://www.reddit.com/r/hmmm/comments/a2sseh/hmmm/eb0vmwv/) (note the extended message).
 
-* If a moderator hasn't made a comment in this format (or if the moderator comment has been removed) Magic Eye will ignore the removed post and let you deal with the new one.
+* If a moderator hasn't made a comment in this format (or if the moderator comment has been removed/not distinguished) Magic Eye will ignore the removed post and let you deal with the new one.
 
 
 ### Remove broken image links
-
-**(Included in default settings)**
 
     removeBrokenImages: {},
 
