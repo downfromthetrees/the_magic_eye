@@ -113,12 +113,25 @@ async function actionAsRepost(submission, lastSubmission, noOriginalSubmission, 
 }
 
 async function warnAsRepost(submission, lastSubmission) {
-    const message = await getLinkText(`Detected repost of:`, lastSubmission);
+    const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
+    let message = outdent`
+    Detected repost of:
+    
+    * [Click here to see the submission](${permalink})
+    * [Direct image link](${await lastSubmission.url})`;
+ 
     const replyable = await submission.reply(message);
     await replyable.remove();
     await replyable.distinguish();
     await submission.report({'reason': 'Repost detected: ' + 'http://redd.it/' + await lastSubmission.id});
 }
+
+async function getLinkText(header, lastSubmission) {
+
+
+    return removalReason;
+}
+
 
 async function removeAsRepost(submission, lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, subredditName, submissionType, allTimeTopRemoval, reddit) {
     if (submission.id == await lastSubmission.id) {
