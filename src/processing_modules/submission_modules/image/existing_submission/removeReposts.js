@@ -34,6 +34,13 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
         if (processorSettings.approveIfRepostDeleted === true) {
             submission.approve();
         }
+
+        // hmmm custom
+        const author = await submission.author;
+        let username = author ? author.name : null;
+        if (username == process.env.HOLDING_ACCOUNT_USERNAME || username == 'CosmicKeys') {
+            await submission.approve();
+        }           
         return false;
     }
 
