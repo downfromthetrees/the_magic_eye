@@ -21,6 +21,21 @@ const reddit = new snoowrap({
 reddit.config({requestDelay: 1000, continueAfterRatelimitError: true});
 
 
+async function nukeHolding() {
+    const holdingSubreddit = await reddit.getSubreddit(process.env.HOLDING_SUBREDDIT);
+    const submissions = await holdingSubreddit.getNew({'limit': 500});
+    
+    for (let submission of submissions) {
+        try {
+            submission.delete();
+        } catch (e) {
+            log.error('[HOLDING] Error nuking submission:' + submission.id, e);
+        }
+    };
+
+
+}
+
 async function mainHolding() {
     try {
         if (!process.env.HOLDING_TARGET_SUBREDDITS) {
@@ -281,5 +296,6 @@ async function deleteHoldingPost(submissionId) {
 module.exports = {
     mainHolding,
     garbageCollectionHolding,
-    deleteHoldingPost
+    deleteHoldingPost,
+    nukeHolding
 };

@@ -46,7 +46,7 @@ const { SubredditSettings, getSubredditSettings, setSubredditSettings,
     refreshDatabaseList, upgradeMasterSettings, needsUpgrade } = require('./mongodb_master_data.js');
 const { updateSettings, createDefaultSettings, writeSettings } = require('./wiki_utils.js');
 const { enableFilterMode } = require('./hmmm/automod_updater.js');
-const { mainHolding, garbageCollectionHolding } = require('./holding_tasks/holding_tasks.js');
+const { mainHolding, garbageCollectionHolding, nukeHolding } = require('./holding_tasks/holding_tasks.js');
 const { mainSocial } = require('./holding_tasks/social.js');
 
 // https://not-an-aardvark.github.io/snoowrap/snoowrap.html
@@ -318,6 +318,13 @@ startServer();
 app.get('/keepalive', async function(req, res) {
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify({ status: 'ok' }));
+});
+
+
+app.get('/holding/nuke', async function(req, res) {
+    nukeHolding();
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify({ status: 'Holding has been nuked' }));
 });
 
 
