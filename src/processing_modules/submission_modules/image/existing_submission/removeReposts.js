@@ -64,6 +64,13 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
             submission.assignFlair({'text': await lastSubmission.link_flair_text}); // reflair with same flair
         }
         existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
+
+        // hmmm custom
+        const author = await submission.author;
+        let username = author ? author.name : null;
+        if (username == process.env.HOLDING_ACCOUNT_USERNAME || username == 'CosmicKeys') {
+            await submission.approve();
+        }   
     }
 
     return false;
