@@ -1,20 +1,21 @@
 
 # Magic Eye
 
-Magic Eye is a bot created to help moderate image subreddits. It's main feature is detecting and removing reposted images, but it has several other image and general moderation features. It is designed to be flexible and configurable and can work with a variety of workflows.
+Magic Eye is an image detection and moderation bot originally developed for r/hmmm. It is provided as a service using the account [u/MAGIC_EYE_BOT](https://www.reddit.com/user/MAGIC_EYE_BOT).
+
+Unlike other bots that purely detect image reposts, Magic Eye was developed to actively support moderators with complex and unique removal workflows. It also has several other general moderation features.
 
 Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support.
-
 
 <!-- TOC -->
 
 - [Magic Eye](#magic-eye)
-    - [Current features](#current-features)
+    - [Features / What does it do](#features--what-does-it-do)
     - [Getting Started](#getting-started)
         - [Prerequisites](#prerequisites)
         - [Setup](#setup)
         - [General info / FAQ](#general-info--faq)
-    - [Feature Documentation](#feature-documentation)
+    - [Features and Configuration](#features-and-configuration)
         - [Configure media types](#configure-media-types)
         - [Set the tolerance](#set-the-tolerance)
         - [Removal message type](#removal-message-type)
@@ -31,23 +32,29 @@ Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support
 
 <!-- /TOC -->
 
-## Current features
+## Features / What does it do
 
-* Remove or warn about reposts (**enabled by default**)
-* Remove blacklisted images (**enabled by default**)
-* Remove broken image links (**enabled by default**)
-* Remove small images
-* Remove uncropped images
-* Private message first time posters with a custom message
-* Report unmoderated posts over a karma threshold
+* Easy setup, you just invite it as a moderator
+* Every setting can configured by a wiki page just like AutoModerator
+* Supports images and animated media
+* Fully customisable removal messages
+* Alert moderators by reporting any comment replies it gets
+* Repost moderation:
+    * Remove reposts and inform users
+    * Warn about reposts via reports
+    * Send private message about removal from the subreddit modmail
+    * Automatically approve and reflair reposts
+    * Simple overrides for complex workflows like users needing to resubmit with a different title
+    * Customisable detection thresholds
+* Remove images that are too small
+* Remove images that are uncropped (i.e. black areas at the top and bottom)
+* Remove broken image links
+* Private message first time subreddit posters with a custom message
+* Report unmoderated posts over a given karma threshold
 
 Supported link types:
 
-* images (png/jpg/jpeg/bmp), imgur links, reddit videos, animated media (gif/gifv/mp4/webm)
-
-Currently not supported:
-
-* gfycat links without extensions, reddit video x-posts, youtube videos
+* images (png/jpg/jpeg/bmp), imgur, gfycat, reddit videos, animated media (gif/gifv/mp4/webm)
 
 ## Getting Started
 
@@ -66,6 +73,12 @@ Currently not supported:
     * Create a settings page in your wiki at `r/YOUR_SUB_NAME/wiki/magic_eye`
     * Send you a modmail to let you know it has begun processing new submissions
 
+By default Magic Eye will:
+
+* Remove reposts with the default settings (15 day repost period)
+* Remove blacklisted images
+* Remove broken image links
+
 See the [settings documentation](#settings) for enabling more features and tweaking the settings.
 
 ### General info / FAQ
@@ -74,23 +87,23 @@ See the [settings documentation](#settings) for enabling more features and tweak
 
 * Magic Eye has sensible default settings so is safe to just add and forget. By default, it has a 15-50 day repost limit depending on how much karma the last submission got (i.e. bigger post, wait longer between allowing it to be reposted). See the the [Remove reposts](#remove-reposts) section for setting your own repost times.
 
-* Magic Eye checks for new submissions every 30s or so, so if you want it to pick up a post then avoid moderating posts that are under a minute old.
+* Magic Eye checks for new submissions every 30s or so. Avoid moderating posts under 1 minute old if you want Magic Eye to process them first.
 
-* If you want to stop MAGIC_EYE_BOT for any reason, just demod it. You can safely demod/remod it at any time without affecting your database of images.
+* To stop the bot for any reason, just demod it. You can safely demod/remod it at any time without affecting your database of images.
 
 * On rare occasions Magic Eye can misdetect images and when it does the images may not look anything like each other. It isn't a bug, Magic Eye just doesn't "see" the image like our eyes and brain do. If an image is cropped in specific ways it also may no longer match. It's a trade off, but you can tweak the tolerance in the settings.
 
-* You can reply to MAGIC_EYE_BOT with `clear` and it'll remove the image from it's database. This can be is handy for rare problematic images (they tend to have [lots of grey space](https://i.imgur.com/Avp2Y57.png)), but you can use it for any reason if the bot is being annoying.
+* You can reply to a removal message with `clear` and it'll remove the image from it's database. This can be is handy for rare problematic images (they tend to have [lots of grey space](https://i.imgur.com/Avp2Y57.png)).
 
-## Feature Documentation
+## Features and Configuration
 
-Magic Eye can be configured by editing the magic_eye wiki page.
+Magic Eye can be configured by editing your subreddits magic_eye wiki page.
 
 http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 
 * The settings are in JSON format, a different format from AutoModerator configuration but still human readable.
 
-* MAGIC_EYE_BOT will let you know if your updates are formatted correctly. If you're having trouble with it you can use a [JSON validator](https://jsonformatter.curiousconcept.com/) for help but Magic Eye will give you some help.
+* MAGIC_EYE_BOT will let you know if your updates are formatted correctly. If you're having trouble with it you can use a [JSON validator](https://jsonformatter.curiousconcept.com/)  but Magic Eye will give you some help.
 
 
 ### Configure media types
