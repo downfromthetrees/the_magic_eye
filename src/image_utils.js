@@ -67,9 +67,12 @@ export async function getImageUrl(submission) {
     }
 
     const isVid = await submission.is_video;
+    const crossPostParent = await submission.crosspost_parent_list;
+    const isCrosspostVid = crossPostParent && crossPostParent[0] && crossPostParent[0].is_video;
 
+    const isGfycat = imageUrl.includes('gfycat.com');
     const animatedMedia = ['gif', 'gifv', 'mp4', 'webm'];
-    if (animatedMedia.includes(suffix) || isVid) {
+    if (animatedMedia.includes(suffix) || isVid || isGfycat || isCrosspostVid) {
         return { imageUrl: thumbnail, submissionType: 'animated' };
     }
 
