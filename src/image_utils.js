@@ -66,9 +66,12 @@ export async function getImageUrl(submission) {
     }
 
     const isVid = await submission.is_video;
+    const isGfycat = imageUrl.includes('gfycat.com');
+
+    console.log('thumb:', thumbnail);
 
     const animatedMedia = ['gif', 'gifv', 'mp4', 'webm'];
-    if (animatedMedia.includes(suffix) || isVid) {
+    if (animatedMedia.includes(suffix) || isVid || isGfycat) {
         return { imageUrl: thumbnail, submissionType: 'animated' };
     }
 
