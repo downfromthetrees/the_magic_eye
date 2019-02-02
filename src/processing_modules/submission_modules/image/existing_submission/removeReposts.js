@@ -127,7 +127,13 @@ async function actionAsRepost(submission, lastSubmission, noOriginalSubmission, 
 }
 
 async function warnAsRepost(submission, lastSubmission) {
-    const message = await getLinkText(`Detected repost of:`, lastSubmission);
+    const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
+    let message = outdent`
+    Detected repost of:
+
+    * [Click here to see the submission](${permalink})
+    * [Direct image link](${await lastSubmission.url})`;
+ 
     const replyable = await submission.reply(message);
     await replyable.remove();
     await replyable.distinguish();
@@ -135,17 +141,32 @@ async function warnAsRepost(submission, lastSubmission) {
 }
 
 async function removeAsRepost(submission, lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, subredditName, submissionType, allTimeTopRemoval, reddit) {
-    const removalReason = await getRemovalText(submission, lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, subredditName, submissionType, allTimeTopRemoval);
-    await removePost(submission, removalReason, subSettings, reddit);
-}
-
-
-async function getRemovalText(submission, lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, subredditName, submissionType, allTimeTopRemoval){
     if (submission.id == await lastSubmission.id) {
         log.error(`[${subredditName}]`, chalk.red('Duplicate detection error, ignoring but this indicates a real issue.', `[${submissionType}]`));
         return;
     }
 
+    // get removal text
+    let removalReason = "";
+    if (subSettings.reposts.fullRemovalMessage) {
+        removalReason = await createFullCustomRemovalMessage(subSettings, lastSubmission);
+    } else {
+        removalReason = await createRemovalMessage(lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, allTimeTopRemoval);
+    }
+
+    await removePost(submission, removalReason, subSettings, reddit);
+}
+
+
+async function createFullCustomRemovalMessage(subSettings, lastSubmission) {
+    const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
+    let removalText = subSettings.reposts.fullRemovalMessage;
+    removalText = removalText.replace('{{last_submission_link}}', permalink);
+    removalText = removalText.replace('{{last_submission_url}}', await lastSubmission.url);
+    return removalText;
+}
+
+async function createRemovalMessage(lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, allTimeTopRemoval) {
     let headerText;
     if (allTimeTopRemoval) {
         headerText = subSettings.reposts.allTimeTopRemovalMessage ? subSettings.reposts.allTimeTopRemovalMessage : "Good post but unfortunately it has been removed because it is one of this subreddits all time top posts:";
@@ -153,32 +174,21 @@ async function getRemovalText(submission, lastSubmission, noOriginalSubmission, 
         headerText = subSettings.reposts.removalMessage ? subSettings.reposts.removalMessage : "Good post but unfortunately it has been removed because it has been posted recently by another user:";
     }
 
-    let removalReason = await getLinkText(headerText, lastSubmission);
-
-    if (noOriginalSubmission) {
-        removalReason += outdent` 
-
-        
-        That submission was also removed by a moderator as a repost, so it has been posted by another user recently.`;
-    } else if (warnAboutDeletedReposts) {
-        removalReason += outdent`
-        
-        
-        **Note:** Users may not delete and resubmit images without a good reason.`;
-    }
-
-    return removalReason;
-}
-
-async function getLinkText(header, lastSubmission) {
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
-    let removalReason = outdent`
-    ${header}
+    const manualRepostWarning = noOriginalSubmission ? 'That submission was also removed by a moderator as a repost, so it has been posted by another user recently' : "";
+    const noDeletedRepostsWarning = warnAboutDeletedReposts ? "**Note:** Users may not delete and resubmit images without a good reason" : "";
+
+    let removalText = outdent`
+    ${headerText}
 
     * [Click here to see the submission](${permalink})
-    * [Direct image link](${await lastSubmission.url})`;
+    * [Direct image link](${await lastSubmission.url})
+    
+    ${manualRepostWarning}
+    ${noDeletedRepostsWarning}
+    `;
 
-    return removalReason;
+    return removalText;
 }
 
 

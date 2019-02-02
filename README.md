@@ -1,7 +1,7 @@
 
 # Magic Eye
 
-Magic Eye is a bot created to help moderate image subreddits. It's main feature is detecting and removing reposted images, but it has several other image and general moderation features.
+Magic Eye is a bot created to help moderate image subreddits. It's main feature is detecting and removing reposted images, but it has several other image and general moderation features. It is designed to be flexible and configurable and can work with a variety of workflows.
 
 Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support.
 
@@ -43,23 +43,18 @@ Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support
 
 Supported link types:
 
-* images (png/jpg/jpeg/bmp)
-* imgur links
-* reddit videos
-* animated media (gif/gifv/mp4/webm)
+* images (png/jpg/jpeg/bmp), imgur links, reddit videos, animated media (gif/gifv/mp4/webm)
 
 Currently not supported:
 
-* gfycat links without extensions
-* reddit video x-posts
-* youtube videos
+* gfycat links without extensions, reddit video x-posts, youtube videos
 
 ## Getting Started
 
 ### Prerequisites
 
 * Enable wikis for your subreddit (set wiki to "mod editing" in your subreddit settings)
-* If you want to blacklisted images you'll need to:
+* If you want to blacklist images:
     * Get [Reddit Toolbox](http://www.reddit.com/r/toolbox)
     * Add the removal tags as described in [Removing blacklisted images](#remove-blacklisted-images)
 
@@ -93,9 +88,9 @@ Magic Eye can be configured by editing the magic_eye wiki page.
 
 http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 
-* The settings are in JSON format.
+* The settings are in JSON format, a different format from AutoModerator configuration but still human readable.
 
-* MAGIC_EYE_BOT will let you know if your updates are sucessful. If you're having trouble with it you can use [this JSON validator](https://jsonformatter.curiousconcept.com/) for help.
+* MAGIC_EYE_BOT will let you know if your updates are formatted correctly. If you're having trouble with it you can use a [JSON validator](https://jsonformatter.curiousconcept.com/) for help but Magic Eye will give you some help.
 
 
 ### Configure media types
@@ -103,7 +98,7 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
     "processImages": true,
     "processAnimatedMedia": true,
 
-Individually turn on/off processing of images or animated media (i.e. gifs/videos).
+Individually turn on/off processing of images or animated media (i.e. gifs/videos). Both are enabled by default.
 
 ### Set the tolerance
 
@@ -123,8 +118,6 @@ The tolerance to image differences.
 * `replyAsSubreddit`: Reply on behalf of the subreddit, so it can be seen in modmail (**requires** `mail` **permission**)
 
 ### Remove reposts
-
-**(Included in default settings)**
 
     "reposts": {
         "smallScore": 0,
@@ -146,6 +139,7 @@ Optional fields:
         ...
         "removalMessage": "Bad luck buckaroo, this image is a repost!",
         "allTimeTopRemovalMessage": "Bad luck buckaroo, this image is an all time classic!",
+        "fullRemovalMessage": "I control this message buckaroo, here's my link: {{last_submission_link}}.\n\nAnd [here's the url]({{last_submission_url}})",
         "actionAll": false
     },
 
@@ -153,6 +147,7 @@ Notes:
 * `action`: This can be one of:
     * `"remove"`: removes the post and posts a message to the user
     * `"warn"`: reports the post and posts a removed comment in the thread with links
+* You can override the first sentence with `removalMessage`/`allTimeTopRemovalMessage`, or the whole message with `fullRemovalMessage` and use the variables as you like. `\n` for line break.
 * `actionRepostsIfDeleted`: Performs `action` on reposts even if the previous post was deleted.
 * `approveIfOverRepostDays`: Auto-approves a repost over the time limit to save you doing it
 * Scores thresholds: Magic Eye keeps track of the last successful post of an image and uses the score it got + how long ago it was posted to determine what to do. There are a few thresholds so that it can make smarter decisions for reposts of popular vs less popular reposts. For example in the default settings: if the last matching submission got over `mediumScore` points (in this case 400), it'll be removed if it's less than `mediumScoreRepostDays` days old (in this case 25 days).
@@ -165,7 +160,7 @@ Notes:
 
     "removeBlacklisted": {},
 
-Images can be blacklisted permanently by removing a thread and making a comment in it with this format:
+Images can be blacklisted permanently by removing a thread and making a **distinguished** comment in it with this format:
 
     [](#start_removal)
 
@@ -177,6 +172,13 @@ When Magic Eye sees the image again, it will extract the removal message from th
 
 The `[](#link)` tags are special empty links that are invisible to users when put in a comment. Several subs make use of this for other tricks like CSS emotes.
 
+
+Optional fields:
+
+    "removeBlacklisted": {
+        "fullRemovalMessage": "I control this message buckaroo, here's my link: {{last_submission_link}}.\n\nAnd [here's the url]({{last_submission_url}}), and here's the blacklist reason: {{blacklist_reason}}"
+    },
+
 Notes: 
 
 * You can automatically add tags to all removals using [Toolbox moderator extension](http://www.reddit.com/r/toolbox). In Toolbox's `Removal Reason Settings` tab just add the `[](#start_removal)` to the end of the header and `[](#end_removal)` to the start of the footer.
@@ -185,14 +187,20 @@ Notes:
 
 * If you're a real perfectionist, `[](#repost)` is another supported tag for when the bot fails to detect a recent repost so you manually remove it as one. In this case you don't want the bot to blacklist it, but you do want future duplicates of it to be removed until the repost period is up! You can [see it in action here](https://www.reddit.com/r/hmmm/comments/a2sseh/hmmm/eb0vmwv/) (note the extended message).
 
-* If a moderator hasn't made a comment in this format (or if the moderator comment has been removed) Magic Eye will ignore the removed post and let you deal with the new one.
+* If a moderator hasn't made a comment in this format (or if the moderator comment has been removed/not distinguished) Magic Eye will ignore the removed post and let you deal with the new one.
+
+* You can customize the removal message with the `fullRemovalMessage` parameter, and variables will be substituted in.
 
 
 ### Remove broken image links
 
-**(Included in default settings)**
+    "removeBrokenImages": {},
 
-    removeBrokenImages: {},
+Optional fields:
+
+    "removeBrokenImages": {
+        "fullRemovalMessage": "Hey buckaroo, your horse looks weary and broken. Resubmit a better link."
+    },
 
 If the image can't be downloaded, Magic Eye will remove it as broken and ask the user to fix the link. This is commonly when the user posts a link to a reddit image that's deleted.
 
@@ -204,6 +212,15 @@ You can [see it in action here](https://www.reddit.com/r/hmmm/comments/ah3d4t/hm
         "smallDimension": 330
     },
 
+
+Optional fields:
+
+    "removeSmallImages": {
+        ...
+        "fullRemovalMessage": "Hey buckaroo, that's a tiny little horse. Resubmit a bigger one."
+    },
+
+
 Removes images under a certain size (pixel density). When added, the `height`\*`width` of the image must be larger than `smallDimension`\*`smallDimension`.
 
 Details:
@@ -213,6 +230,12 @@ Details:
 ### Remove uncropped images
 
     "removeUncroppedImages": {},
+
+Optional fields:
+
+    "removeUncroppedImages": {
+        "fullRemovalMessage": "Hey buckaroo, top and bottom gotta go."
+    },
 
 Removes images with [black bars](https://i.imgur.com/6a4SCcw.png) at the bottom and top typical of cellphone screenshots (no support for horizontal cropping yet)
 

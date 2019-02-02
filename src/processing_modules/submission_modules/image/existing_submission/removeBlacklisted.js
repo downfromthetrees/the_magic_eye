@@ -40,13 +40,36 @@ async function removeBlacklisted(reddit, modComment, submission, lastSubmission,
 
 async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklistReason, subSettings, subredditName){
     log.info(`[${subredditName}]`, 'Removing as blacklisted:', await printSubmission(submission), '. Origin: ', await printSubmission(lastSubmission));
+
+    // get removal text
+    let removalReason = "";
+    if (subSettings.removeBlacklisted.fullRemovalMessage) {
+        removalReason = await createFullCustomRemovalMessage(subSettings, lastSubmission, blacklistReason);
+    } else {
+        removalReason = await createRemovalMessage(lastSubmission, blacklistReason);
+    }
+
+    removePost(submission, removalReason, subSettings, reddit);
+    logActionBlacklisted(subredditName, null);
+}
+
+
+async function createRemovalMessage(lastSubmission, blacklistReason) {
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
     const removalReason = outdent
         `This post has been automatically removed because it is a repost of [this image](${await lastSubmission.url}) posted [here](${permalink}), and that post was removed because:
 
         ${blacklistReason}`;
-    removePost(submission, removalReason, subSettings, reddit);
-    logActionBlacklisted(subredditName, null);
+    return removalReason;
+}
+
+async function createFullCustomRemovalMessage(subSettings, lastSubmission, blacklistReason) {
+    const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
+    let removalText = subSettings.removeBlacklisted.fullRemovalMessage;
+    removalText = removalText.replace('{{last_submission_link}}', permalink);
+    removalText = removalText.replace('{{last_submission_url}}', await lastSubmission.url);
+    removalText = removalText.replace('{{blacklist_reason}}', blacklistReason);
+    return removalText;
 }
 
 
