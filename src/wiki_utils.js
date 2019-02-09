@@ -147,7 +147,7 @@ async function sendFailureReply(username, reddit) {
         text: 
 `The changes you made to your settings aren't formatted right so I haven't updated them.
         
-Either restore the last settings, or use https://jsonlint.com/ to find the issue (typically a trailing comma or missing quotation marks).`
+Use https://jsonlint.com/ to find the issue (typically a trailing comma, missing comma, or missing quotation marks). Either that or restore the last settings using the wiki page history.`
       });
 }
 
