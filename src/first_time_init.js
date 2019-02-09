@@ -51,7 +51,7 @@ async function firstTimeInit(reddit, subredditName, database, masterSettings) {
         to: await `/r/${subredditName}`,
         subject: `Initialisation complete.`,
         text: outdent`
-            Hi all, I'm a bot here to help assist you with your subreddit. I'm now initialised and checking new posts as they come in.
+            Hi all, I'm a bot here to assist you with your subreddit. I'm now initialised and checking new posts as they come in.
             
             You can learn all about me at r/MAGIC_EYE_BOT or see the documentation below:
 
