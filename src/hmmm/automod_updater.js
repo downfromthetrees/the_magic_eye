@@ -52,12 +52,10 @@ async function enableFilterMode(reddit, enable) {
 
 
 const filterConfig =
-`
----
+`---
 # Magic Eye auto-filtering config
 type: submission
-action: filter
-`;
+action: filter`;
 
 // message: |
 //     Thanks for your hmmm!
