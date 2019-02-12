@@ -10,9 +10,8 @@ Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support
 <!-- TOC -->
 
 - [Magic Eye](#magic-eye)
-    - [Features / What does it do](#features--what-does-it-do)
+    - [Features / What can it do](#features--what-can-it-do)
     - [Getting Started](#getting-started)
-        - [Prerequisites](#prerequisites)
         - [Setup](#setup)
         - [General info / FAQ](#general-info--faq)
     - [Features and Configuration](#features-and-configuration)
@@ -32,76 +31,67 @@ Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support
 
 <!-- /TOC -->
 
-## Features / What does it do
+## Features / What can it do
 
-* Easy setup, you just invite it as a moderator
-* Every setting can configured by a wiki page just like AutoModerator
-* Supports images and animated media
-* Fully customisable removal messages
-* Alert moderators by reporting any comment replies it gets
 * Repost moderation:
-    * Remove reposts and inform users
-    * Warn about reposts via reports
-    * Send private message about removal from the subreddit modmail
-    * Automatically approve and reflair reposts
-    * Simple overrides for complex workflows like users needing to resubmit with a different title
-    * Customisable detection thresholds
+    * Supports images (png/jpg/jpeg/bmp), imgur and gfycat links, reddit videos, and animated media (gif/gifv/mp4/webm)
+    * Remove or report reposts
+    * Automatically approve/reflair reposts
+    * Supports complex workflows such as resubmitting deleted images with a different title
+    * Customisable detection threshold
+* Customisable removal messages, including private messages via modmail
+* Alert moderators to questions by reporting comment replies it gets
 * Remove images that are too small
 * Remove images that are uncropped (i.e. black areas at the top and bottom)
 * Remove broken image links
 * Private message first time subreddit posters with a custom message
 * Report unmoderated posts over a given karma threshold
 
-Supported link types:
-
-* images (png/jpg/jpeg/bmp), imgur, gfycat, reddit videos, animated media (gif/gifv/mp4/webm)
+All features are fully customisable using the AutoModerator model of having a wiki page that stores subreddit settings.
 
 ## Getting Started
 
-### Prerequisites
-
-* Enable wikis for your subreddit (set wiki to "mod editing" in your subreddit settings)
-* If you want to blacklist images:
-    * Get [Reddit Toolbox](http://www.reddit.com/r/toolbox)
-    * Add the removal tags as described in [Removing blacklisted images](#remove-blacklisted-images)
-
 ### Setup
 
+* Enable wikis for your subreddit (set wiki to "mod editing" in your subreddit settings)
 * Invite [u/MAGIC_EYE_BOT](www.reddit.com/u/MAGIC_EYE_BOT) as a moderator to your subreddit with `flair`, `posts` and `wiki` permissions. The bot will then:
     * Accept the invite
-    * Build a database from the `/new` and `/top` posts in your subreddit (takes roughly an hour)
+    * Build a database from the `/new` and `/top` posts in your subreddit (can take up to an hour)
     * Create a settings page in your wiki at `r/YOUR_SUB_NAME/wiki/magic_eye`
-    * Send you a modmail to let you know it has begun processing new submissions
+    * Send you a modmail to let you know it has finished initialising and begun processing new submissions
+* If you want to blacklist images:
+   * Get [Reddit Toolbox](http://www.reddit.com/r/toolbox)
+   * Add the removal tags as described in [Removing blacklisted images](#remove-blacklisted-images)
 
 By default Magic Eye will:
 
-* Remove reposts with the default settings (15 day repost period)
+* Remove recent reposts (~15 day repost period)
 * Remove blacklisted images
 * Remove broken image links
 
-See the [settings documentation](#settings) for enabling more features and tweaking the settings.
+See the [settings documentation](#settings) for information on how to enabling features and tweak settings.
 
 ### General info / FAQ
 
 * If users reply to MAGIC_EYE_BOT, it will report the comment so you can check it out.
 
-* Magic Eye has sensible default settings so is safe to just add and forget. By default, it has a 15-50 day repost limit depending on how much karma the last submission got (i.e. bigger post, wait longer between allowing it to be reposted). See the the [Remove reposts](#remove-reposts) section for setting your own repost times.
+* Magic Eye has sensible default settings so is safe to just add and forget. By default, it has a 15-50 day repost limit depending on how much karma the last submission got (i.e. bigger post, wait longer between allowing it to be reposted). See the the [Remove reposts](#remove-reposts) section for setting your own repost periods.
 
 * Magic Eye checks for new submissions every 30s or so. Avoid moderating posts under 1 minute old if you want Magic Eye to process them first.
 
 * To stop the bot for any reason, just demod it. You can safely demod/remod it at any time without affecting your database of images.
 
-* On rare occasions Magic Eye can misdetect images and when it does the images may not look anything like each other. It isn't a bug, Magic Eye just doesn't "see" the image like our eyes and brain do. If an image is cropped in specific ways it also may no longer match. It's a trade off, but you can tweak the tolerance in the settings.
+* On rare occasions Magic Eye can misdetect images and when it does the images may not look anything like each other. It isn't a bug, Magic Eye just doesn't see the image like our eyes and brain do. If an image is cropped in specific ways it also may no longer match. It's a trade off, but you can tweak the tolerance in the settings if for example you have a subreddit with highly similar images.
 
-* You can reply to a removal message with `clear` and it'll remove the image from it's database. This can be is handy for rare problematic images (they tend to have [lots of grey space](https://i.imgur.com/Avp2Y57.png)).
+* You can reply to a removal message with `clear` and it'll remove the image from it's database, but this is generally just for rare problematic images (they tend to have [lots of grey space](https://i.imgur.com/Avp2Y57.png)).
 
 ## Features and Configuration
 
-Magic Eye can be configured by editing your subreddits magic_eye wiki page.
+Magic Eye can be configured by editing your subreddits magic_eye wiki page:
 
 http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 
-* The settings are in JSON format, a different format from AutoModerator configuration but still human readable.
+* The settings are in JSON format. It is a different format from what AutoModerator uses, but it is still human readable.
 
 * MAGIC_EYE_BOT will let you know if your updates are formatted correctly. If you're having trouble with it you can use a [JSON validator](https://jsonformatter.curiousconcept.com/)  but Magic Eye will give you some help.
 

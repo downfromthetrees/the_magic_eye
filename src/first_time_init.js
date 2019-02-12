@@ -51,19 +51,19 @@ async function firstTimeInit(reddit, subredditName, database, masterSettings) {
         to: await `/r/${subredditName}`,
         subject: `Initialisation complete.`,
         text: outdent`
-            Hi all, I'm a bot here to assist you with your subreddit. I'm now initialised and checking new posts as they come in.
+            Hi all, I am a bot. Your database has been initialised and I am now checking new posts made in your subreddit.
             
             You can learn all about me at r/MAGIC_EYE_BOT or see the documentation below:
 
             https://github.com/downfromthetrees/the_magic_eye/blob/master/README.md
 
-            The default settings I have right now:
+            These are the default settings that are currently enabled:
 
             * Remove recent image/gif reposts
             * Remove [blacklisted images](https://github.com/downfromthetrees/the_magic_eye/blob/master/README.md#remove-blacklisted-images)
             * Remove broken image links
 
-            Like AutoModerator you can configure everything I do and say using your settings wiki page: r/${subredditName}/wiki/magic_eye`
+            Like AutoModerator you can configure everything I do and say. The wiki page for your settings is: r/${subredditName}/wiki/magic_eye`
       });
       log.info(`[${subredditName}]`, chalk.blue('Success modmail sent and init set true for', subredditName));
     await reddit.composeMessage({
