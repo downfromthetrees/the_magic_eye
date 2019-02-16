@@ -20,6 +20,7 @@ const { removeUncroppedImages } = require('./processing_modules/submission_modul
 const { allowRepostsOnlyByUser } = require('./processing_modules/submission_modules/image/existing_submission/allowRepostOnlyByUser.js');
 const { removeBlacklisted } = require('./processing_modules/submission_modules/image/existing_submission/removeBlacklisted.js');
 const { removeReposts } = require('./processing_modules/submission_modules/image/existing_submission/removeReposts.js');
+const { removeTitleMatch } = require('./processing_modules/submission_modules/image/existing_submission/removeReposts.js');
 
 
 async function processSubmission(submission, masterSettings, database, reddit, activeMode) {
@@ -93,7 +94,7 @@ async function processSubmission(submission, masterSettings, database, reddit, a
         log.info(`[${subredditName}]`, "Image is too large/ignore: ", await printSubmission(submission));
         return;
     }
-
+ 
     // only run on approved media 
     const processImages = masterSettings.settings.processImages === true || masterSettings.settings.processImages === undefined;
     const processAnimatedMedia = masterSettings.settings.processAnimatedMedia === true;
@@ -104,12 +105,12 @@ async function processSubmission(submission, masterSettings, database, reddit, a
         return;
     }
 
-    // run the precheck processors
+    // run the precheck processors - processors that require only the current submission
     if (activeMode) {
         const precheckProcessors = [ 
             removeImagesWithText,
             removeSmallImages,
-            removeUncroppedImages,
+            removeUncroppedImages
         ];
     
         for (const processor of precheckProcessors) {
@@ -121,14 +122,24 @@ async function processSubmission(submission, masterSettings, database, reddit, a
     }
 
     // process submission as new or existing
-    const existingMagicSubmission = await database.getMagicSubmission(imageDetails.dhash, masterSettings.settings.similarityTolerance);
-    if (existingMagicSubmission == null) {
-        await processNewSubmission(submission, imageDetails, database, activeMode, subredditName, submissionType);
-    } else if (activeMode) {
-        await processExistingSubmission(submission, existingMagicSubmission, masterSettings, reddit, subredditName, submissionType);
-        await database.saveMagicSubmission(existingMagicSubmission); // save here to cover all updates
+    const existingMagicSubmission = await database.getMagicSubmission(imageDetails.dhash, masterSettings.settings.similarityTolerance);    
+    if (existingMagicSubmission && existingMagicSubmission != null && activeMode) {
+        if (activeMode) {
+            await processExistingSubmission(submission, existingMagicSubmission, masterSettings, reddit, subredditName, submissionType);
+            await database.saveMagicSubmission(existingMagicSubmission); // save here to cover all updates
+        } else {
+            log.info(chalk.yellow(`[${subredditName}][first_time_init]`, 'Ignoring existing submission for dhash, matched: ' + existingMagicSubmission._id));    
+        }
     } else {
-        log.info(chalk.yellow(`[${subredditName}][first_time_init]`, 'Ignoring existing submission for dhash, matched: ' + existingMagicSubmission._id));    
+        // no database match found, process as new
+        await processNewSubmission(submission, imageDetails, database, activeMode, subredditName, submissionType);
+   
+        // look for pusshift submission
+        const pushShiftSubmission = null;
+        if (pushShiftSubmission) {
+            // do 
+            return;
+        }
     }
 }
 
