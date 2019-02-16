@@ -161,7 +161,7 @@ Images can be blacklisted permanently by removing a thread and making a **distin
 
     [](#start_removal)
 
-    * My cool removal reason
+    My cool removal reason.
 
     [](#end_removal)
 
