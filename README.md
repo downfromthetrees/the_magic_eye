@@ -93,7 +93,9 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 
 * The settings are in JSON format. It is a different format from what AutoModerator uses, but it is still human readable.
 
-* MAGIC_EYE_BOT will let you know if your updates are formatted correctly. If you're having trouble with it you can use a [JSON validator](https://jsonformatter.curiousconcept.com/)  but Magic Eye will give you some help.
+* MAGIC_EYE_BOT will let you know if your updates are successful, and give you help if there is a formatting issue. It keeps the actual settings in it's own database so if you mess up your wiki page it's not a concern, the bot will just keep using the last valid settings you had.
+
+* Note: Magic Eye can't detect when you use the wiki page "revert" button. If you use it to revert to previous settings, just edit and save the page (no changes needed) to get Magic Eye to pick up the change.
 
 
 ### Configure media types
