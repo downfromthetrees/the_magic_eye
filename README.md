@@ -15,17 +15,17 @@ Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support
         - [Setup](#setup)
         - [General info / FAQ](#general-info--faq)
     - [Features and Configuration](#features-and-configuration)
-        - [Configure media types](#configure-media-types)
-        - [Set the tolerance](#set-the-tolerance)
-        - [Removal message type](#removal-message-type)
-        - [Remove reposts](#remove-reposts)
-        - [Remove blacklisted images](#remove-blacklisted-images)
-        - [Remove broken image links](#remove-broken-image-links)
+        - [Media types (enabled by default)](#media-types-enabled-by-default)
+        - [Set the tolerance (enabled by default)](#set-the-tolerance-enabled-by-default)
+        - [Remove reposts (enabled by default)](#remove-reposts-enabled-by-default)
+        - [Remove blacklisted images (enabled by default)](#remove-blacklisted-images-enabled-by-default)
+        - [Remove broken image links (enabled by default)](#remove-broken-image-links-enabled-by-default)
         - [Remove small images](#remove-small-images)
         - [Remove uncropped images](#remove-uncropped-images)
         - [Message first time submitters](#message-first-time-submitters)
         - [Custom footer](#custom-footer)
         - [Report unmoderated posts](#report-unmoderated-posts)
+        - [Removal message type](#removal-message-type)
     - [How does it work?](#how-does-it-work)
     - [Thanks](#thanks)
 
@@ -59,14 +59,11 @@ All features are fully customisable using the AutoModerator model of having a wi
     * Build a database from the `/new` and `/top` posts in your subreddit (can take up to an hour)
     * Create a settings page in your wiki at `r/YOUR_SUB_NAME/wiki/magic_eye`
     * Send you a modmail to let you know it has finished initialising and begun processing new submissions
-* If you want to blacklist images:
-   * Get [Reddit Toolbox](http://www.reddit.com/r/toolbox)
-   * Add the removal tags as described in [Removing blacklisted images](#remove-blacklisted-images)
 
 By default Magic Eye will:
 
 * Remove recent reposts (~15 day repost period)
-* Remove blacklisted images
+* Remove blacklisted images (see [how to blacklist images](#remove-blacklisted-images))
 * Remove broken image links
 
 See the [settings documentation](#settings) for information on how to enabling features and tweak settings.
@@ -85,6 +82,8 @@ See the [settings documentation](#settings) for information on how to enabling f
 
 * You can reply to a removal message with `clear` and it'll remove the image from it's database, but this is generally just for rare problematic images (they tend to have [lots of grey space](https://i.imgur.com/Avp2Y57.png)).
 
+* See [the blacklisting section](#remove-blacklisted-images) for how to blacklist images
+
 ## Features and Configuration
 
 Magic Eye can be configured by editing your subreddits magic_eye wiki page:
@@ -98,14 +97,14 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 * Note: Magic Eye can't detect when you use the wiki page "revert" button. If you use it to revert to previous settings, just edit and save the page (no changes needed) to get Magic Eye to pick up the change.
 
 
-### Configure media types
+### Media types (enabled by default)
 
     "processImages": true,
     "processAnimatedMedia": true,
 
 Individually turn on/off processing of images or animated media (i.e. gifs/videos). Both are enabled by default.
 
-### Set the tolerance
+### Set the tolerance (enabled by default)
 
     "similarityTolerance": 5,
 
@@ -115,14 +114,7 @@ The tolerance to image differences.
 * Set to 0 to only match exact as possible images
 * Default is 5, if you're a subreddit that sees any issue with similar memes/tweets, experiment with smaller numbers.
 
-### Removal message type
-
-    "removalMethod": "default",
-
-* `default`: (or the setting is absent): Reply in the thread
-* `replyAsSubreddit`: Reply on behalf of the subreddit, so it can be seen in modmail (**requires** `mail` **permission**)
-
-### Remove reposts
+### Remove reposts (enabled by default)
 
     "reposts": {
         "smallScore": 0,
@@ -161,7 +153,7 @@ Notes:
 * `actionAll`: If instead of thresholds you just want to remove/warn about every repost detected regardless of time, add this field with the value `true` and it will override the threshold settings.
 * `reflairApprovedReposts`: Reflairs reposts with the same flair as the last one had
 
-### Remove blacklisted images
+### Remove blacklisted images (enabled by default)
 
     "removeBlacklisted": {},
 
@@ -173,9 +165,20 @@ Images can be blacklisted permanently by removing a thread and making a **distin
 
     [](#end_removal)
 
-When Magic Eye sees the image again, it will extract the removal message from that comment and post it to the user. [Here](https://www.reddit.com/r/hmmm/comments/a2x5d0/hmmm/eb1tdf1/) is an example of it in action in r/hmmm.
-
 The `[](#link)` tags are special empty links that are invisible to users when put in a comment. Several subs make use of this for other tricks like CSS emotes.
+
+When Magic Eye sees the image again, it will look back at the blacklisted thread, retrieve the removal reason in between the tags and post it to the new user. [Here](https://www.reddit.com/r/hmmm/comments/a2x5d0/hmmm/eb1tdf1/) is an example of it in action in r/hmmm.
+
+There's 3 common ways to do this:
+
+* Toolbox (best):
+    * Get [Reddit Toolbox](http://www.reddit.com/r/toolbox)
+    * In the Toolbox settings go to `Removal Reason Settings`
+    * Either:
+        * Add the tags to each individual removal that should be blacklisted. This is good if one of your removals is something like "Please resubmit with a better title".
+        * Add the `[](#start_removal)` to the end of the header, and `[](#end_removal)` to the start of the footer to make all removals blacklist images.
+* RES Macros
+    * Get [Reddit Enhancement Suite](https://redditenhancementsuite.com/) and use the macro feature
 
 
 Optional fields:
@@ -186,18 +189,14 @@ Optional fields:
 
 Notes: 
 
-* You can automatically add tags to all removals using [Toolbox moderator extension](http://www.reddit.com/r/toolbox). In Toolbox's `Removal Reason Settings` tab just add the `[](#start_removal)` to the end of the header and `[](#end_removal)` to the start of the footer.
-
-* If you have some removals that you don't want to blacklist images (for example "Your title sucks, resubmit with a better one") you can either add the tags to the individual toolbox removals, OR you can put `[](#ignore_removal)` in the ones you don't want blacklisting images.
-
 * If you're a real perfectionist, `[](#repost)` is another supported tag for when the bot fails to detect a recent repost so you manually remove it as one. In this case you don't want the bot to blacklist it, but you do want future duplicates of it to be removed until the repost period is up! You can [see it in action here](https://www.reddit.com/r/hmmm/comments/a2sseh/hmmm/eb0vmwv/) (note the extended message).
 
 * If a moderator hasn't made a comment in this format (or if the moderator comment has been removed/not distinguished) Magic Eye will ignore the removed post and let you deal with the new one.
 
-* You can customize the removal message with the `fullRemovalMessage` parameter, and variables will be substituted in.
+* You can customize the removal message with the `fullRemovalMessage` parameter, and variables shown in the example above will be substituted in.
 
 
-### Remove broken image links
+### Remove broken image links (enabled by default)
 
     "removeBrokenImages": {},
 
@@ -274,10 +273,18 @@ Periodically looks at the top posts of the day and reports any post over a certa
 Details:
 * `reportUnmoderatedScore`: karma threshold to report umoderated post
 
+### Removal message type
+
+    "removalMethod": "default",
+
+* `default`: (or the setting is absent): Reply in the thread
+* `replyAsSubreddit`: Reply on behalf of the subreddit, so it can be seen in modmail (**requires** `mail` **permission**)
+
+
 
 ## How does it work?
 
-Magic Eye detects images using brightness gradients in images. If you're interested in what that means you can [read more about the algorithm](docs/image_detection.md)).
+Magic Eye creates hashes of images using brightness gradients. [Read more about the algorithm](docs/image_detection.md)).
 
 ## Thanks
 
