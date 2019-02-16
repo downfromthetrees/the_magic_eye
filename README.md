@@ -169,9 +169,9 @@ The `[](#link)` tags are special empty links that are invisible to users when pu
 
 When Magic Eye sees the image again, it will look back at the blacklisted thread, retrieve the removal reason in between the tags and post it to the new user. [Here](https://www.reddit.com/r/hmmm/comments/a2x5d0/hmmm/eb1tdf1/) is an example of it in action in r/hmmm.
 
-There's 3 common ways to do this:
+Some suggested methods to add the tags:
 
-* Toolbox (best):
+* Toolbox:
     * Get [Reddit Toolbox](http://www.reddit.com/r/toolbox)
     * In the Toolbox settings go to `Removal Reason Settings`
     * Either:
@@ -179,7 +179,7 @@ There's 3 common ways to do this:
         * Add the `[](#start_removal)` to the end of the header, and `[](#end_removal)` to the start of the footer to make all removals blacklist images.
 * RES Macros
     * Get [Reddit Enhancement Suite](https://redditenhancementsuite.com/) and use the macro feature
-
+* Just manually copy the tags in and write your removal in between them
 
 Optional fields:
 
