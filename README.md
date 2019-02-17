@@ -48,7 +48,7 @@ Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support
 * Private message first time subreddit posters with a custom message
 * Report unmoderated posts over a given karma threshold
 
-All features are fully customisable using the AutoModerator model of having a wiki page that stores subreddit settings.
+Like AutoModerator, Magic Eye is configured using a wiki page that stores subreddit settings.
 
 ## Getting Started
 
