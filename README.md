@@ -13,6 +13,7 @@ Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support
     - [Features / What can it do](#features--what-can-it-do)
     - [Getting Started](#getting-started)
         - [Setup](#setup)
+        - [Blacklisting / Removal FAQ](#blacklisting--removal-faq)
         - [General info / FAQ](#general-info--faq)
     - [Features and Configuration](#features-and-configuration)
         - [Media types (enabled by default)](#media-types-enabled-by-default)
@@ -68,21 +69,31 @@ By default Magic Eye will:
 
 See the [settings documentation](#settings) for information on how to enabling features and tweak settings.
 
+### Blacklisting / Removal FAQ
+* If you remove images for breaking the rules and want Magic Eye to remove them when they get posted again, then you need to blacklist them when you remove. [The blacklisting section](#remove-blacklisted-images) shows you how to do this, but here is an an overview so you can understand the workflow:
+   * When a repost is detected, Magic Eye looks at the last submission of that image to figure out what to do.
+   * If the last submission is approved/unmoderated, Magic Eye acts based on your repost settings
+   * If the last submission was removed by a moderator...
+       * ...and is blacklisted: Magic Eye will automatically remove it for you
+       * ...and is not blacklisted: Magic Eye will ignore it and treat the repost as a new submission.
+    
+    This workflow gives you a simple way to override old decisions, or let users repost with different titles etc.
+
 ### General info / FAQ
 
-* If users reply to MAGIC_EYE_BOT, it will report the comment so you can check it out.
+* If users reply to [u/MAGIC_EYE_BOT](https://www.reddit.com/user/MAGIC_EYE_BOT), it will report the comment so you can check it out.
 
-* Magic Eye has sensible default settings so is safe to just add and forget. By default, it has a 15-50 day repost limit depending on how much karma the last submission got (i.e. bigger post, wait longer between allowing it to be reposted). See the the [Remove reposts](#remove-reposts) section for setting your own repost periods.
+* Magic Eye has sensible default settings (a ~15-50 day repost limit depending on karma of last post) so is safe to just add and forget.
 
-* Magic Eye checks for new submissions every 30s or so. Avoid moderating posts under 1 minute old if you want Magic Eye to process them first.
+* You can safely demod/remod Magic Eye at any time without affecting your database of images.
 
-* To stop the bot for any reason, just demod it. You can safely demod/remod it at any time without affecting your database of images.
+* Magic Eye checks for new submissions every 30s or so, so avoid moderating posts under 1 minute old if you want Magic Eye to process them first.
 
 * On rare occasions Magic Eye can misdetect images and when it does the images may not look anything like each other. It isn't a bug, Magic Eye just doesn't see the image like our eyes and brain do. If an image is cropped in specific ways it also may no longer match. It's a trade off, but you can tweak the tolerance in the settings if for example you have a subreddit with highly similar images.
 
-* You can reply to a removal message with `clear` and it'll remove the image from it's database, but this is generally just for rare problematic images (they tend to have [lots of grey space](https://i.imgur.com/Avp2Y57.png)).
+* You can reply to a removal message with `clear` and it'll remove the image from it's database. There's generally no need to do this, except perhaps for rare problematic images (they tend to have [lots of grey space](https://i.imgur.com/Avp2Y57.png)).
 
-* See [the blacklisting section](#remove-blacklisted-images) for how to blacklist images
+
 
 ## Features and Configuration
 
@@ -167,7 +178,7 @@ Images can be blacklisted permanently by removing a thread and making a **distin
 
 The `[](#link)` tags are special empty links that are invisible to users when put in a comment. Several subs make use of this for other tricks like CSS emotes.
 
-When Magic Eye sees the image again, it will look back at the blacklisted thread, retrieve the removal reason in between the tags and post it to the new user. [Here](https://www.reddit.com/r/hmmm/comments/a2x5d0/hmmm/eb1tdf1/) is an example of it in action in r/hmmm.
+When Magic Eye sees the image again, it will look back at the blacklisted thread, retrieve the removal reason in between the tags and post it to the new user. [Here](https://www.reddit.com/r/hmmm/comments/a2x5d0/hmmm/eb1tdf1/) is an example of blacklisting in action in r/hmmm.
 
 Some suggested methods to add the tags:
 
@@ -175,8 +186,8 @@ Some suggested methods to add the tags:
     * Get [Reddit Toolbox](http://www.reddit.com/r/toolbox)
     * In the Toolbox settings go to `Removal Reason Settings`
     * Either:
-        * Add the tags to each individual removal that should be blacklisted. This is good if one of your removals is something like "Please resubmit with a better title".
-        * Add the `[](#start_removal)` to the end of the header, and `[](#end_removal)` to the start of the footer to make all removals blacklist images.
+        * Add the tags to each individual removal, which is good if one of your removals is something like "Please resubmit with a better title".
+        * Add `[](#start_removal)` to the end of the header, and `[](#end_removal)` to the start of the footer to make all removals blacklist.
 * RES Macros
     * Get [Reddit Enhancement Suite](https://redditenhancementsuite.com/) and use the macro feature
 * Just manually copy the tags in and write your removal in between them
