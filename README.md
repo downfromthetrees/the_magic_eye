@@ -55,11 +55,11 @@ Like AutoModerator, Magic Eye is configured using a wiki page that stores subred
 ### Setup
 
 * Enable wikis for your subreddit (set wiki to "mod editing" in your subreddit settings)
-* Invite [u/MAGIC_EYE_BOT](www.reddit.com/u/MAGIC_EYE_BOT) as a moderator to your subreddit with `flair`, `posts` and `wiki` permissions. The bot will then:
+* Invite [u/MAGIC_EYE_BOT](www.reddit.com/u/MAGIC_EYE_BOT) as a moderator with `flair`, `posts` and `wiki` permissions. It will:
     * Accept the invite
     * Build a database from the `/new` and `/top` posts in your subreddit (can take up to an hour)
     * Create a settings page in your wiki at `r/YOUR_SUB_NAME/wiki/magic_eye`
-    * Send you a modmail to let you know it has finished initialising and begun processing new submissions
+    * Send you a modmail to let you know it has finished initialising and is active
 
 By default Magic Eye will:
 
@@ -67,15 +67,15 @@ By default Magic Eye will:
 * Remove blacklisted images (see [how to blacklist images](#remove-blacklisted-images))
 * Remove broken image links
 
-See the [settings documentation](#settings) for information on how to enabling features and tweak settings.
+See the [settings documentation](#settings) for tweaking this and enabling more features.
 
 ### Blacklisting / Removal FAQ
-* If you remove images for breaking the rules and want Magic Eye to remove them when they get posted again, then you need to blacklist them when you remove. [The blacklisting section](#remove-blacklisted-images) shows you how to do this, but here is an an overview so you can understand the workflow:
+* If you remove images for breaking the rules and want Magic Eye to remove them when they are posted again, you need to blacklist them when you remove. [The blacklisting section](#remove-blacklisted-images) shows you how to automatically do this, but here is an an overview so you can understand the workflow:
    * When a repost is detected, Magic Eye looks at the last submission of that image to figure out what to do.
    * If the last submission is approved/unmoderated, Magic Eye acts based on your repost settings
    * If the last submission was removed by a moderator...
-       * ...and is blacklisted: Magic Eye will automatically remove it for you
-       * ...and is not blacklisted: Magic Eye will ignore it and treat the repost as a new submission.
+       * ...and it is blacklisted: Magic Eye will automatically remove it for you
+       * ...and it is not blacklisted: Magic Eye will ignore it and treat the repost as a new submission.
     
     This workflow gives you a simple way to override old decisions, or let users repost with different titles etc.
 
