@@ -7,14 +7,16 @@ Unlike other bots that purely detect image reposts, Magic Eye was developed to a
 
 Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support.
 
+--------------
+
 <!-- TOC -->
 
 - [Magic Eye](#magic-eye)
     - [Features / What can it do](#features--what-can-it-do)
     - [Getting Started](#getting-started)
         - [Setup](#setup)
-        - [Blacklisting / Removal FAQ](#blacklisting--removal-faq)
-        - [General info / FAQ](#general-info--faq)
+        - [Repost removal workflow](#repost-removal-workflow)
+        - [General info](#general-info)
     - [Features and Configuration](#features-and-configuration)
         - [Media types (enabled by default)](#media-types-enabled-by-default)
         - [Set the tolerance (enabled by default)](#set-the-tolerance-enabled-by-default)
@@ -69,17 +71,19 @@ By default Magic Eye will:
 
 See the [settings documentation](#settings) for tweaking this and enabling more features.
 
-### Blacklisting / Removal FAQ
-* If you remove images for breaking the rules and want Magic Eye to remove them when they are posted again, you need to blacklist them when you remove. [The blacklisting section](#remove-blacklisted-images) shows you how to automatically do this, but here is an an overview so you can understand the workflow:
-   * When a repost is detected, Magic Eye looks at the last submission of that image to figure out what to do.
-   * If the last submission is approved/unmoderated, Magic Eye acts based on your repost settings
-   * If the last submission was removed by a moderator...
-       * ...and it is blacklisted: Magic Eye will automatically remove it for you
-       * ...and it is not blacklisted: Magic Eye will ignore it and treat the repost as a new submission.
-    
-    This workflow gives you a simple way to override old decisions, or let users repost with different titles etc.
+### Repost removal workflow
 
-### General info / FAQ
+   * When a repost is detected, Magic Eye looks at the last submission of that image to figure out what to do.
+   * If the last submission is approved/unmoderated, Magic Eye acts based on your repost settings.
+   * If the last submission was removed by a moderator...
+       * ...and it is blacklisted: Magic Eye will automatically remove it for you.
+       * ...and it is not blacklisted: Magic Eye will ignore it and treat the repost as a new submission.
+
+Because of this, most subreddits will want to blacklist images. See [the blacklisting section](#remove-blacklisted-images) for how to do this automatically.
+
+This workflow gives you a simple way to override old decisions, or let users repost with different titles etc. 
+
+### General info
 
 * If users reply to [u/MAGIC_EYE_BOT](https://www.reddit.com/user/MAGIC_EYE_BOT), it will report the comment so you can check it out.
 
@@ -168,7 +172,7 @@ Notes:
 
     "removeBlacklisted": {},
 
-Images can be blacklisted permanently by removing a thread and making a **distinguished** comment in it with this format:
+Images can be blacklisted by removing a thread and making a **distinguished** comment in it with this format:
 
     [](#start_removal)
 
@@ -176,18 +180,19 @@ Images can be blacklisted permanently by removing a thread and making a **distin
 
     [](#end_removal)
 
-The `[](#link)` tags are special empty links that are invisible to users when put in a comment. Several subs make use of this for other tricks like CSS emotes.
-
 When Magic Eye sees the image again, it will look back at the blacklisted thread, retrieve the removal reason in between the tags and post it to the new user. [Here](https://www.reddit.com/r/hmmm/comments/a2x5d0/hmmm/eb1tdf1/) is an example of blacklisting in action in r/hmmm.
+
+Most subreddits already leave removal messages using [Toolbox](http://www.reddit.com/r/toolbox), so it's just a case of adding the tags to the removals.
+
+The `[](#link)` tags are special empty links that are invisible to users when put in a comment. Several subs make use of this for other tricks like CSS emotes.
 
 Some suggested methods to add the tags:
 
 * Toolbox:
-    * Get [Reddit Toolbox](http://www.reddit.com/r/toolbox)
-    * In the Toolbox settings go to `Removal Reason Settings`
-    * Either:
-        * Add the tags to each individual removal, which is good if one of your removals is something like "Please resubmit with a better title".
-        * Add `[](#start_removal)` to the end of the header, and `[](#end_removal)` to the start of the footer to make all removals blacklist.
+    * Get [Toolbox](http://www.reddit.com/r/toolbox)
+    * In the [Toolbox configuration](https://i.imgur.com/NtNRP9t.png) either:
+        * Add the tags around each individual removal, excluding the ones like "Please resubmit with a better title" where you want to allow reposting
+        * In `removal reason settings`, add `[](#start_removal)` to the end of the header, and `[](#end_removal)` to the start of the footer to make all removals blacklist, and then add `[](#ignore_removal)` to any removals you want to exclude.
 * RES Macros
     * Get [Reddit Enhancement Suite](https://redditenhancementsuite.com/) and use the macro feature
 * Just manually copy the tags in and write your removal in between them
@@ -195,17 +200,17 @@ Some suggested methods to add the tags:
 Optional fields:
 
     "removeBlacklisted": {
+        ...,
         "fullRemovalMessage": "I control this message buckaroo, here's my link: {{last_submission_link}}.\n\nAnd [here's the url]({{last_submission_url}}), and here's the blacklist reason: {{blacklist_reason}}"
     },
 
 Notes: 
 
-* If you're a real perfectionist, `[](#repost)` is another supported tag for when the bot fails to detect a recent repost so you manually remove it as one. In this case you don't want the bot to blacklist it, but you do want future duplicates of it to be removed until the repost period is up! You can [see it in action here](https://www.reddit.com/r/hmmm/comments/a2sseh/hmmm/eb0vmwv/) (note the extended message).
-
-* If a moderator hasn't made a comment in this format (or if the moderator comment has been removed/not distinguished) Magic Eye will ignore the removed post and let you deal with the new one.
+* If you're a real perfectionist, `[](#repost)` is another supported tag for when the bot fails to detect a recent repost so you manually remove it as one. In this case you don't want to blacklist it, but you do want future duplicates of it to be removed until the repost period is up! [See it in action here](https://www.reddit.com/r/hmmm/comments/a2sseh/hmmm/eb0vmwv/) (note the extended message).
 
 * You can customize the removal message with the `fullRemovalMessage` parameter, and variables shown in the example above will be substituted in.
 
+* See the [Repost removal workflow](#repost-removal-workflow) for how blacklisting fits in with normal repost removals
 
 ### Remove broken image links (enabled by default)
 
@@ -295,9 +300,9 @@ Details:
 
 ## How does it work?
 
-Magic Eye creates hashes of images using brightness gradients. [Read more about the algorithm](docs/image_detection.md)).
+Magic Eye creates hashes of images using brightness gradients. [Read more about the algorithm](docs/image_detection.md).
 
 ## Thanks
 
-* Thanks to u/creesch, u/agentlame, and everyone who has contributed to r/toolbox. Alexis owes you all a Lexus.
+* Thanks to u/creesch, u/agentlame, and everyone who has contributed to [r/toolbox](https://www.reddit.com/r/toolbox). Alexis owes you a Lexus.
 * Thanks to u/not_an_aardvark for his awesome [snoowrap](https://github.com/not-an-aardvark/snoowrap) project.
