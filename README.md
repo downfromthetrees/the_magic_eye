@@ -57,8 +57,12 @@ Like AutoModerator, Magic Eye is configured using a wiki page that stores subred
 
 ### Setup
 
+----------
+
 * Enable wikis for your subreddit (set wiki to "mod editing" in your subreddit settings)
 * Invite [u/MAGIC_EYE_BOT](www.reddit.com/u/MAGIC_EYE_BOT) as a moderator with `flair`, `posts` and `wiki` permissions.
+
+---------
 
 That's it. Magic Eye will then:
 * Accept the invite
