@@ -40,14 +40,15 @@ Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support
     * Supports images (png/jpg/jpeg/bmp), imgur and gfycat links, reddit videos, and animated media (gif/gifv/mp4/webm)
     * Remove or report reposts
     * Automatically approve/reflair reposts
-    * Supports complex workflows such as resubmitting deleted images with a different title
+    * Supports workflows such as resubmitting deleted images with a different title
     * Customisable detection threshold
-* Customisable removal messages, including private messages via modmail
+* Customisable removal messages
 * Alert moderators to questions by reporting comment replies it gets
 * Remove images that are too small
 * Remove images that are uncropped (i.e. black areas at the top and bottom)
 * Remove broken image links
 * Private message first time subreddit posters with a custom message
+* Sending removal messages via modmail
 * Report unmoderated posts over a given karma threshold
 
 Like AutoModerator, Magic Eye is configured using a wiki page that stores subreddit settings.
@@ -57,11 +58,13 @@ Like AutoModerator, Magic Eye is configured using a wiki page that stores subred
 ### Setup
 
 * Enable wikis for your subreddit (set wiki to "mod editing" in your subreddit settings)
-* Invite [u/MAGIC_EYE_BOT](www.reddit.com/u/MAGIC_EYE_BOT) as a moderator with `flair`, `posts` and `wiki` permissions. It will:
-    * Accept the invite
-    * Build a database from the `/new` and `/top` posts in your subreddit (can take up to an hour)
-    * Create a settings page in your wiki at `r/YOUR_SUB_NAME/wiki/magic_eye`
-    * Send you a modmail to let you know it has finished initialising and is active
+* Invite [u/MAGIC_EYE_BOT](www.reddit.com/u/MAGIC_EYE_BOT) as a moderator with `flair`, `posts` and `wiki` permissions.
+
+That's it. Magic Eye will then:
+* Accept the invite
+* Build a database from the `/new` and `/top` posts in your subreddit (can take up to an hour)
+* Create a settings page in your wiki at `r/YOUR_SUB_NAME/wiki/magic_eye`
+* Send you a modmail to let you know it has finished initialising and is active
 
 By default Magic Eye will:
 
@@ -79,7 +82,7 @@ See the [settings documentation](#settings) for tweaking this and enabling more 
        * ...and it is blacklisted: Magic Eye will automatically remove it for you.
        * ...and it is not blacklisted: Magic Eye will ignore it and treat the repost as a new submission.
 
-Because of this, most subreddits will want to blacklist images. See [the blacklisting section](#remove-blacklisted-images) for how to do this automatically.
+Because of this, most subreddits will want to blacklist images. See [the blacklisting section](#remove-blacklisted-images) for how to do it automatically with Toolbox.
 
 This workflow gives you a simple way to override old decisions, or let users repost with different titles etc. 
 
@@ -91,25 +94,25 @@ This workflow gives you a simple way to override old decisions, or let users rep
 
 * You can safely demod/remod Magic Eye at any time without affecting your database of images.
 
-* Magic Eye checks for new submissions every 30s or so, so avoid moderating posts under 1 minute old if you want Magic Eye to process them first.
+* Magic Eye checks for new submissions roughly every 30s, so avoid moderating posts under 1 minute old if you want Magic Eye to process them first.
 
 * On rare occasions Magic Eye can misdetect images and when it does the images may not look anything like each other. It isn't a bug, Magic Eye just doesn't see the image like our eyes and brain do. If an image is cropped in specific ways it also may no longer match. It's a trade off, but you can tweak the tolerance in the settings if for example you have a subreddit with highly similar images.
 
-* You can reply to a removal message with `clear` and it'll remove the image from it's database. There's generally no need to do this, except perhaps for rare problematic images (they tend to have [lots of grey space](https://i.imgur.com/Avp2Y57.png)).
+* You can reply to a removal message by [u/MAGIC_EYE_BOT](https://www.reddit.com/user/MAGIC_EYE_BOT) with `clear` and it'll remove the image from it's database. There's generally no need to do this, except perhaps for rare problematic images (they tend to have [lots of grey space](https://i.imgur.com/Avp2Y57.png)).
 
 
 
 ## Features and Configuration
 
-Magic Eye can be configured by editing your subreddits magic_eye wiki page:
+Magic Eye is configured by editing your subreddits settings wiki page:
 
 http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 
 * The settings are in JSON format. It is a different format from what AutoModerator uses, but it is still human readable.
 
-* MAGIC_EYE_BOT will let you know if your updates are successful, and give you help if there is a formatting issue. It keeps the actual settings in it's own database so if you mess up your wiki page it's not a concern, the bot will just keep using the last valid settings you had.
+* MAGIC_EYE_BOT will let you know if your updates are successful, or give you help if there is a formatting issue. It keeps the actual settings in it's own database so if you mess up your wiki page it's not a concern, the bot will just keep using the last valid settings you had.
 
-* Note: Magic Eye can't detect when you use the wiki page "revert" button. If you use it to revert to previous settings, just edit and save the page (no changes needed) to get Magic Eye to pick up the change.
+* Note: Magic Eye can't detect when you use the wiki page "revert" button. If you use it to revert to previous settings, just edit and save the wiki page (no changes needed) to get Magic Eye to pick up the change.
 
 
 ### Media types (enabled by default)
@@ -125,9 +128,8 @@ Individually turn on/off processing of images or animated media (i.e. gifs/video
 
 The tolerance to image differences.
 
-* Range is 0-16, where 0 matches exact images and 16 matches every image
-* Set to 0 to only match exact as possible images
-* Default is 5, if you're a subreddit that sees any issue with similar memes/tweets, experiment with smaller numbers.
+* Range is 0-16, where 0 matches exact as possible images and 16 matches every image
+* The default is 5, but if you're a subreddit that has issues with similar memes/tweets, experiment with other numbers.
 
 ### Remove reposts (enabled by default)
 
@@ -162,10 +164,10 @@ Notes:
 * You can override the first sentence with `removalMessage`/`allTimeTopRemovalMessage`, or the whole message with `fullRemovalMessage` and use the variables as you like. `\n` for line break.
 * `actionRepostsIfDeleted`: Performs `action` on reposts even if the previous post was deleted.
 * `approveIfOverRepostDays`: Auto-approves a repost over the time limit to save you doing it
-* Scores thresholds: Magic Eye keeps track of the last successful post of an image and uses the score it got + how long ago it was posted to determine what to do. There are a few thresholds so that it can make smarter decisions for reposts of popular vs less popular reposts. For example in the default settings: if the last matching submission got over `mediumScore` points (in this case 400), it'll be removed if it's less than `mediumScoreRepostDays` days old (in this case 25 days).
-    * You can set `smallScore` higher than 0 and it will let anything through that got a score under that amount of points
+* Score thresholds: Magic Eye keeps track of the last successful post of an image and uses the score it got + how long ago it was posted to determine what to do. There are a few thresholds so that it can make smarter decisions for reposts of popular vs less popular reposts. For example in the default settings: if the last matching submission got over `mediumScore` points (in this case 400), it'll be removed if it's less than `mediumScoreRepostDays` days old (in this case 25 days).
+    * You can set `smallScore` higher than 0 and it will let anything through that got a score under that amount of points last time
     * If `topScore` is set lower it will remove any post that ever got over this threshold permanently, with a unique message saying it's an all time subreddit top post.
-* `actionAll`: If instead of thresholds you just want to remove/warn about every repost detected regardless of time, add this field with the value `true` and it will override the threshold settings.
+* `actionAll`: As a shortcut, if instead of thresholds you just want to remove/warn about every repost detected regardless of time, add this field with the value `true` and it will override the threshold settings.
 * `reflairApprovedReposts`: Reflairs reposts with the same flair as the last one had
 
 ### Remove blacklisted images (enabled by default)
