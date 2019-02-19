@@ -30,7 +30,7 @@ Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support
         - [Report unmoderated posts](#report-unmoderated-posts)
         - [Removal message type](#removal-message-type)
     - [How does it work?](#how-does-it-work)
-    - [Thanks](#thanks)
+    - [Credits](#credits)
 
 <!-- /TOC -->
 
@@ -308,7 +308,8 @@ Details:
 
 Magic Eye creates hashes of images using brightness gradients. [Read more about the algorithm](docs/image_detection.md).
 
-## Thanks
+## Credits
 
-* Thanks to u/creesch, u/agentlame, and everyone who has contributed to [r/toolbox](https://www.reddit.com/r/toolbox). Alexis owes you a Lexus.
-* Thanks to u/not_an_aardvark for his awesome [snoowrap](https://github.com/not-an-aardvark/snoowrap) project.
+* Magic Eye was created and is maintained by [u/CosmicKeys](https://www.reddit.com/u/CosmicKeys).
+* Thanks to [u/not_an_aardvark](https://www.reddit.com/u/not_an_aardvark) for his awesome [snoowrap](https://github.com/not-an-aardvark/snoowrap) project.
+* Thanks to [u/creesch](https://www.reddit.com/u/creesch), [u/agentlame](https://www.reddit.com/u/agentlame), and everyone who has contributed to [r/toolbox](https://www.reddit.com/r/toolbox). Alexis owes you a Lexus.
