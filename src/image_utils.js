@@ -179,7 +179,8 @@ async function getImageDetails(submissionUrl, includeWords, blacklistedWords) {
 
     imageDetails.dhash = await generateDHash(imagePath, submissionUrl);
 
-    if (imageDetails.dhash == null) {
+    if (imageDetails.dhash == null || imageDetails.dhash === '0000000000000000') {
+        log.info('Rejecting dhash:', imageDetails.dhash);
         return null; // must generate a dhash to be valid details
     }
 
