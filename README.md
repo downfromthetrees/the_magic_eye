@@ -73,7 +73,7 @@ That's it. Magic Eye will then:
 By default Magic Eye will:
 
 * Remove recent reposts (~15 day repost period)
-* Remove blacklisted images (see [how to blacklist images](#remove-blacklisted-images))
+* Remove blacklisted images (see [how to blacklist images](#remove-blacklisted-images-enabled-by-default))
 * Remove broken image links
 
 See the [settings documentation](#settings) for tweaking this and enabling more features.
@@ -86,7 +86,7 @@ See the [settings documentation](#settings) for tweaking this and enabling more 
        * ...and it is blacklisted: Magic Eye will automatically remove it for you.
        * ...and it is not blacklisted: Magic Eye will ignore it and treat the repost as a new submission.
 
-Because of this, most subreddits will want to blacklist images. See [the blacklisting section](#remove-blacklisted-images) for how to do it automatically with Toolbox.
+Because of this, most subreddits will want to blacklist images. See [the blacklisting section](#remove-blacklisted-images-enabled-by-default) for how to do it automatically with Toolbox.
 
 This workflow gives you a simple way to override old decisions, or let users repost with different titles etc. 
 
