@@ -11,7 +11,7 @@ const { getImageDetails } = require('./image_utils.js');
 const { sliceSubmissionId } = require('./reddit_utils.js');
 
 
-async function processInboxMessage(inboxMessage, reddit, database, messageSubreddit) {
+async function processInboxMessage(inboxMessage, reddit, database, messageSubreddit, masterSettings) {
     const subredditName = messageSubreddit ? messageSubreddit.display_name : null;
     const subreddit = messageSubreddit ? await reddit.getSubreddit(subredditName) : null;
     
@@ -24,7 +24,7 @@ async function processInboxMessage(inboxMessage, reddit, database, messageSubred
         const moderators = await subreddit.getModerators();
         const isMod = moderators.find((moderator) => moderator.name === inboxMessage.author.name);
         if (isMod) {
-            await processModComment(subredditName, inboxMessage, reddit, database);
+            await processModComment(subredditName, inboxMessage, reddit, database, masterSettings);
         } else {
             await processUserComment(subredditName, inboxMessage);
         }
@@ -33,7 +33,7 @@ async function processInboxMessage(inboxMessage, reddit, database, messageSubred
     }
 }
 
-async function processModComment(subredditName, inboxMessage, reddit, database) {
+async function processModComment(subredditName, inboxMessage, reddit, database, masterSettings) {
     if (inboxMessage.subject == "username mention") {
         log.info(`[${subredditName}]`, 'Username mention:', inboxMessage.id);
         return;
@@ -45,13 +45,13 @@ async function processModComment(subredditName, inboxMessage, reddit, database) 
             printHelp(inboxMessage);
             break;
         case 'clear':
-            runCommand(inboxMessage, reddit, database, command_clearSubmission);
+            runCommand(inboxMessage, reddit, database, masterSettings, command_clearSubmission);
             break;
         case 'wrong':
-            runCommand(inboxMessage, reddit, database, command_removeDuplicate);
+            runCommand(inboxMessage, reddit, database, masterSettings, command_removeDuplicate);
             break;
         case 'avoid':
-            runCommand(inboxMessage, reddit, database, command_setExactMatchOnly);
+            runCommand(inboxMessage, reddit, database, masterSettings, command_setExactMatchOnly);
             break;
         default:
             await inboxMessage.reply("Not sure what that command is. Try `help` to see the commands I support.").distinguish();
@@ -115,7 +115,7 @@ async function printHelp(inboxMessage) {
     await inboxMessage.reply(helpMessage).distinguish();
 }
 
-async function runCommand(inboxMessage, reddit, database, commandFunction) {
+async function runCommand(inboxMessage, reddit, database, masterSettings, commandFunction) {
     const comment = await reddit.getComment(inboxMessage.id);
     await comment.fetch();
     const submission = await reddit.getSubmission(sliceSubmissionId(await comment.link_id));
