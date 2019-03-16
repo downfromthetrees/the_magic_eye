@@ -109,7 +109,7 @@ async function main() {
             let masterSettings = null;
             if (messageSubreddit) {
                 const messageSubredditName = await messageSubreddit.display_name;
-                const masterSettings = await getSubredditSettings(messageSubredditName);                 
+                masterSettings = await getSubredditSettings(messageSubredditName);                 
                 if (masterSettings) {
                     database = await initDatabase(messageSubredditName, masterSettings.config.databaseUrl);
                 }
