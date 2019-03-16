@@ -128,7 +128,7 @@ async function runCommand(inboxMessage, reddit, database, commandFunction) {
         return false;
     }
 
-    const existingMagicSubmission = await database.getMagicSubmission(imageDetails.dhash);
+    const existingMagicSubmission = await database.getMagicSubmission(imageDetails.dhash, masterSettings.settings.similarityTolerance);
     if (existingMagicSubmission == null) {
         log.info('No magic submission found for clear, ignoring. dhash: ', await submission._id);
         inboxMessage.reply("No info for this found, so consider it already gone.").distinguish();
