@@ -128,6 +128,11 @@ async function runCommand(inboxMessage, reddit, database, masterSettings, comman
         return false;
     }
 
+    if (!masterSettings) {
+        log.warn("Master settings not provided when attempting to run inbox mod command, https://www.reddit.com", await submission.permalink);
+        return false;
+    }
+
     const existingMagicSubmission = await database.getMagicSubmission(imageDetails.dhash, masterSettings.settings.similarityTolerance);
     if (existingMagicSubmission == null) {
         log.info('No magic submission found for clear, ignoring. dhash: ', await submission._id);
