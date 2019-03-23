@@ -199,6 +199,7 @@ Some suggested methods to add the tags:
     * In the [Toolbox configuration](https://i.imgur.com/NtNRP9t.png) either:
         * Add the tags around each individual removal, excluding the ones like "Please resubmit with a better title" where you want to allow reposting
         * In `removal reason settings`, add `[](#start_removal)` to the end of the header, and `[](#end_removal)` to the start of the footer to make all removals blacklist, and then add `[](#ignore_removal)` to any removals you want to exclude.
+* New reddit interface removal reasons (just add them to the removal reason)
 * RES Macros
     * Get [Reddit Enhancement Suite](https://redditenhancementsuite.com/) and use the macro feature
 * Just manually copy the tags in and write your removal in between them
