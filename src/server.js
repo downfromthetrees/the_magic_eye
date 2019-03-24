@@ -48,6 +48,7 @@ const { updateSettings, createDefaultSettings, writeSettings } = require('./wiki
 const { enableFilterMode } = require('./hmmm/automod_updater.js');
 const { mainHolding, garbageCollectionHolding, nukeHolding } = require('./holding_tasks/holding_tasks.js');
 const { mainSocial } = require('./holding_tasks/social.js');
+const { logProcessPost, logProcessCycle, printStats } = require('./master_stats.js');
 
 // https://not-an-aardvark.github.io/snoowrap/snoowrap.html
 // Create a new snoowrap requester with OAuth credentials
@@ -69,6 +70,7 @@ if (process.env.LOG_LEVEL == 'debug') {
 async function main() {
     try {
         log.debug(chalk.blue("Starting Magic processing cycle"));
+        const startCycleTime = new Date().getTime();
         
         const moddedSubs = await getModdedSubreddits(null);
         if (moddedSubs.length == 0) {
@@ -93,8 +95,8 @@ async function main() {
         const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions); 
 
         for (const subredditName of moddedSubs) {
+            const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
             try {
-                const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
                 try {
                     await processSubreddit(subredditName, unprocessedForSub, reddit);
                 } catch (e) {
@@ -133,6 +135,11 @@ async function main() {
         
         // update settings
         await updateSettings(subredditMulti, reddit);
+
+        // log cycle
+        const endCycleTime = new Date().getTime();
+        const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
+        logProcessCycle(cycleTimeTaken);
 
         // done
         log.debug(chalk.green('End Magic processing cycle, running again soon.'));
@@ -219,7 +226,11 @@ async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
         const database = await initDatabase(subredditName, masterSettings.config.databaseUrl);
         if (database) {
             for (let submission of unprocessedSubmissions) {
+                const startTime = new Date().getTime();                
                 await processSubmission(submission, masterSettings, database, reddit, true);
+                const endTime = new Date().getTime();
+                const timeTaken = (endTime - startTime) / 1000;
+                logProcessPost(subredditName, timeTaken);                
             };
         }
     }
@@ -303,6 +314,8 @@ async function startServer() {
 
         await initMasterDatabase();   
         await refreshDatabaseList();
+
+        await printStats();
 
         log.info('The magic eye is ONLINE.');
         main(); // start mains loop
