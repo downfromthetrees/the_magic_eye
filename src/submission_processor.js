@@ -12,7 +12,6 @@ const { getModComment, isMagicIgnore, isAnyTagRemoval, removePost, printSubmissi
 const { logRemoveBroken } = require('./master_stats.js');
 
 // precheck modules
-const { messageFirstTimeUser } = require('./processing_modules/submission_modules/image/precheck/messageFirstTimeUser.js');
 const { removeImagesWithText } = require('./processing_modules/submission_modules/image/precheck/removeImagesWithText.js');
 const { removeSmallImages } = require('./processing_modules/submission_modules/image/precheck/removeSmallImages.js');
 const { removeUncroppedImages } = require('./processing_modules/submission_modules/image/precheck/removeUncroppedImages.js');
@@ -30,25 +29,6 @@ async function processSubmission(submission, masterSettings, database, reddit, a
     if (existingMagicSubmissionById) {
         log.info(`[${subredditName}]`, "Submission is already in database, - ignoring submission:", await printSubmission(submission));
         return;
-    }
-
-    // record details about user up front
-    let username = (await submission.author) ? (await submission.author.name) : null;
-    if (username && username != '[deleted]') {
-        let user = await database.getUser(username);
-        if (user) {
-            user.count++;
-            if (!user.posts) {
-                user.posts = [];
-            }
-            user.posts.push(await submission.id);
-            await database.setUser(user);
-        } else {
-            await database.addUser(username);
-            if (activeMode) {
-                messageFirstTimeUser(reddit, submission, masterSettings.settings, subredditName);
-            }
-        }
     }
 
     // ignore approved submissions
