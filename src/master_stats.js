@@ -103,17 +103,22 @@ async function printStats() {
     log.info('Average time to:');
     const detectText = await getSubredditStat('detect-text');
     const averageTextDetect = detectText.reduce((prev, curr) => ({timeTaken: prev.timeTaken + curr.timeTaken}));
-    log.info('* Detect text: ', (averageTextDetect.timeTaken / detectText.length).toFixed(1));
+    if (detectText.length) {
+        log.info('* Detect text: ', (averageTextDetect.timeTaken / detectText.length).toFixed(1));
+    }
     const processPost = await getSubredditStat('process-post');
     const averageProcessPost = processPost.reduce((prev, curr) => ({timeTaken: prev.timeTaken + curr.timeTaken}));
-    log.info('* Process post: ', (averageProcessPost.timeTaken / processPost.length).toFixed(1));
+    if (processPost.length) {
+        log.info('* Process post: ', (averageProcessPost.timeTaken / processPost.length).toFixed(1));
+    }
     const processCycle = await getSubredditStat('process-cycle');
     const averageProcessCycle = processCycle.reduce((prev, curr) => ({timeTaken: prev.timeTaken + curr.timeTaken}));
-    log.info('* Process cycle: ', (averageProcessCycle.timeTaken / processCycle.length).toFixed(1));
-
+    if (processCycle.length) {
+        log.info('* Process cycle: ', (averageProcessCycle.timeTaken / processCycle.length).toFixed(1));
+    }
     log.info('===========================');
     } catch (e) {
-        log.error("");
+        log.error("Error printing stats", e);
     }
        
 }
