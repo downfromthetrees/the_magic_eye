@@ -1,6 +1,7 @@
 const chalk = require('chalk');
 const log = require('loglevel');
 const outdent = require('outdent');
+const moment = require('moment');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 const { Stats, addSubredditStat, getSubredditStat } = require('./mongodb_master_data.js');
@@ -74,26 +75,30 @@ async function printStats() {
     log.info('          STATS');
     log.info('===========================');
 
+    const startDate = moment('18/1/2019', 'DD/MM/YYYY');
+    const endDate = moment();
+    const daysSince = endDate.diff(startDate, 'days');
+
     try { 
     log.info('Reposts: ');
     const repostsDetected = await getSubredditStat('repost-detected');
-    log.info('* Detected: ', repostsDetected.length);
+    log.info(`* Detected: ${repostsDetected.length} (${repostsDetected.length/daysSince} per day)`);
     log.info('   ');
     log.info('Removals for: ');
     const reposts = await getSubredditStat('action-repost');
-    log.info('* Reposts: ', reposts.length);
+    log.info(`* Reposts: ${reposts.length} (${reposts.length/daysSince} per day)`);
     const small = await getSubredditStat('action-small');
-    log.info('* Small: ', small.length);
+    log.info(`* Small: ${small.length} (${small.length/daysSince} per day)`);
     const text = await getSubredditStat('action-text');
-    log.info('* Text: ', text.length);
+    log.info(`* Text: ${text.length} (${text.length/daysSince} per day)`);
     const uncropped = await getSubredditStat('action-uncropped');
-    log.info('* Uncropped: ', uncropped.length);
+    log.info(`* Uncropped: ${uncropped.length} (${uncropped.length/daysSince} per day)`);
     const broken = await getSubredditStat('action-broken');
-    log.info('* Broken: ', broken.length);
+    log.info(`* Broken: ${broken.length} (${broken.length/daysSince} per day)`);
     const approve = await getSubredditStat('approve');
-    log.info('* Approved: ', approve.length);
+    log.info(`* Approved: ${approve.length} (${approve.length/daysSince} per day)`);
     const blacklisted = await getSubredditStat('action-blacklisted');
-    log.info('* Blacklisted: ', blacklisted.length);
+    log.info(`* Blacklisted: ${ blacklisted.length} (${ blacklisted.length/daysSince} per day)`);
     log.info('   ');
     log.info('Average time to:');
     const detectText = await getSubredditStat('detect-text');
