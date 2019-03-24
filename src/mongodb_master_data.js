@@ -134,10 +134,21 @@ async function addSubredditStat(statistic) {
         const collection = await getStatsCollection();
         await collection.save(statistic);
     } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
+        log.error(chalk.red('MongoDb error adding subreddit statistic (full database?):'), err);
         return null;
     }
 }
+
+async function getSubredditStat(actionName) {   
+    try {
+        const collection = await getStatsCollection();
+        return await collection.find({'action': actionName}).toArray();
+    } catch (err) {
+        log.error(chalk.red('MongoDb error getting subreddit statistic:'), err);
+        return null;
+    }
+}
+
 
 async function setSubredditSettings(subredditName, settings) {   
     try {
@@ -235,5 +246,6 @@ module.exports = {
     needsUpgrade,
     upgradeMasterSettings,
     addSubredditStat,
+    getSubredditStat,
     Stats
 };
