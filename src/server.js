@@ -299,7 +299,9 @@ async function startServer() {
         await initMasterDatabase();   
         await refreshDatabaseList();
 
-        await printStats();
+        if (process.env.NODE_ENV !== 'develop') {
+            await printStats();
+        }
 
         log.info('The magic eye is ONLINE.');
         main(); // start mains loop
