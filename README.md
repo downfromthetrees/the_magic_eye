@@ -25,7 +25,6 @@ Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support
         - [Remove broken image links (enabled by default)](#remove-broken-image-links-enabled-by-default)
         - [Remove small images](#remove-small-images)
         - [Remove uncropped images](#remove-uncropped-images)
-        - [Message first time submitters](#message-first-time-submitters)
         - [Custom footer](#custom-footer)
         - [Report unmoderated posts](#report-unmoderated-posts)
         - [Removal message type](#removal-message-type)
@@ -47,7 +46,6 @@ Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support
 * Remove images that are too small
 * Remove images that are uncropped (i.e. black areas at the top and bottom)
 * Remove broken image links
-* Private message first time subreddit posters with a custom message
 * Sending removal messages via modmail
 * Report unmoderated posts over a given karma threshold
 
@@ -265,19 +263,6 @@ Optional fields:
     },
 
 Removes images with [black bars](https://i.imgur.com/6a4SCcw.png) at the bottom and top typical of cellphone screenshots (no support for horizontal cropping yet)
-
-### Message first time submitters 
-
-    "messageFirstTimeUser": {
-           "firstTimeUserMessageTitle": "Yo dude",
-           "firstTimeUserMessage": "I am an bot to remind new users that posts must be *good* and not *bad!*"
-    },
-
-Private messages users the first time they make a submission to the subreddit, but not again after that (less annoying than AutoModerator which can only do it every time).
-
-Details:
-* Use \n\n to create a new paragraph in your message.
-
 
 ### Custom footer
 
