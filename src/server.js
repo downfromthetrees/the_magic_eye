@@ -74,6 +74,7 @@ async function main() {
         }
 
         const moddedSubsMulti = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
+        console.log("Multi:", moddedSubsMulti);
         const subredditMulti = await reddit.getSubreddit(moddedSubsMulti);
 
         // submissions for all subs
