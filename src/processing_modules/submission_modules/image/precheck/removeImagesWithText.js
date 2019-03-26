@@ -12,7 +12,7 @@ const { logRemoveText } = require('../../../../master_stats.js');
 //=====================================
 
 async function removeImagesWithText(reddit, submission, imageDetails, subSettings, subredditName, submissionType) {
-    if (!subSettings.removeImagesWithText || submissionType !== 'image') {
+    if (!subSettings.removeImagesWithText_hidden || submissionType !== 'image') {
         return true;
     }
 
