@@ -299,10 +299,6 @@ async function startServer() {
         await initMasterDatabase();   
         await refreshDatabaseList();
 
-        if (process.env.NODE_ENV !== 'develop') {
-            await printStats();
-        }
-
         log.info('The magic eye is ONLINE.');
         main(); // start mains loop
     } catch (e) {
@@ -314,4 +310,10 @@ startServer();
 app.get('/keepalive', async function(req, res) {
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify({ status: 'ok' }));
+});
+
+app.get('/stats/print', async function(req, res) {
+    await printStats();
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify({ status: 'Printed!' }));
 });
