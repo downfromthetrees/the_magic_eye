@@ -71,9 +71,7 @@ function getDateString(){
 }
 
 async function printStats() {
-    log.info('===========================');
-    log.info('          STATS');
-    log.info('===========================');
+    log.info('Retrieving stats...');
 
     const startDate = moment('18/1/2019', 'DD/MM/YYYY');
     const endDate = moment();
@@ -94,6 +92,9 @@ async function printStats() {
         const averageProcessPost = processPost.reduce((prev, curr) => ({timeTaken: prev.timeTaken + curr.timeTaken}));
         const processCycle = await getSubredditStat('process-cycle');
         const averageProcessCycle = processCycle.reduce((prev, curr) => ({timeTaken: prev.timeTaken + curr.timeTaken}));
+        log.info('===========================');
+        log.info('          STATS');
+        log.info('===========================');    
         log.info('Reposts: ');
         log.info(`* Detected: ${repostsDetected.length} (${repostsDetected.length/daysSince} per day)`);
         log.info('   ');
