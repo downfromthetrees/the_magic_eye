@@ -313,7 +313,7 @@ app.get('/keepalive', async function(req, res) {
 });
 
 app.get('/stats/print', async function(req, res) {
-    await printStats();
+    printStats();
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify({ status: 'Printed!' }));
 });
