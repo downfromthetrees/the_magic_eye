@@ -20,6 +20,7 @@ Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support
     - [Features and Configuration](#features-and-configuration)
         - [Media types (enabled by default)](#media-types-enabled-by-default)
         - [Set the tolerance (enabled by default)](#set-the-tolerance-enabled-by-default)
+        - [On user reply (enabled by default)](#on-user-reply-enabled-by-default)
         - [Remove reposts (enabled by default)](#remove-reposts-enabled-by-default)
         - [Remove blacklisted images (enabled by default)](#remove-blacklisted-images-enabled-by-default)
         - [Remove broken image links (enabled by default)](#remove-broken-image-links-enabled-by-default)
@@ -132,6 +133,18 @@ The tolerance to image differences.
 
 * Range is 0-16, where 0 matches exact as possible images and 16 matches every image
 * The default is 5, but if you're a subreddit that has issues with similar memes/tweets, experiment with other numbers.
+
+### On user reply (enabled by default)
+
+    "onUserReply": "reportBot",
+
+When a user replies to one of the bots removal messages, report it happening.
+
+Notes:
+* `onUserReply`: This can be one of:
+    * `"reportBot"`: reports the bots removal comment with the users message in the report.
+    * `"reportUser"`: reports the comment that replied to Magic Eye
+
 
 ### Remove reposts (enabled by default)
 
