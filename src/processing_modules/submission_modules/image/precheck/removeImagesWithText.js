@@ -16,11 +16,11 @@ async function removeImagesWithText(reddit, submission, imageDetails, subSetting
         return true;
     }
 
-    const blacklistedWords = subSettings.removeImagesWithText.blacklistedWords;
+    const blacklistedWords = subSettings.removeImagesWithText_hidden.blacklistedWords;
     if (blacklistedWords) {
         const containsBlacklistedWord = imageDetails.words.some(word => blacklistedWords.includes(word));
         if (containsBlacklistedWord) {
-            const removalReason = subSettings.removeImagesWithText.message ? subSettings.removeImagesWithText.message : `This image has been removed because it contains banned text. Detected words:` + imageDetails.words;
+            const removalReason = subSettings.removeImagesWithText_hidden.message ? subSettings.removeImagesWithText_hidden.message : `This image has been removed because it contains banned text. Detected words:` + imageDetails.words;
             await action(submission, removalReason, subSettings, reddit, subredditName);
             return false;
         }
@@ -28,7 +28,7 @@ async function removeImagesWithText(reddit, submission, imageDetails, subSetting
         // remove all text, above 2 words since 2 can be yeild false positives
         if (imageDetails.words.length > 2) {
             log.info(`[${subredditName}]`, "Text detected, removing - actioning submission: ", await printSubmission(submission));
-            const removalReasonMessage = subSettings.removeImagesWithText.message ? subSettings.removeImagesWithText.message : '';
+            const removalReasonMessage = subSettings.removeImagesWithText_hidden.message ? subSettings.removeImagesWithText_hidden.message : '';
             const removalReason = `This image has been removed because text was automatically detected in it: \n\n>` + imageDetails.words + `\n\n` + removalReasonMessage;
             await action(submission, removalReason, subSettings, reddit, subredditName);
             return false;
@@ -40,7 +40,7 @@ async function removeImagesWithText(reddit, submission, imageDetails, subSetting
 
 
 async function action(submission, removalReason, subSettings, reddit, subredditName){
-    if (subSettings.removeImagesWithText.action === 'warn') {
+    if (subSettings.removeImagesWithText_hidden.action === 'warn') {
         await submission.report({'reason': 'Blacklisted text detected'});
     } else {
         removePost(submission, removalReason, subSettings, reddit);
