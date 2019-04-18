@@ -316,10 +316,6 @@ async function startServer() {
         await initMasterDatabase();   
         await refreshDatabaseList();
 
-        if (process.env.NODE_ENV !== 'develop') {
-            await printStats();
-        }
-
         log.info('The magic eye is ONLINE.');
         main(); // start mains loop
         mainHolding();
@@ -373,3 +369,9 @@ function scheduleFiltering() {
     const nextCheck = 1000 * 60 * 60; // 1hr
     setTimeout(scheduleFiltering, nextCheck);
 }
+
+app.get('/stats/print', async function(req, res) {
+    printStats();
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify({ status: 'Printed!' }));
+});

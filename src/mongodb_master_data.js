@@ -33,7 +33,7 @@ class Stats {
 
 const currentVersion = "1";
 
-// mod editable settings
+// default mod editable settings
 class SubredditSettings {
     _id; // subreddit name
     config; // private config settings
@@ -53,7 +53,8 @@ class SubredditSettings {
         this.settings = {
             processImages: true,
             processAnimatedMedia: true,
-            similarityTolerance: 5,            
+            similarityTolerance: 5,
+            onUserReply: "reportBot",
             reposts: {
                 smallScore: 0,
                 smallScoreRepostDays: 15,

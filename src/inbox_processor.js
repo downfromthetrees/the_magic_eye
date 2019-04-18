@@ -26,7 +26,7 @@ async function processInboxMessage(inboxMessage, reddit, database, messageSubred
         if (isMod) {
             await processModComment(subredditName, inboxMessage, reddit, database, masterSettings);
         } else {
-            await processUserComment(subredditName, inboxMessage);
+            await processUserComment(subredditName, inboxMessage, reddit, masterSettings);
         }
     } else {
         await processUserPrivateMessage(inboxMessage, subreddit, reddit);
@@ -59,15 +59,30 @@ async function processModComment(subredditName, inboxMessage, reddit, database, 
     }
 }
 
-async function processUserComment(subredditName, inboxMessage) {
+async function processUserComment(subredditName, inboxMessage, reddit, masterSettings) {
     if (inboxMessage.subject == "username mention") {
         log.info(`[${subredditName}]`, 'Username mention:', inboxMessage.id);
         return;
     }
 
-    inboxMessage.report({'reason': 'Moderator requested'});
+    if (masterSettings.settings.onUserReply && masterSettings.settings.onUserReply === "reportBot") {
+        const botComment = await getBotComment(reddit, inboxMessage);
+        // await botComment.report({'reason': 'User comment - "' + inboxMessage.body.substring(0, 83) + '"'}); // 100 char limit
+        await botComment.report({'reason': 'Moderator requested - click context for details'});
+    } else {
+        inboxMessage.report({'reason': 'Moderator requested'});
+    }
+    
     log.info(`[${subredditName}]`, 'User requesting assistance:', inboxMessage.id);
 }
+
+async function getBotComment(reddit, inboxMessage) {
+    const comment = reddit.getComment(inboxMessage.id);
+    const submission = reddit.getSubmission(sliceSubmissionId(await comment.link_id));
+    const comments = await submission.comments;
+    return comments.find(comment => comment.distinguished === 'moderator' && comment.removed != true && comment.author.name === process.env.ACCOUNT_USERNAME);
+}
+
 
 async function processUserPrivateMessage(inboxMessage, subreddit, reddit) {
     if (inboxMessage.subject.includes('invitation to moderate')) {

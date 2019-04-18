@@ -71,52 +71,53 @@ function getDateString(){
 }
 
 async function printStats() {
-    log.info('===========================');
-    log.info('          STATS');
-    log.info('===========================');
+    log.info('Retrieving stats...');
 
     const startDate = moment('18/1/2019', 'DD/MM/YYYY');
     const endDate = moment();
     const daysSince = endDate.diff(startDate, 'days');
 
     try { 
-    log.info('Reposts: ');
-    const repostsDetected = await getSubredditStat('repost-detected');
-    log.info(`* Detected: ${repostsDetected.length} (${repostsDetected.length/daysSince} per day)`);
-    log.info('   ');
-    log.info('Removals for: ');
-    const reposts = await getSubredditStat('action-repost');
-    log.info(`* Reposts: ${reposts.length} (${Math.ceil(reposts.length/daysSince)} per day)`);
-    const small = await getSubredditStat('action-small');
-    log.info(`* Small: ${small.length} (${Math.ceil(small.length/daysSince)} per day)`);
-    const text = await getSubredditStat('action-text');
-    log.info(`* Text: ${text.length} (${Math.ceil(text.length/daysSince)} per day)`);
-    const uncropped = await getSubredditStat('action-uncropped');
-    log.info(`* Uncropped: ${uncropped.length} (${Math.ceil(uncropped.length/daysSince)} per day)`);
-    const broken = await getSubredditStat('action-broken');
-    log.info(`* Broken: ${broken.length} (${Math.ceil(broken.length/daysSince)} per day)`);
-    const approve = await getSubredditStat('approve');
-    log.info(`* Approved: ${approve.length} (${Math.ceil(approve.length/daysSince)} per day)`);
-    const blacklisted = await getSubredditStat('action-blacklisted');
-    log.info(`* Blacklisted: ${ blacklisted.length} (${Math.ceil(blacklisted.length/daysSince)} per day)`);
-    log.info('   ');
-    log.info('Average time to:');
-    const detectText = await getSubredditStat('detect-text');
-    const averageTextDetect = detectText.reduce((prev, curr) => ({timeTaken: prev.timeTaken + curr.timeTaken}));
-    if (detectText.length) {
-        log.info('* Detect text: ', (averageTextDetect.timeTaken / detectText.length).toFixed(1));
-    }
-    const processPost = await getSubredditStat('process-post');
-    const averageProcessPost = processPost.reduce((prev, curr) => ({timeTaken: prev.timeTaken + curr.timeTaken}));
-    if (processPost.length) {
-        log.info('* Process post: ', (averageProcessPost.timeTaken / processPost.length).toFixed(1));
-    }
-    const processCycle = await getSubredditStat('process-cycle');
-    const averageProcessCycle = processCycle.reduce((prev, curr) => ({timeTaken: prev.timeTaken + curr.timeTaken}));
-    if (processCycle.length) {
-        log.info('* Process cycle: ', (averageProcessCycle.timeTaken / processCycle.length).toFixed(1));
-    }
-    log.info('===========================');
+        const repostsDetected = await getSubredditStat('repost-detected');
+        const reposts = await getSubredditStat('action-repost');
+        const small = await getSubredditStat('action-small');
+        const text = await getSubredditStat('action-text');
+        const uncropped = await getSubredditStat('action-uncropped');
+        const broken = await getSubredditStat('action-broken');
+        const approve = await getSubredditStat('approve');
+        const blacklisted = await getSubredditStat('action-blacklisted');
+        const detectText = await getSubredditStat('detect-text');
+        const averageTextDetect = detectText.reduce((prev, curr) => ({timeTaken: prev.timeTaken + curr.timeTaken}));
+        const processPost = await getSubredditStat('process-post');
+        const averageProcessPost = processPost.reduce((prev, curr) => ({timeTaken: prev.timeTaken + curr.timeTaken}));
+        const processCycle = await getSubredditStat('process-cycle');
+        const averageProcessCycle = processCycle.reduce((prev, curr) => ({timeTaken: prev.timeTaken + curr.timeTaken}));
+        log.info('===========================');
+        log.info('          STATS');
+        log.info('===========================');    
+        log.info('Reposts: ');
+        log.info(`* Detected: ${repostsDetected.length} (${repostsDetected.length/daysSince} per day)`);
+        log.info('   ');
+        log.info('Removals for: ');
+        log.info(`* Reposts: ${reposts.length} (${Math.ceil(reposts.length/daysSince)} per day)`);
+        log.info(`* Small: ${small.length} (${Math.ceil(small.length/daysSince)} per day)`);
+        log.info(`* Text: ${text.length} (${Math.ceil(text.length/daysSince)} per day)`);
+        log.info(`* Uncropped: ${uncropped.length} (${Math.ceil(uncropped.length/daysSince)} per day)`);
+        log.info(`* Broken: ${broken.length} (${Math.ceil(broken.length/daysSince)} per day)`);
+        log.info(`* Approved: ${approve.length} (${Math.ceil(approve.length/daysSince)} per day)`);
+        log.info(`* Blacklisted: ${ blacklisted.length} (${Math.ceil(blacklisted.length/daysSince)} per day)`);
+        log.info('   ');
+        log.info('Average time to:');
+        if (detectText.length) {
+            log.info('* Detect text: ', (averageTextDetect.timeTaken / detectText.length).toFixed(1));
+        }
+        if (processPost.length) {
+            log.info('* Process post: ', (averageProcessPost.timeTaken / processPost.length).toFixed(1));
+        }
+        if (processCycle.length) {
+            log.info('* Process cycle: ', (averageProcessCycle.timeTaken / processCycle.length).toFixed(1));
+        }
+        log.info('===========================');
     } catch (e) {
         log.error("Error printing stats", e);
     }
