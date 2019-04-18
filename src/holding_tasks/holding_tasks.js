@@ -180,8 +180,8 @@ async function consumeUnprocessedModlog(latestItems, suffix) {
     }
 
     // don't process anything over 72 hours old for safeguard. created_utc is in seconds/getTime is in millis.
-    const threeHoursAgo = new Date().getTime() - 1000*60*60*72;
-    latestItems = latestItems.filter(item => (item.created_utc * 1000) > threeHoursAgo); 
+    const hoursAgo = new Date().getTime() - 1000*60*60*72;
+    latestItems = latestItems.filter(item => (item.created_utc * 1000) > hoursAgo); 
 
     const processedIds = await getMasterProperty(propertyId);
     if (!processedIds) {
@@ -216,9 +216,9 @@ async function consumeTargetSubmissions(latestItems) {
         latestItems = latestItems.slice(latestItems.length - maxCheck, latestItems.length);
     }
 
-    // don't process anything over 3 hours old for safeguard. created_utc is in seconds/getTime is in millis.
-    const threeHoursAgo = new Date().getTime() - 1000*60*60*3;
-    latestItems = latestItems.filter(item => (item.created_utc * 1000) > threeHoursAgo); 
+    // don't process anything over several hours old for safeguard. created_utc is in seconds/getTime is in millis.
+    const hoursAgo = new Date().getTime() - 1000*60*60*8;
+    latestItems = latestItems.filter(item => (item.created_utc * 1000) > hoursAgo); 
 
     const processedIds = await getMasterProperty(propertyId);
     if (!processedIds) {

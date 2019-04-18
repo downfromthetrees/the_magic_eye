@@ -47,6 +47,7 @@ const { SubredditSettings, getSubredditSettings, setSubredditSettings,
 const { updateSettings, createDefaultSettings, writeSettings } = require('./wiki_utils.js');
 const { enableFilterMode } = require('./hmmm/automod_updater.js');
 const { mainHolding, garbageCollectionHolding, nukeHolding } = require('./holding_tasks/holding_tasks.js');
+const { mainEdHolding } = require('./holding_tasks/ed_tasks.js');
 const { mainSocial } = require('./holding_tasks/social.js');
 const { logProcessPost, logProcessCycle, printStats } = require('./master_stats.js');
 
@@ -322,6 +323,7 @@ async function startServer() {
         log.info('The magic eye is ONLINE.');
         main(); // start mains loop
         mainHolding();
+        mainEdHolding();
         garbageCollectionHolding(true);
         mainSocial(reddit, true);
         scheduleFiltering();
