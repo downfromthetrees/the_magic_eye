@@ -29,25 +29,20 @@ async function mainEdHolding() {
         log.debug(chalk.blue("[ED_HOLDING] Starting holding processing cycle"));
         const targetSubreddit = await reddit.getSubreddit(process.env.ED_HOLDING_TARGET_SUBREDDITS);
 
-        console.log('1');
         // get new target submissions
         const modmails = await targetSubreddit.getModmail();
 
-        console.log('2');
         if (!modmails) {
             log.error(chalk.red('[ED_HOLDING] Cannot get new submissions to process - api is probably down for maintenance.'));
             setTimeout(mainEdHolding, 60 * 1000); // run again in 60 seconds
             return;
         }
 
-        console.log('3');
         const unprocessedTargetSubmissions = await consumeTargetSubmissions(modmails, 'target');
 
-        console.log('4');
         // crosspost
         await crossPostFromTargetSubreddit(unprocessedTargetSubmissions, reddit);
 
-        console.log('5');
         // check for approved posts
         const holdingSubreddit = await reddit.getSubreddit(process.env.ED_HOLDING_SUBREDDIT);
 
