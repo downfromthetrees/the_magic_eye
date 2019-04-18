@@ -59,7 +59,7 @@ async function mainEdHolding() {
     
     
     // done
-    log.info(chalk.blue("[ED_HOLDING] End holding processing cycle"));
+    log.debug(chalk.blue("[ED_HOLDING] End holding processing cycle"));
     setTimeout(mainEdHolding, 60 * 1000); // run again in 60 seconds
 }
 
