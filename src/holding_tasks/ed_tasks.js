@@ -66,18 +66,22 @@ async function mainEdHolding() {
 async function crossPostFromTargetSubreddit(unprocessedSubmissions, reddit) {
     for (let submission of unprocessedSubmissions) {
         try {
-            const newSubmission = await reddit.submitSelfpost({  
-                title: submission.subject,
-                text: submission.body,
-                subredditName: process.env.ED_HOLDING_SUBREDDIT
-            });
-
-            const title = submission.subject.startsWith('Request: ') ? submission.subject : 'Request: ' + submission.subject;
-            const fixedTitle = title.startsWith('r') ? 'R' + title.slice(1) : title;
-            console.log();
-            newSubmission.reply('title:' + fixedTitle);
-            newSubmission.reply('modmail_id:' + submission.id);
-            newSubmission.reply('link_to_modmail: https://www.reddit.com/message/messages/' + submission.id);
+            if (submission.subject.startsWith('I would like to join r/EatingDisorders')) {
+                await submission.reply(getJoinModmailReply());
+            } else {
+                const newSubmission = await reddit.submitSelfpost({  
+                    title: submission.subject,
+                    text: submission.body,
+                    subredditName: process.env.ED_HOLDING_SUBREDDIT
+                });
+    
+                const title = submission.subject.startsWith('Request: ') ? submission.subject : 'Request: ' + submission.subject;
+                const fixedTitle = title.startsWith('r') ? 'R' + title.slice(1) : title;
+                console.log();
+                newSubmission.reply('title:' + fixedTitle);
+                newSubmission.reply('modmail_id:' + submission.id);
+                newSubmission.reply('link_to_modmail: https://www.reddit.com/message/messages/' + submission.id);
+            }
         } catch (e) {
             log.error('[ED_HOLDING] Error crossPosting from target subreddit for:' + submission.id, e);
         }
@@ -101,9 +105,10 @@ async function processApprovedPosts(unprocessedItems, reddit, modmails) {
                 text: await submission.selftext
             });
             const finalSubmissionId = await finalSubmission.id;
+            const edited = !isNaN(await submission.edited);
             if (commentsData.modmailId) {
                 const userModmail = modmails.find(modmail => modmail.id === commentsData.modmailId);
-                const modmailReply = getModmailReply(await finalSubmission.url);
+                const modmailReply = getModmailReply(await finalSubmission.url, edited);
                 await userModmail.reply(modmailReply);
             }
 
@@ -115,12 +120,13 @@ async function processApprovedPosts(unprocessedItems, reddit, modmails) {
     }
 }
 
-function getModmailReply(link) {
+function getModmailReply(link, edited) {
+    const editedText = edited ? 'Some edits were made to fit with our ruleset. ' : '';
     const reply = 
 `
 We've made your post here: ${link}
 
-To see the replies you will have to check your post on /r/eatingdisorders. Sometimes they take a while to come in - days, weeks, or a month later, so you'll have to keep checking in. Please give your post an upvote! The way it's set up, you can do that. We've been having trouble with posts falling off the front page because of one downvote. Your vote matters. Here are some actions that might help make it easier to track replies:
+${editedText}To see the replies you will have to check your post on /r/eatingdisorders. Sometimes they take a while to come in - days, weeks, or a month later, so you'll have to keep checking in. Please give your post an upvote! The way it's set up, you can do that. We've been having trouble with posts falling off the front page because of one downvote. Your vote matters. Here are some actions that might help make it easier to track replies:
 
 * To "save" the post and refer to it from there.
 
@@ -131,6 +137,21 @@ To see the replies you will have to check your post on /r/eatingdisorders. Somet
 Best to you    
 `;
 return reply;
+}
+
+function getJoinModmailReply() {
+    const reply = 
+`
+We do not approve members to post to this community. All post content must be submitted through modmail for review before being posted by the EDPostRequests account, which all the mods have access to.
+
+Use [this link](https://www.reddit.com/message/compose?to=%2Fr%2FEatingDisorders) to send us your post.
+
+--------
+--------
+
+*This posting process was developed for two reasons. First, many people who suffer with eating disorders feel more comfortable posting questions anonymously. Secondly, a large fraction of post requests come in with disallowed content that, were they posted directly, would necessitate us deleting the post entirely and engaging in a back-and-forth with the submitter until the post was fixed. The indirect method may take more time, but has been very effective for many years.*
+`;
+    return reply;
 }
 
 async function deleteHoldingThread(reddit, submissionId) {
