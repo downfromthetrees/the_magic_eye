@@ -103,7 +103,7 @@ async function processApprovedPosts(unprocessedItems, reddit, modmails) {
             const finalSubmissionId = await finalSubmission.id;
             if (commentsData.modmailId) {
                 const userModmail = modmails.find(modmail => modmail.id === commentsData.modmailId);
-                const modmailReply = getModmailReply(await submission.url);
+                const modmailReply = getModmailReply(await finalSubmission.url);
                 await userModmail.reply(modmailReply);
             }
 
