@@ -219,6 +219,8 @@ async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
                 const timeTaken = (endTime - startTime) / 1000;
                 logProcessPost(subredditName, timeTaken);                
             };
+        } else {
+            log.error(`[${subredditName}]`, chalk.red(`Failed to init database, ignoring ${unprocessedSubmissions.length} posts for subreddit.`));
         }
     }
 }
