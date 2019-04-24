@@ -83,7 +83,7 @@ async function main() {
         // submissions for all subs
         const startGetSubmissionsTime = new Date().getTime();
 
-        const submissions = await subredditMulti.getNew({'limit': 500});
+        const submissions = await subredditMulti.getNew({'limit': 90});
         if (!submissions) {
             log.error(chalk.red('Cannot get new submissions to process - api is probably down for maintenance.'));
             setTimeout(main, 30 * 1000); // run again in 30 seconds
