@@ -9,6 +9,7 @@ const { getImageDetails } = require('./image_utils.js');
 
 // magic eye modules
 const { sliceSubmissionId } = require('./reddit_utils.js');
+const { updateModdedSubreddits } = require('./modded_subreddits.js');
 
 
 async function processInboxMessage(inboxMessage, reddit, database, messageSubreddit, masterSettings) {
@@ -90,7 +91,7 @@ async function processUserPrivateMessage(inboxMessage, subreddit, reddit) {
             if (process.env.ALLOW_INVITES) {
                 log.info(`[${await subreddit.display_name}]`, 'Accepting mod invite for: ', await subreddit.display_name);
                 await subreddit.acceptModeratorInvite();
-
+                updateModdedSubreddits();
                 if (process.env.MAINTAINER) {
                     reddit.composeMessage({
                         to: process.env.MAINTAINER,
@@ -106,6 +107,7 @@ async function processUserPrivateMessage(inboxMessage, subreddit, reddit) {
         }
         return;
     } else if (inboxMessage.subject.includes('Has Been Removed As A Moderator')) {
+        // likely never hit - bad case
         log.info('Removed as moderator from subreddit: ', inboxMessage.subject);
         return;
     }

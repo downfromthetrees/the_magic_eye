@@ -44,6 +44,7 @@ const { SubredditSettings, getSubredditSettings, setSubredditSettings,
     refreshDatabaseList, upgradeMasterSettings, needsUpgrade } = require('./mongodb_master_data.js');
 const { updateSettings, createDefaultSettings, writeSettings } = require('./wiki_utils.js');
 const { logProcessPost, logProcessCycle, printStats } = require('./master_stats.js');
+const { getModdedSubredditsMulti } = require('./modded_subreddits.js');
 
 // Create a new snoowrap requester with OAuth credentials
 // See here: https://github.com/not-an-aardvark/reddit-oauth-helper
@@ -67,18 +68,14 @@ async function main() {
         log.debug(chalk.blue("Starting Magic processing cycle"));
         const startCycleTime = new Date().getTime();
         
-        const startModdedSubsTime = new Date().getTime();
-        const moddedSubs = await getModdedSubreddits(null);
+        const moddedSubs = await getModdedSubredditsMulti(reddit);
         if (moddedSubs.length == 0) {
             log.warn('No subreddits found. Sleeping.');
             setTimeout(main, 30 * 1000); // run again in 30 seconds
         }
-
-        const moddedSubsMulti = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
-        const subredditMulti = await reddit.getSubreddit(moddedSubsMulti);
-        const endModdedSubsTime = new Date().getTime();
-        const moddedSubsTimeTaken = (endModdedSubsTime - startModdedSubsTime) / 1000;
-
+        const moddedSubredditsMultiString = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
+        console.log('moddedSubredditsMultiString:', moddedSubredditsMultiString);
+        const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
 
         // submissions for all subs
         const startGetSubmissionsTime = new Date().getTime();
@@ -150,8 +147,7 @@ async function main() {
         average time per post: ${(unprocessedSubmissions.length > 0 ? submissionCycleTimeTaken / unprocessedSubmissions.length : submissionCycleTimeTaken).toFixed(1)},
         timeout time in seconds: ${timeoutTimeSeconds.toFixed(1)},
         get submissions time: ${getSubmissionsTimeTaken.toFixed(1)},
-        get messages time: ${messagesTimeTaken.toFixed(1)},
-        moddedSubsTimeTaken: ${moddedSubsTimeTaken.toFixed(1)}
+        get messages time: ${messagesTimeTaken.toFixed(1)}}
         `);
         logProcessCycle(cycleTimeTaken);
 
@@ -284,34 +280,6 @@ async function consumeUnprocessedSubmissions(latestItems) {
     
     return newItems;
 }
-
-async function getModdedSubreddits(after) {
-    try {
-        const moddedSubsUrl = "/subreddits/mine/moderator.json" + (after ? `?after=${after}` : "");
-        const moddedSubsData = await reddit.oauthRequest({uri: moddedSubsUrl, method: 'get'});
-        
-        if (!moddedSubsData) {
-            log.error(chalk.red('Could not request modded subreddits from reddit'));
-            return [];
-        }
-        
-        if (moddedSubsData.length == 0) {
-            return [];
-        }
-        
-        let moddedSubs = moddedSubsData.map(moddedSub => moddedSub.display_name);
-        if (moddedSubs.length == 25) { // pagination, get more
-            const newAfter = moddedSubsData[moddedSubsData.length-1].name;
-            return moddedSubs.concat(await getModdedSubreddits(newAfter));
-        } else {
-            return moddedSubs;
-        }
-    } catch (e) {
-        log.error(chalk.red('Error accessing modded subreddits'), e);
-        return [];
-    }
-}
-
 
 
 // server
