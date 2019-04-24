@@ -56,7 +56,7 @@ async function removePost(submission, removalReason, subSettings, reddit) {
             await removePostWithReply(submission, removalReason, subSettings);
         }
     } catch (e) {
-        log.error('Tried to remove post but failed: ', printSubmission(submission), e);
+        log.error('Tried to remove post but failed: ', await printSubmission(submission), e);
     }
 }
 
