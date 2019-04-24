@@ -62,6 +62,7 @@ if (process.env.LOG_LEVEL == 'debug') {
 
 
 async function main() {
+    let timeoutTimeSeconds = 30;
     try {
         log.debug(chalk.blue("Starting Magic processing cycle"));
         const startCycleTime = new Date().getTime();
@@ -84,6 +85,7 @@ async function main() {
         }
         const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions); 
 
+        const startSubmissionCycleTime = new Date().getTime();
         for (const subredditName of moddedSubs) {
             const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
             try {                
@@ -93,6 +95,8 @@ async function main() {
                 log.error('Error processing subreddit: ', subredditName, ',', e, ', possible error threads:', possibleErrorIds);
             }
         }
+        const endSubmissionCycleTime = new Date().getTime();
+        const submissionCycleTimeTaken = (endSubmissionCycleTime - startSubmissionCycleTime) / 1000;
 
         // inbox
         const unreadMessages = await reddit.getUnreadMessages();
@@ -122,20 +126,28 @@ async function main() {
         // update settings
         await updateSettings(subredditMulti, reddit);
 
-        // log cycle
+        // end cycle
         const endCycleTime = new Date().getTime();
         const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
+        timeoutTimeSeconds = Math.max(timeoutTimeSeconds - cycleTimeTaken, 0);
+
+        log.info(`=====Cycle info=====
+        new posts: ${unprocessedSubmissions.length},
+        total cycle time: ${cycleTimeTaken.toFixed(1)}, 
+        submission cycle only: ${submissionCycleTimeTaken.toFixed(1)},
+        cycle overhead: ${(cycleTimeTaken - submissionCycleTimeTaken).toFixed(1)},
+        average time per post: ${unprocessedSubmissions.length > 0 ? submissionCycleTimeTaken / unprocessedSubmissions.length : submissionCycleTimeTaken},
+        timeout time in seconds: ${timeoutTimeSeconds.toFixed(1)}`);
         logProcessCycle(cycleTimeTaken);
 
-        // done
         log.debug(chalk.green('End Magic processing cycle, running again soon.'));
+
     } catch (err) {
         log.error(chalk.red("Main loop error: ", err));
     }
     
-    setTimeout(main, 30 * 1000); // run again in 30 seconds
+    setTimeout(main, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
 }
-
 
 async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
     if (subredditName.startsWith('u_')) {
