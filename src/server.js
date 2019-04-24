@@ -8,7 +8,6 @@ const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 const babel = require("babel-core/register");
 
-
 if (!process.env.ACCOUNT_USERNAME ||
     !process.env.PASSWORD ||
     !process.env.CLIENT_ID ||
@@ -319,3 +318,9 @@ app.get('/stats/print', async function(req, res) {
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify({ status: 'Printed!' }));
 });
+
+
+
+process.on('unhandledRejection', (reason, p) => {
+    log.warn('Unhandled Rejection at: Promise', p, 'reason:', reason);
+  });
