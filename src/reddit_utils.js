@@ -47,14 +47,14 @@ function sliceSubmissionId(submissionId) {
 async function removePost(submission, removalReason, subSettings, reddit) {
     try { 
         await submission.remove();
+
+        if (subSettings.removalMethod === 'replyAsSubreddit') {
+            await removePostWithPrivateMessage(submission, removalReason, subSettings, reddit);
+        } else {
+            await removePostWithReply(submission, removalReason, subSettings);
+        }
     } catch (e) {
         log.error('Tried to remove post but failed: ', printSubmission(submission), e);
-    }
-
-    if (subSettings.removalMethod === 'replyAsSubreddit') {
-        await removePostWithPrivateMessage(submission, removalReason, subSettings, reddit);
-    } else {
-        await removePostWithReply(submission, removalReason, subSettings);
     }
 }
 
