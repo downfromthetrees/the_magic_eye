@@ -47,7 +47,7 @@ async function firstTimeInit(reddit, subredditName, database, masterSettings) {
 
     masterSettings.config.firstTimeInit = true;
     await setSubredditSettings(subredditName, masterSettings);
-    if (!masterSettings.config.suppressFirstTimeInitModmail){
+    if (!masterSettings.config.suppressFirstTimeInitModmail) {
         await reddit.composeMessage({
             to: await `/r/${subredditName}`,
             subject: `Initialisation complete.`,
@@ -68,7 +68,7 @@ async function firstTimeInit(reddit, subredditName, database, masterSettings) {
           });
           log.info(`[${subredditName}]`, chalk.blue('Success modmail sent and init set true for', subredditName));
     }
-    
+
     await reddit.composeMessage({
         to: process.env.MAINTAINER,
         subject: "First time init complete",
@@ -100,10 +100,10 @@ async function processOldSubmissions(submissions, alreadyProcessed, name, subred
                 }
                 await setMasterProperty('known_poisoned_ids', knownPoisonedIds);
             } else {
-                log.info(`[${subredditName}][first_time_init]`, 'Skipping poison submission:', printSubmission(submission));    
+                log.info(`[${subredditName}][first_time_init]`, 'Skipping poison submission:', await printSubmission(submission), e);    
             }
         } catch (e) {
-            log.info(`[${subredditName}][first_time_init]`, 'Error thrown while processing:', printSubmission(submission), e);
+            log.info(`[${subredditName}][first_time_init]`, 'Error thrown while processing:', await printSubmission(submission), e);
         }
         processedCount++;
         if (processedCount % 30 == 0) {
