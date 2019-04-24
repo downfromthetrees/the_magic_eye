@@ -47,30 +47,33 @@ async function firstTimeInit(reddit, subredditName, database, masterSettings) {
 
     masterSettings.config.firstTimeInit = true;
     await setSubredditSettings(subredditName, masterSettings);
-    await reddit.composeMessage({
-        to: await `/r/${subredditName}`,
-        subject: `Initialisation complete.`,
-        text: outdent`
-            Hi all, I am a repost moderation bot and I'm now checking new posts made in your subreddit.
-            
-            These are the current settings for your subreddit:
-
-            * Remove recent image/gif reposts
-            * Remove [images you choose to blacklist](https://github.com/downfromthetrees/the_magic_eye/blob/master/README.md#remove-blacklisted-images)
-            * Remove broken image links
-
-            Like AutoModerator I have a wiki page where you can edit settings. Here is a link to your settings page: r/${subredditName}/wiki/magic_eye
-            
-            You can learn all about me at r/MAGIC_EYE_BOT or see the full documentation below:
-
-            https://github.com/downfromthetrees/the_magic_eye/blob/master/README.md`
-      });
-      log.info(`[${subredditName}]`, chalk.blue('Success modmail sent and init set true for', subredditName));
+    if (!masterSettings.config.suppressFirstTimeInitModmail){
+        await reddit.composeMessage({
+            to: await `/r/${subredditName}`,
+            subject: `Initialisation complete.`,
+            text: outdent`
+                Hi all, I am a repost moderation bot and I'm now checking new posts made in your subreddit.
+                
+                These are the current settings for your subreddit:
+    
+                * Remove recent image/gif reposts
+                * Remove [images you choose to blacklist](https://github.com/downfromthetrees/the_magic_eye/blob/master/README.md#remove-blacklisted-images)
+                * Remove broken image links
+    
+                Like AutoModerator I have a wiki page where you can edit settings. Here is a link to your settings page: r/${subredditName}/wiki/magic_eye
+                
+                You can learn all about me at r/MAGIC_EYE_BOT or see the full documentation below:
+    
+                https://github.com/downfromthetrees/the_magic_eye/blob/master/README.md`
+          });
+          log.info(`[${subredditName}]`, chalk.blue('Success modmail sent and init set true for', subredditName));
+    }
+    
     await reddit.composeMessage({
         to: process.env.MAINTAINER,
         subject: "First time init complete",
         text: `First time init complete for: r/${subreddit.display_name}\n\n Took ${totalTimeMinutes} minutes.`
-      });      
+      });
 }
 
 async function processOldSubmissions(submissions, alreadyProcessed, name, subredditName, database, masterSettings) {
