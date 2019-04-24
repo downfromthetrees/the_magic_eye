@@ -67,6 +67,7 @@ async function main() {
         log.debug(chalk.blue("Starting Magic processing cycle"));
         const startCycleTime = new Date().getTime();
         
+        const startModdedSubsTime = new Date().getTime();
         const moddedSubs = await getModdedSubreddits(null);
         if (moddedSubs.length == 0) {
             log.warn('No subreddits found. Sleeping.');
@@ -75,8 +76,13 @@ async function main() {
 
         const moddedSubsMulti = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
         const subredditMulti = await reddit.getSubreddit(moddedSubsMulti);
+        const endModdedSubsTime = new Date().getTime();
+        const moddedSubsTimeTaken = (endModdedSubsTime - startModdedSubsTime) / 1000;
+
 
         // submissions for all subs
+        const startGetSubmissionsTime = new Date().getTime();
+
         const submissions = await subredditMulti.getNew({'limit': 500});
         if (!submissions) {
             log.error(chalk.red('Cannot get new submissions to process - api is probably down for maintenance.'));
@@ -84,7 +90,9 @@ async function main() {
             return;
         }
         const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions); 
-
+        const endGetSubmissionsTime = new Date().getTime();
+        const getSubmissionsTimeTaken = (endGetSubmissionsTime - startGetSubmissionsTime) / 1000;
+        
         const startSubmissionCycleTime = new Date().getTime();
         for (const subredditName of moddedSubs) {
             const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
@@ -99,6 +107,7 @@ async function main() {
         const submissionCycleTimeTaken = (endSubmissionCycleTime - startSubmissionCycleTime) / 1000;
 
         // inbox
+        const startMessagesTime = new Date().getTime();
         const unreadMessages = await reddit.getUnreadMessages();
         if (!unreadMessages) {
             log.error(chalk.red('Cannot get new inbox items to process - api is probably down for maintenance.'));
@@ -122,6 +131,8 @@ async function main() {
             await processInboxMessage(message, reddit, database, messageSubreddit, masterSettings);
         }
         log.debug(chalk.blue('Processed', unreadMessages.length, ' new inbox messages'));
+        const endMessagesTime = new Date().getTime();
+        const messagesTimeTaken = (endMessagesTime - startMessagesTime) / 1000;
         
         // update settings
         await updateSettings(subredditMulti, reddit);
@@ -136,8 +147,12 @@ async function main() {
         total cycle time: ${cycleTimeTaken.toFixed(1)}, 
         submission cycle only: ${submissionCycleTimeTaken.toFixed(1)},
         cycle overhead: ${(cycleTimeTaken - submissionCycleTimeTaken).toFixed(1)},
-        average time per post: ${unprocessedSubmissions.length > 0 ? submissionCycleTimeTaken / unprocessedSubmissions.length : submissionCycleTimeTaken},
-        timeout time in seconds: ${timeoutTimeSeconds.toFixed(1)}`);
+        average time per post: ${(unprocessedSubmissions.length > 0 ? submissionCycleTimeTaken / unprocessedSubmissions.length : submissionCycleTimeTaken).toFixed(1)},
+        timeout time in seconds: ${timeoutTimeSeconds.toFixed(1)},
+        get submissions time: ${getSubmissionsTimeTaken.toFixed(1)},
+        get messages time: ${messagesTimeTaken.toFixed(1)},
+        moddedSubsTimeTaken: ${moddedSubsTimeTaken.toFixed(1)}
+        `);
         logProcessCycle(cycleTimeTaken);
 
         log.debug(chalk.green('End Magic processing cycle, running again soon.'));
