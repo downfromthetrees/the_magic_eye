@@ -8,7 +8,6 @@ const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 const babel = require("babel-core/register");
 
-
 if (!process.env.ACCOUNT_USERNAME ||
     !process.env.PASSWORD ||
     !process.env.CLIENT_ID ||
@@ -69,10 +68,12 @@ if (process.env.LOG_LEVEL == 'debug') {
 
 
 async function main() {
+    let timeoutTimeSeconds = 30;
     try {
         log.debug(chalk.blue("Starting Magic processing cycle"));
         const startCycleTime = new Date().getTime();
         
+        const startModdedSubsTime = new Date().getTime();
         const moddedSubs = await getModdedSubreddits(null);
         if (moddedSubs.length == 0) {
             log.warn('No subreddits found. Sleeping.');
@@ -81,9 +82,12 @@ async function main() {
 
         const moddedSubsMulti = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
         const subredditMulti = await reddit.getSubreddit(moddedSubsMulti);
-        
+        const endModdedSubsTime = new Date().getTime();
+        const moddedSubsTimeTaken = (endModdedSubsTime - startModdedSubsTime) / 1000;
 
         // submissions for all subs
+        const startGetSubmissionsTime = new Date().getTime();
+
         const modqueueSubmissions = await subredditMulti.getModqueue({'limit': 100, 'only': 'links'});
         const newSubmissions = await subredditMulti.getNew({'limit': 100});
         const submissions = newSubmissions.concat(modqueueSubmissions);
@@ -94,7 +98,10 @@ async function main() {
             return;
         }
         const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions); 
-
+        const endGetSubmissionsTime = new Date().getTime();
+        const getSubmissionsTimeTaken = (endGetSubmissionsTime - startGetSubmissionsTime) / 1000;
+        
+        const startSubmissionCycleTime = new Date().getTime();
         for (const subredditName of moddedSubs) {
             try {
                 const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
@@ -108,8 +115,11 @@ async function main() {
                 log.error('Error processing subreddit: ', subredditName, ',', e);
             }
         }
+        const endSubmissionCycleTime = new Date().getTime();
+        const submissionCycleTimeTaken = (endSubmissionCycleTime - startSubmissionCycleTime) / 1000;
 
         // inbox
+        const startMessagesTime = new Date().getTime();
         const unreadMessages = await reddit.getUnreadMessages();
         if (!unreadMessages) {
             log.error(chalk.red('Cannot get new inbox items to process - api is probably down for maintenance.'));
@@ -133,24 +143,41 @@ async function main() {
             await processInboxMessage(message, reddit, database, messageSubreddit, masterSettings);
         }
         log.debug(chalk.blue('Processed', unreadMessages.length, ' new inbox messages'));
+        const endMessagesTime = new Date().getTime();
+        const messagesTimeTaken = (endMessagesTime - startMessagesTime) / 1000;
         
         // update settings
         await updateSettings(subredditMulti, reddit);
 
-        // log cycle
+        // end cycle
         const endCycleTime = new Date().getTime();
         const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
+        timeoutTimeSeconds = Math.max(timeoutTimeSeconds - cycleTimeTaken, 0);
+
+        // log.info(`=====Cycle info=====
+        // new posts: ${unprocessedSubmissions.length},
+        // total cycle time: ${cycleTimeTaken.toFixed(1)}, 
+        // submission cycle only: ${submissionCycleTimeTaken.toFixed(1)},
+        // cycle overhead: ${(cycleTimeTaken - submissionCycleTimeTaken).toFixed(1)},
+        // average time per post: ${(unprocessedSubmissions.length > 0 ? submissionCycleTimeTaken / unprocessedSubmissions.length : submissionCycleTimeTaken).toFixed(1)},
+        // timeout time in seconds: ${timeoutTimeSeconds.toFixed(1)},
+        // get submissions time: ${getSubmissionsTimeTaken.toFixed(1)},
+        // get messages time: ${messagesTimeTaken.toFixed(1)},
+        // moddedSubsTimeTaken: ${moddedSubsTimeTaken.toFixed(1)}
+        // `);
+        if (cycleTimeTaken > 30) {
+            log.warn('Time warning: cycle was ', cycleTimeTaken, 'seconds');
+        }
         logProcessCycle(cycleTimeTaken);
 
-        // done
         log.debug(chalk.green('End Magic processing cycle, running again soon.'));
+
     } catch (err) {
         log.error(chalk.red("Main loop error: ", err));
     }
     
-    setTimeout(main, 30 * 1000); // run again in 30 seconds
+    setTimeout(main, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
 }
-
 
 async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
     if (subredditName.startsWith('u_')) {
@@ -377,3 +404,9 @@ app.get('/stats/print', async function(req, res) {
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify({ status: 'Printed!' }));
 });
+
+
+
+process.on('unhandledRejection', (reason, p) => {
+    log.warn('Unhandled Rejection at: Promise', p, 'reason:', reason);
+  });
