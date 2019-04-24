@@ -153,6 +153,9 @@ async function main() {
         // get messages time: ${messagesTimeTaken.toFixed(1)},
         // moddedSubsTimeTaken: ${moddedSubsTimeTaken.toFixed(1)}
         // `);
+        if (cycleTimeTaken > 30) {
+            log.warn('Time warning: cycle was ', cycleTimeTaken, 'seconds');
+        }
         logProcessCycle(cycleTimeTaken);
 
         log.debug(chalk.green('End Magic processing cycle, running again soon.'));
