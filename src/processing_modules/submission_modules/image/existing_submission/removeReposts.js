@@ -120,10 +120,14 @@ async function warnAsRepost(submission, lastSubmission) {
     * [Click here to see the submission](${permalink})
     * [Direct image link](${await lastSubmission.url})`;
  
-    const replyable = await submission.reply(message);
-    await replyable.remove();
-    await replyable.distinguish();
-    await submission.report({'reason': 'Repost detected: ' + 'http://redd.it/' + await lastSubmission.id});
+    try { 
+        const replyable = await submission.reply(message);
+        await replyable.remove();
+        await replyable.distinguish();
+        await submission.report({'reason': 'Repost detected: ' + 'http://redd.it/' + await lastSubmission.id});
+    } catch (e) {
+        log.error('Tried to warn as repost but failed: ', printSubmission(submission), e);
+    }
 }
 
 async function removeAsRepost(submission, lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, subredditName, submissionType, allTimeTopRemoval, reddit) {
