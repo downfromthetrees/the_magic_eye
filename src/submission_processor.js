@@ -24,6 +24,8 @@ const { removeReposts } = require('./processing_modules/submission_modules/image
 async function processSubmission(submission, masterSettings, database, reddit, activeMode) {
     const subredditName = masterSettings._id;
 
+    log.info(`[${subredditName}]`, "TEMP: STARTING processing for submission:", await printSubmission(submission));
+
     // check if we have already processed submission
     const existingMagicSubmissionById = await database.getMagicSubmissionById(submission.id);
     if (existingMagicSubmissionById) {
@@ -54,6 +56,8 @@ async function processSubmission(submission, masterSettings, database, reddit, a
         return;
         }
 
+    log.info(`[${subredditName}]`, "TEMP: Got imageUrlInfo");
+
     const { imageUrl, submissionType } = imageUrlInfo;
     const isRemoveImagesWithText = masterSettings.settings.removeImagesWithText_hidden;   
     const imageDetails = await getImageDetails(imageUrl, activeMode && isRemoveImagesWithText,
@@ -73,6 +77,8 @@ async function processSubmission(submission, masterSettings, database, reddit, a
         log.info(`[${subredditName}]`, "Image is too large/ignore: ", await printSubmission(submission));
         return;
     }
+
+    log.info(`[${subredditName}]`, "TEMP: Got imageDetails");
 
     // only run on approved media 
     const processImages = masterSettings.settings.processImages === true || masterSettings.settings.processImages === undefined;
@@ -99,6 +105,8 @@ async function processSubmission(submission, masterSettings, database, reddit, a
             }
         }
     }
+
+    log.info(`[${subredditName}]`, "TEMP: Passed precheck processors");
 
     // process submission as new or existing
     const existingMagicSubmission = await database.getMagicSubmission(imageDetails.dhash, masterSettings.settings.similarityTolerance);
@@ -159,9 +167,12 @@ async function processExistingSubmission(submission, existingMagicSubmission, ma
     for (const processor of imageProcessors) {
         const shouldContinue = await processor(reddit, modComment, submission, lastSubmission, existingMagicSubmission, masterSettings.settings, subredditName, submissionType);
         if (!shouldContinue) {
+            log.info(`[${subredditName}]`, "TEMP: Some processor took action");
             break;
         }
     }
+
+    log.info(`[${subredditName}]`, "TEMP: Existing submission but no action taken? Last submission:", await printSubmission(lastSubmission));
 }
 
 async function processNewSubmission(submission, imageDetails, database, activeMode, subredditName, submissionType) {
