@@ -133,7 +133,7 @@ class MagicDatabase {
     async getMagicSubmission(inputDHash, similarityTolerance) {
         const hammingThreshold = isNaN(similarityTolerance) ? 5 : similarityTolerance;
 
-        log.info('getMagicSubmission, dhash:', inputDHash, 'similarityTolerance:', similarityTolerance);
+        log.info('getMagicSubmission, dhash:', inputDHash, 'similarityTolerance:', hammingThreshold);
 
         function isMatch(cachedHashKey) {
             return hammingDistance(cachedHashKey, inputDHash) < hammingThreshold;
