@@ -285,6 +285,10 @@ async function consumeUnprocessedSubmissions(latestItems) {
     }
     await setMasterProperty('new_processed_ids', updatedProcessedIds);
     
+    if (newItems.length > 50) {
+        log.warn('WARNING: Queue appears backlogged with more than 50 items');
+    }
+
     return newItems;
 }
 
