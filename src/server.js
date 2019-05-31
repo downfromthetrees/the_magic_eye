@@ -147,8 +147,7 @@ async function main() {
         average time per post: ${(unprocessedSubmissions.length > 0 ? submissionCycleTimeTaken / unprocessedSubmissions.length : submissionCycleTimeTaken).toFixed(1)},
         timeout time in seconds: ${timeoutTimeSeconds.toFixed(1)},
         get submissions time: ${getSubmissionsTimeTaken.toFixed(1)},
-        get messages time: ${messagesTimeTaken.toFixed(1)},
-        moddedSubsTimeTaken: ${moddedSubsTimeTaken.toFixed(1)}
+        get messages time: ${messagesTimeTaken.toFixed(1)}
         `);
         if (cycleTimeTaken > 30) {
             log.warn('Time warning: cycle was ', cycleTimeTaken, 'seconds');
