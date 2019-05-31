@@ -136,7 +136,7 @@ async function sendSuccessReply(username, reddit) {
     await reddit.composeMessage({
         to: await username,
         subject: 'Success',
-        text: 'Settings update successful. Lets nuke some posts!'
+        text: "Settings update successful. Let's nuke some posts!"
       });
 }
 

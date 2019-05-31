@@ -47,7 +47,9 @@ async function firstTimeInit(reddit, subredditName, database, masterSettings) {
 
     masterSettings.config.firstTimeInit = true;
     await setSubredditSettings(subredditName, masterSettings);
+    log.info(`[${subredditName}]`, chalk.blue('Master settings for ', subredditName, 'created. Init is complete at this point.'));
     if (!masterSettings.config.suppressFirstTimeInitModmail) {
+        log.info(`[${subredditName}]`, 'Sending initialisation complete modmail message...');
         await reddit.composeMessage({
             to: await `/r/${subredditName}`,
             subject: `Initialisation complete.`,
@@ -69,11 +71,14 @@ async function firstTimeInit(reddit, subredditName, database, masterSettings) {
           log.info(`[${subredditName}]`, chalk.blue('Success modmail sent and init set true for', subredditName));
     }
 
+    log.info(`[${subredditName}]`, 'Sending maintainer update...');
     await reddit.composeMessage({
         to: process.env.MAINTAINER,
         subject: "First time init complete",
         text: `First time init complete for: r/${subreddit.display_name}\n\n Took ${totalTimeMinutes} minutes.`
       });
+
+    log.info(`[${subredditName}]`, 'First time init finalised successfully.');
 }
 
 async function processOldSubmissions(submissions, alreadyProcessed, name, subredditName, database, masterSettings) {

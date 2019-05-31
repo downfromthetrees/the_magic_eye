@@ -139,16 +139,20 @@ async function main() {
         const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
         timeoutTimeSeconds = Math.max(timeoutTimeSeconds - cycleTimeTaken, 0);
 
-        log.info(`=====Cycle info=====
-        new posts: ${unprocessedSubmissions.length},
-        total cycle time: ${cycleTimeTaken.toFixed(1)}, 
-        submission cycle only: ${submissionCycleTimeTaken.toFixed(1)},
-        cycle overhead: ${(cycleTimeTaken - submissionCycleTimeTaken).toFixed(1)},
-        average time per post: ${(unprocessedSubmissions.length > 0 ? submissionCycleTimeTaken / unprocessedSubmissions.length : submissionCycleTimeTaken).toFixed(1)},
-        timeout time in seconds: ${timeoutTimeSeconds.toFixed(1)},
-        get submissions time: ${getSubmissionsTimeTaken.toFixed(1)},
-        get messages time: ${messagesTimeTaken.toFixed(1)}}
-        `);
+        // log.info(`=====Cycle info=====
+        // new posts: ${unprocessedSubmissions.length},
+        // total cycle time: ${cycleTimeTaken.toFixed(1)}, 
+        // submission cycle only: ${submissionCycleTimeTaken.toFixed(1)},
+        // cycle overhead: ${(cycleTimeTaken - submissionCycleTimeTaken).toFixed(1)},
+        // average time per post: ${(unprocessedSubmissions.length > 0 ? submissionCycleTimeTaken / unprocessedSubmissions.length : submissionCycleTimeTaken).toFixed(1)},
+        // timeout time in seconds: ${timeoutTimeSeconds.toFixed(1)},
+        // get submissions time: ${getSubmissionsTimeTaken.toFixed(1)},
+        // get messages time: ${messagesTimeTaken.toFixed(1)},
+        // moddedSubsTimeTaken: ${moddedSubsTimeTaken.toFixed(1)}
+        // `);
+        if (cycleTimeTaken > 30) {
+            log.warn('Time warning: cycle was ', cycleTimeTaken, 'seconds');
+        }
         logProcessCycle(cycleTimeTaken);
 
         log.debug(chalk.green('End Magic processing cycle, running again soon.'));
@@ -278,6 +282,10 @@ async function consumeUnprocessedSubmissions(latestItems) {
     }
     await setMasterProperty('new_processed_ids', updatedProcessedIds);
     
+    if (newItems.length > 50) {
+        log.warn('WARNING: Queue appears backlogged with more than 50 items');
+    }
+
     return newItems;
 }
 

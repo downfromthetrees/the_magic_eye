@@ -73,7 +73,7 @@ function getDateString(){
 async function printStats() {
     log.info('Retrieving stats...');
 
-    const startDate = moment('18/1/2019', 'DD/MM/YYYY');
+    const startDate = moment('25/04/2019', 'DD/MM/YYYY');
     const endDate = moment();
     const daysSince = endDate.diff(startDate, 'days');
 
