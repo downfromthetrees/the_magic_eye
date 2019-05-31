@@ -6,16 +6,13 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 let moddedSubsCache = null;
 
-// Current status is that it would work, but needs mechanism for recognizing demodding. Could be regular 5 minute cache bounce.
-
 // returns concat string for multi, "meow_irl+hmmm+aww"
 async function getModdedSubredditsMulti(reddit) {
     if (moddedSubsCache) {
-        console.log('cached');
         return moddedSubsCache;
     }
 
-    console.log('not cached');
+    console.log('Refreshing modded subreddits');
     moddedSubsCache = await getModdedSubredditsRecursive(reddit, null);
     return moddedSubsCache;
 }
@@ -48,7 +45,6 @@ async function getModdedSubredditsRecursive(reddit, after) {
 }
 
 function updateModdedSubreddits() {
-    log.info('Updating modded subs cache');
     moddedSubsCache = null;
 }
 
