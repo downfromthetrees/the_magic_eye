@@ -86,12 +86,12 @@ async function getBotComment(reddit, inboxMessage) {
 
 
 async function processUserPrivateMessage(inboxMessage, subreddit, reddit) {
+    updateModdedSubreddits();
     if (inboxMessage.subject.includes('invitation to moderate')) {
         try {
             if (process.env.ALLOW_INVITES) {
                 log.info(`[${await subreddit.display_name}]`, 'Accepting mod invite for: ', await subreddit.display_name);
                 await subreddit.acceptModeratorInvite();
-                updateModdedSubreddits();
                 if (process.env.MAINTAINER) {
                     reddit.composeMessage({
                         to: process.env.MAINTAINER,
