@@ -59,14 +59,16 @@ async function processSubmission(submission, masterSettings, database, reddit, a
     const imageDetails = await getImageDetails(imageUrl, activeMode && isRemoveImagesWithText,
         isRemoveImagesWithText ? masterSettings.settings.removeImagesWithText_hidden.blacklistedWords : null);
     if (imageDetails == null) {
-        log.info(`[${subredditName}]`, "Could not download image (probably deleted - ignoring if gif): ", await printSubmission(submission));
         if (activeMode && submissionType == 'image' && masterSettings.settings.removeBrokenImages) {
             // todo: put this code in its own processor
             const removalMessage = masterSettings.settings.removeBrokenImages.fullRemovalMessage ?
                 masterSettings.settings.removeBrokenImages.fullRemovalMessage :
                 "This post has been automatically removed because the link is broken or deleted. You will need to fix it and resubmit.";
             await removePost(submission, removalMessage, masterSettings.settings, reddit);
+            log.info(`[${subredditName}]`, "Could not download image - removing as broken: ", await printSubmission(submission));
             logRemoveBroken(subredditName, null);
+        } else if (activeMode && masterSettings.settings.removeBrokenImages) {
+            log.info(`[${subredditName}]`, "Could not download image - ignoring as appears to be gif: ", await printSubmission(submission));
         }
         return;
     } else if (imageDetails.tooLarge || imageDetails.ignore) {
