@@ -326,7 +326,7 @@ async function startServer() {
         mainEdHolding();
         garbageCollectionHolding(true);
         mainSocial(reddit, true);
-        //scheduleFiltering();
+        scheduleFiltering();
     } catch (e) {
         log.error(chalk.red(e));
     }
