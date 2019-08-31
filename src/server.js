@@ -80,6 +80,7 @@ async function main() {
             setTimeout(main, 30 * 1000); // run again in 30 seconds
         }
 
+        const startModdedSubsTime = new Date().getTime();
         const moddedSubredditsMultiString = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
         const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
         const endModdedSubsTime = new Date().getTime();
