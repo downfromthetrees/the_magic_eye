@@ -7,56 +7,89 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 const { Stats, addSubredditStat, getSubredditStat } = require('./mongodb_master_data.js');
 
 async function logActionRepost(subredditName, timeTaken) {
+    if (!process.env.LOG_STATS)
+        return;
+
     const statistic = new Stats(subredditName, 'action-repost', timeTaken, getDateString());
     await addSubredditStat(statistic);
 }
 
 async function logActionBlacklisted(subredditName, timeTaken) {
+    if (!process.env.LOG_STATS)
+        return;
+
     const statistic = new Stats(subredditName, 'action-blacklisted', timeTaken, getDateString());
     await addSubredditStat(statistic);
 }
 
 async function logApproval(subredditName, timeTaken) {
+    if (!process.env.LOG_STATS)
+        return;
+
     const statistic = new Stats(subredditName, 'approve', timeTaken, getDateString());
     await addSubredditStat(statistic);
 }
 
 async function logRepostDetected(subredditName) {
+    if (!process.env.LOG_STATS)
+        return;
+
     const statistic = new Stats(subredditName, 'repost-detected', null, getDateString());
     await addSubredditStat(statistic);
 }
 
 async function logDetectText(timeTaken) {
+    if (!process.env.LOG_STATS)
+        return;
+
     const statistic = new Stats('global', 'detect-text', timeTaken, getDateString());
     await addSubredditStat(statistic);
 }
 
 async function logRemoveBroken(subredditName, timeTaken) {
+    if (!process.env.LOG_STATS)
+        return;
+
     const statistic = new Stats(subredditName, 'action-broken', timeTaken, getDateString());
     await addSubredditStat(statistic);
 }
 
 async function logRemoveUncropped(subredditName, timeTaken) {
+    if (!process.env.LOG_STATS)
+        return;
+
     const statistic = new Stats(subredditName, 'action-uncropped', timeTaken, getDateString());
     await addSubredditStat(statistic);
 }
 
 async function logRemoveText(subredditName, timeTaken) {
+    if (!process.env.LOG_STATS)
+        return;
+
     const statistic = new Stats(subredditName, 'action-text', timeTaken, getDateString());
     await addSubredditStat(statistic);
 }
 
 async function logRemoveSmall(subredditName, timeTaken) {
+    if (!process.env.LOG_STATS)
+        return;
+
     const statistic = new Stats(subredditName, 'action-small', timeTaken, getDateString());
     await addSubredditStat(statistic);
 }
 
 async function logProcessPost(subredditName, timeTaken) {
+    if (!process.env.LOG_STATS)
+        return;
+
     const statistic = new Stats(subredditName, 'process-post', timeTaken, getDateString());
     await addSubredditStat(statistic);
 }
 
 async function logProcessCycle(timeTaken) {
+    if (!process.env.LOG_STATS)
+        return;
+
     const statistic = new Stats('global', 'process-cycle', timeTaken, getDateString());
     await addSubredditStat(statistic);
 }
