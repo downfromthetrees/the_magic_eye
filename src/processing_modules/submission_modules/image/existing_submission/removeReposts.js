@@ -80,7 +80,7 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
 
     log.info(`[${subredditName}]`, 'Found matching hash for removed submission ', await printSubmission(submission), ', matched,', existingMagicSubmission.reddit_id,' - valid as over the repost limit.');
     existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
-    return false;
+    return true;
 }
 
 async function isRecentRepost(currentSubmission, lastSubmission, processorSettings) {
