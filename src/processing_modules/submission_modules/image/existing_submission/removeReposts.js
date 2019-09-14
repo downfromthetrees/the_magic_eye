@@ -49,6 +49,13 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
         return false;
     }
 
+    // Last submission was removed by AutoModerator and we somehow saw it - ignore 
+    const bannedBy = await lastSubmission.banned_by;
+    if (bannedBy === "AutoModerator") {
+        log.info(`[${subredditName}]`, 'Found last submission removed by AutoModerator, ignoring ', await printSubmission(submission), ', matched,', existingMagicSubmission.reddit_id);
+        return true;
+    }
+
     // all time top posts
     const topRepost = existingMagicSubmission.highest_score > +processorSettings.topScore;
     if (topRepost) {
@@ -83,13 +90,6 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
         if (username == process.env.HOLDING_ACCOUNT_USERNAME || username == 'CosmicKeys') {
             await submission.approve();
         }   
-    }
-
-    // AutoMod removed post somehow slipped in
-    const bannedBy = await lastSubmission.banned_by;
-    if (bannedBy === "AutoModerator") {
-        log.info(`[${subredditName}]`, 'Found last submission removed by AutoModerator, ignoring ', await printSubmission(submission), ', matched,', existingMagicSubmission.reddit_id,' - valid as over the repost limit.');
-        return true;
     }
 
     log.info(`[${subredditName}]`, 'Found matching hash for removed submission ', await printSubmission(submission), ', matched,', existingMagicSubmission.reddit_id,' - valid as over the repost limit.');
@@ -190,7 +190,7 @@ async function createRemovalMessage(lastSubmission, noOriginalSubmission, warnAb
     if (allTimeTopRemoval) {
         headerText = subSettings.reposts.allTimeTopRemovalMessage ? subSettings.reposts.allTimeTopRemovalMessage : "Good post but unfortunately it has been removed because it is one of this subreddits all time top posts:";
     } else {
-        headerText = subSettings.reposts.removalMessage ? subSettings.reposts.removalMessage : "Good post but unfortunately it has been removed because it has been posted recently by another user:";
+        headerText = subSettings.reposts.removalMessage ? subSettings.reposts.removalMessage : "Good post but unfortunately it has been removed because it has already been posted recently:";
     }
 
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
