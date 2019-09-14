@@ -53,7 +53,8 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
     const bannedBy = await lastSubmission.banned_by;
     if (bannedBy === "AutoModerator") {
         log.info(`[${subredditName}]`, 'Found last submission removed by AutoModerator, ignoring ', await printSubmission(submission), ', matched,', existingMagicSubmission.reddit_id);
-        return true;
+        existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
+        return false;
     }
 
     // all time top posts
