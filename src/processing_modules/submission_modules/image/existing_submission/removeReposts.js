@@ -168,7 +168,7 @@ async function createRemovalMessage(lastSubmission, noOriginalSubmission, warnAb
     if (allTimeTopRemoval) {
         headerText = subSettings.reposts.allTimeTopRemovalMessage ? subSettings.reposts.allTimeTopRemovalMessage : "Good post but unfortunately it has been removed because it is one of this subreddits all time top posts:";
     } else {
-        headerText = subSettings.reposts.removalMessage ? subSettings.reposts.removalMessage : "Good post but unfortunately it has been removed because it has been posted recently by another user:";
+        headerText = subSettings.reposts.removalMessage ? subSettings.reposts.removalMessage : "Good post but unfortunately it has been removed because it has already been posted recently:";
     }
 
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
