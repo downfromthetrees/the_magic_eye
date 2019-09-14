@@ -42,6 +42,13 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
         return false;
     }
 
+    // Last submission was removed by AutoModerator and we somehow saw it - ignore 
+    const bannedBy = await lastSubmission.banned_by;
+    if (bannedBy === "AutoModerator") {
+        log.info(`[${subredditName}]`, 'Found last submission removed by AutoModerator, ignoring ', await printSubmission(submission), ', matched,', existingMagicSubmission.reddit_id);
+        return true;
+    }
+
     // all time top posts
     const topRepost = existingMagicSubmission.highest_score > +processorSettings.topScore;
     if (topRepost) {
