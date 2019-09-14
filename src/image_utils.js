@@ -179,8 +179,12 @@ async function getImageDetails(submissionUrl, includeWords, blacklistedWords) {
 
     imageDetails.dhash = await generateDHash(imagePath, submissionUrl);
 
-    if (imageDetails.dhash == null || isSolidColor(imageDetails.dhash)) {
-        log.info('Rejecting dhash:', imageDetails.dhash);
+    if (isSolidColor(imageDetails.dhash)) {
+        log.info('Rejecting solid colour dhash:', imageDetails.dhash);
+        return { ignore: true };
+    }
+
+    if (imageDetails.dhash == null) {
         return null; // must generate a dhash to be valid details
     }
 

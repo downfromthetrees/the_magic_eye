@@ -72,7 +72,7 @@ async function processSubmission(submission, masterSettings, database, reddit, a
         }
         return;
     } else if (imageDetails.tooLarge || imageDetails.ignore) {
-        log.info(`[${subredditName}]`, "Image is too large/ignore: ", await printSubmission(submission));
+        log.info(`[${subredditName}]`, "Image is too large/ignore problem image: ", await printSubmission(submission));
         return;
     }
 
