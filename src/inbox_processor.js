@@ -139,9 +139,9 @@ async function runCommand(inboxMessage, reddit, database, masterSettings, comman
     await submission.fetch();
 
     const imageDetails = await getImageDetails(await submission.url, false);
-    if (imageDetails == null){
+    if (imageDetails == null || imageDetails.ignore){
         log.warn("Could not download image for clear (probably deleted) - removing submission: https://www.reddit.com" + await submission.permalink);
-        inboxMessage.reply("I couldn't do that that... image deleted or something?").distinguish();
+        inboxMessage.reply("I couldn't do that that... image is deleted or is a particular kind of image I can't read.").distinguish();
         return false;
     }
 

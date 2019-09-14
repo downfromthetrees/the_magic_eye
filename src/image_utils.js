@@ -178,8 +178,12 @@ async function getImageDetails(submissionUrl, includeWords, blacklistedWords) {
 
     imageDetails.dhash = await generateDHash(imagePath, submissionUrl);
 
-    if (imageDetails.dhash == null || imageDetails.dhash === '0000000000000000') {
-        log.info('Rejecting dhash:', imageDetails.dhash);
+    if (isSolidColor(imageDetails.dhash)) {
+        log.info('Rejecting solid colour dhash:', imageDetails.dhash);
+        return { ignore: true };
+    }
+
+    if (imageDetails.dhash == null) {
         return null; // must generate a dhash to be valid details
     }
 
@@ -203,6 +207,13 @@ async function getImageDetails(submissionUrl, includeWords, blacklistedWords) {
     await deleteImage(imagePath);
     return imageDetails;
 }
+
+
+function isSolidColor(dhash){
+    // for some reason dhash_gen will produce the second hash for white.
+    return dhash === '0000000000000000' || dhash === '5500000000000000';
+}
+
 
 async function getImageSize(path, submissionUrl) {
     try { 
