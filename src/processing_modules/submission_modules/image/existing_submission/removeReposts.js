@@ -5,6 +5,11 @@ const chalk = require('chalk');
 const log = require('loglevel');
 const outdent = require('outdent');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
+const TimeAgo = require('javascript-time-ago');
+const en_locale = require('javascript-time-ago/locale/en');
+
+TimeAgo.addLocale(en_locale);
+const timeAgo = new TimeAgo('en');
 
 // magic eye modules
 const { isRepostRemoval, removePost, printSubmission } = require('../../../../reddit_utils.js');
@@ -176,6 +181,7 @@ async function createFullCustomRemovalMessage(subSettings, lastSubmission) {
     let removalText = subSettings.reposts.fullRemovalMessage;
     removalText = removalText.replace('{{last_submission_link}}', permalink);
     removalText = removalText.replace('{{last_submission_url}}', await lastSubmission.url);
+    removalText = removalText.replace('{{time_ago}}', await getTimeAgoString(lastSubmission));
     return removalText;
 }
 
@@ -190,11 +196,11 @@ async function createRemovalMessage(lastSubmission, noOriginalSubmission, warnAb
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
     const manualRepostWarning = noOriginalSubmission ? 'That submission was also removed by a moderator as a repost, so it has been posted by another user recently' : "";
     const noDeletedRepostsWarning = warnAboutDeletedReposts ? "**Note:** Users may not delete and resubmit images without a good reason" : "";
-
+ 
     let removalText = outdent`
     ${headerText}
 
-    * [Click here to see the submission](${permalink})
+    * [Submission link (posted ${await getTimeAgoString(lastSubmission)})](${permalink})
     * [Direct image link](${await lastSubmission.url})
     
     ${manualRepostWarning}
@@ -204,6 +210,10 @@ async function createRemovalMessage(lastSubmission, noOriginalSubmission, warnAb
     return removalText;
 }
 
+async function getTimeAgoString(submission) {
+    const postedDate = new Date(await submission.created_utc * 1000);
+    return timeAgo.format(postedDate);
+}
 
 
 

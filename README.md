@@ -168,7 +168,7 @@ Optional fields:
         ...
         "removalMessage": "Bad luck buckaroo, this image is a repost!",
         "allTimeTopRemovalMessage": "Bad luck buckaroo, this image is an all time classic!",
-        "fullRemovalMessage": "I control this message buckaroo, here's my link: {{last_submission_link}}.\n\nAnd [here's the url]({{last_submission_url}})",
+        "fullRemovalMessage": "I control this message buckaroo, here's my link: {{last_submission_link}}.\n\nAnd [here's the url]({{last_submission_url}}) posted {{time_ago}}",
         "actionAll": false
     },
 
