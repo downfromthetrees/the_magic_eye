@@ -35,7 +35,7 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
     if (lastSubmissionDeleted && !processorSettings.actionRepostsIfDeleted) {
         log.info(`[${subredditName}]`, 'Found matching hash for submission', await printSubmission(submission), ', but approving as the last submission was deleted: http://redd.it/' + existingMagicSubmission.reddit_id);
         existingMagicSubmission.approve = true;
-        existingMagicSubmission.reddit_id = await submission.id;
+        existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
         if (processorSettings.approveIfRepostDeleted === true) {
             submission.approve();
         }
