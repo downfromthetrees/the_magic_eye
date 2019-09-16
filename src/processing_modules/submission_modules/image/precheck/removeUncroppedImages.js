@@ -16,8 +16,8 @@ async function removeUncroppedImages(reddit, submission, imageDetails, subSettin
         return true;
     }
 
-    if (isImageUncropped(imageDetails)) {
-        log.info(`[${subredditName}]`, "Image is uncropped, removing - removing submission: ", await printSubmission(submission));
+    if (imageHasBars(imageDetails)) {
+        log.info(`[${subredditName}]`, "Image is uncropped - border bars. Removing - removing submission: ", await printSubmission(submission));
 
         let removalReason = "";
         if (subSettings.removeUncroppedImages.fullRemovalMessage) {
@@ -29,12 +29,20 @@ async function removeUncroppedImages(reddit, submission, imageDetails, subSettin
         removePost(submission, removalReason, subSettings, reddit);
         logRemoveUncropped(subredditName, null);
         return false;
+    } else if (subSettings.removeUncroppedImages.removeVerticalImages && imageIsVertical(imageDetails)) {
+        const removalReason =
+`This image appears to be uncropped (i.e. a vertical cellphone pic). Images posted to this subreddit must be cropped, i.e.:
+
+* [Example of an uncropped image](https://i.imgur.com/XAjzOF0.png)
+* [Example image properly cropped](https://i.imgur.com/qND6Vb1.png)
+`;
+        removePost(submission, removalReason, subSettings, reddit);
     }
 
     return true;
 }
 
-function isImageUncropped(imageDetails) {
+function imageHasBars(imageDetails) {
     const isSquarish = imageDetails.height < imageDetails.width * 1.2;
     
     if (isSquarish || imageDetails.trimmedHeight == null || imageDetails.trimmedHeight == null) {
@@ -43,6 +51,11 @@ function isImageUncropped(imageDetails) {
     }
 
     return (imageDetails.trimmedHeight / imageDetails.height) < 0.81; // https://i.imgur.com/tfDO06G.png
+}
+
+function imageIsVertical(imageDetails) {
+    console.log("imageIsVertical", imageDetails.height > imageDetails.width * 1.8);
+    return imageDetails.height > imageDetails.width * 1.8;
 }
 
 module.exports = {
