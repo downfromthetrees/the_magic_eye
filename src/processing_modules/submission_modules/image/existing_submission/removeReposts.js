@@ -68,6 +68,7 @@ async function removeReposts(reddit, modComment, submission, lastSubmission, exi
     const lastIsRemovedAsRepost = await isRepostRemoval(modComment); 
     const recentRepost = await isRecentRepost(submission, lastSubmission, processorSettings);
     if (recentRepost) {
+        log.info("Recent repost found, bannedBy is: ", bannedBy);
         actionAsRepost(submission, lastSubmission, lastIsRemovedAsRepost, lastSubmissionDeleted && processorSettings.actionRepostsIfDeleted, subSettings, subredditName, submissionType, false, reddit);
         return false;
     }
