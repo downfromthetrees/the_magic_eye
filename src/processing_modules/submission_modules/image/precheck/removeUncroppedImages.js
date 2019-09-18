@@ -54,7 +54,6 @@ function imageHasBars(imageDetails) {
 }
 
 function imageIsVertical(imageDetails) {
-    console.log("imageIsVertical", imageDetails.height > imageDetails.width * 1.8);
     return imageDetails.height > imageDetails.width * 1.8;
 }
 
