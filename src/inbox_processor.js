@@ -41,7 +41,7 @@ async function processModComment(subredditName, inboxMessage, reddit, database, 
     }
 
     // moderator commands
-    switch (inboxMessage.body.toLowerCase()) {
+    switch (inboxMessage.body.toLowerCase().trim()) {
         case 'help':
             printHelp(inboxMessage);
             break;
