@@ -29,12 +29,14 @@ async function generatePHash(imagePath, logUrl) {
 }
 
 async function runHammingCompare() {
-  let image1 = '../../tmp/' + process.argv[2];
+
+    console.log(__dirname);
+  let image1 = __dirname + '/../../tmp/' + process.argv[2];
   if (!image1.endsWith('.jpg') && !image1.endsWith('.png')) {
       image1 = image1 + '.jpg'; // can be lazy
   }
   
-  let image2 = '../../tmp/' + process.argv[3];
+  let image2 = __dirname + '/../../tmp/' + process.argv[3];
   if (!image2.endsWith('.jpg') && !image2.endsWith('.png')) {
       image2 = image2 + '.jpg'; // can be lazy
   }
