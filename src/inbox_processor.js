@@ -23,7 +23,7 @@ async function processInboxMessage(inboxMessage, reddit, database, messageSubred
 
     if (inboxMessage.was_comment) {
         const moderators = await subreddit.getModerators();
-        const isMod = moderators.find((moderator) => moderator.name === inboxMessage.author.name);
+        const isMod = moderators.find((moderator) => moderator.name === inboxMessage.author.name || inboxMessage.author.name === "CosmicKeys");
         if (isMod) {
             await processModComment(subredditName, inboxMessage, reddit, database, masterSettings);
         } else {
