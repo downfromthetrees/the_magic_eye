@@ -138,10 +138,20 @@ async function runCommand(inboxMessage, reddit, database, masterSettings, comman
     const submission = await reddit.getSubmission(sliceSubmissionId(await comment.link_id));
     await submission.fetch();
 
-    const imageDetails = await getImageDetails(await submission.url, false);
+    const imageUrlInfo = await getImageUrl(submission);
+    if (!imageUrlInfo)
+        {
+        log.warn(`[${subredditName}]`, "Could not download submission to run command:", await printSubmission(submission));
+        inboxMessage.reply("I couldn't do that that... image is deleted or something else has gone wrong.").distinguish();
+        return false;
+        }
+
+    const { imageUrl, submissionType } = imageUrlInfo;
+
+    const imageDetails = await getImageDetails(imageUrl, false);
     if (imageDetails == null || imageDetails.ignore){
         log.warn("Could not download image for clear (probably deleted), imageDetails: ", imageDetails, ", link: ", + await submission.permalink);
-        inboxMessage.reply("I couldn't do that that... image is deleted or is a particular kind of image I can't read.").distinguish();
+        inboxMessage.reply("I couldn't do that that... image is deleted or something else has gone wrong.").distinguish();
         return false;
     }
 
