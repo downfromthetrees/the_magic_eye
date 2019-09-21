@@ -142,7 +142,7 @@ async function runCommand(inboxMessage, reddit, database, masterSettings, comman
     if (!imageUrlInfo)
         {
         log.warn(`[${subredditName}]`, "Could not download submission to run command:", await printSubmission(submission));
-        inboxMessage.reply("I couldn't do that that... image is deleted or something else has gone wrong.").distinguish();
+        inboxMessage.reply("I couldn't do that that... image is deleted, has default thumbnail, or something has gone wrong.").distinguish();
         return false;
         }
 
@@ -151,7 +151,7 @@ async function runCommand(inboxMessage, reddit, database, masterSettings, comman
     const imageDetails = await getImageDetails(imageUrl, false);
     if (imageDetails == null || imageDetails.ignore){
         log.warn("Could not download image for clear (probably deleted), imageDetails: ", imageDetails, ", link: ", + await submission.permalink);
-        inboxMessage.reply("I couldn't do that that... image is deleted or something else has gone wrong.").distinguish();
+        inboxMessage.reply("I couldn't do that that... image is deleted, has default thumbnail, or something has gone wrong.").distinguish();
         return false;
     }
 
