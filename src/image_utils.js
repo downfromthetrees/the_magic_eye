@@ -72,7 +72,7 @@ export async function getImageUrl(submission) {
     const isGfycat = imageUrl.includes('gfycat.com');
     const animatedMedia = ['gif', 'gifv', 'mp4', 'webm'];
     if (animatedMedia.includes(suffix) || isVid || isGfycat || isCrosspostVid) {
-        return { imageUrl: thumbnail, submissionType: 'animated' };
+        return animatedMediaUrl(thumbnail);
     }
 
     const isImgur = imageUrl.includes('imgur.com');
@@ -107,7 +107,7 @@ export async function getImageUrl(submission) {
             if (albumData.success && albumData.data && albumData.data[0]) {
                 // gallery with multiple images
                 if (albumData.data[0].animated) {
-                    return {imageUrl: thumbnail, submissionType: 'animated'};
+                    return animatedMediaUrl(thumbnail);
                 }
                 return {imageUrl: albumData.data[0].link, submissionType: 'image'};
             } else if (albumData.success && albumData.data && albumData.data.images && albumData.data.images[0]) {
@@ -121,7 +121,7 @@ export async function getImageUrl(submission) {
                 const albumImage = await imageResult.json();             
                 if (albumImage.success && albumImage.data) {
                     if (albumImage.data.animated) {
-                        return {imageUrl: thumbnail, submissionType: 'animated'};
+                        return animatedMediaUrl(thumbnail);
                     }
 
                     return {imageUrl: albumImage.data.link, submissionType: 'image'};
@@ -136,7 +136,7 @@ export async function getImageUrl(submission) {
             const singleImage = await result.json();
             if (singleImage.success && singleImage.data) {
                 if (singleImage.data.animated) {
-                    return {imageUrl: thumbnail, submissionType: 'animated'};
+                    return animatedMediaUrl(thumbnail);
                 }
 
                 return {imageUrl: singleImage.data.link, submissionType: 'image'};
@@ -148,6 +148,10 @@ export async function getImageUrl(submission) {
     }
         
     return null;
+}
+
+function animatedMediaUrl(thumbnail) {
+    return thumbnail === "default" ? null : {imageUrl: thumbnail, submissionType: 'animated'};
 }
 
 async function getImageDetails(submissionUrl, includeWords, blacklistedWords) {

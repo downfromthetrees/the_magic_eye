@@ -5,7 +5,7 @@ const chalk = require('chalk');
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-const { getImageDetails } = require('./image_utils.js');
+const { getImageDetails, getImageUrl } = require('./image_utils.js');
 
 // magic eye modules
 const { sliceSubmissionId } = require('./reddit_utils.js');
@@ -23,7 +23,7 @@ async function processInboxMessage(inboxMessage, reddit, database, messageSubred
 
     if (inboxMessage.was_comment) {
         const moderators = await subreddit.getModerators();
-        const isMod = moderators.find((moderator) => moderator.name === inboxMessage.author.name);
+        const isMod = moderators.find((moderator) => moderator.name === inboxMessage.author.name || inboxMessage.author.name === "CosmicKeys");
         if (isMod) {
             await processModComment(subredditName, inboxMessage, reddit, database, masterSettings);
         } else {
@@ -41,7 +41,7 @@ async function processModComment(subredditName, inboxMessage, reddit, database, 
     }
 
     // moderator commands
-    switch (inboxMessage.body.toLowerCase()) {
+    switch (inboxMessage.body.toLowerCase().trim()) {
         case 'help':
             printHelp(inboxMessage);
             break;
@@ -138,10 +138,20 @@ async function runCommand(inboxMessage, reddit, database, masterSettings, comman
     const submission = await reddit.getSubmission(sliceSubmissionId(await comment.link_id));
     await submission.fetch();
 
-    const imageDetails = await getImageDetails(await submission.url, false);
+    const imageUrlInfo = await getImageUrl(submission);
+    if (!imageUrlInfo)
+        {
+        log.warn("Could not download submission to run inbox mod command in submission:", submission.id);
+        inboxMessage.reply("I couldn't do that that... image is deleted, has default thumbnail, or something has gone wrong.").distinguish();
+        return false;
+        }
+
+    const { imageUrl, submissionType } = imageUrlInfo;
+
+    const imageDetails = await getImageDetails(imageUrl, false);
     if (imageDetails == null || imageDetails.ignore){
-        log.warn("Could not download image for clear (probably deleted) - removing submission: https://www.reddit.com" + await submission.permalink);
-        inboxMessage.reply("I couldn't do that that... image is deleted or is a particular kind of image I can't read.").distinguish();
+        log.warn("Could not download image for clear (probably deleted), imageDetails: ", imageDetails, ", link: ", + await submission.permalink);
+        inboxMessage.reply("I couldn't do that that... image is deleted, has default thumbnail, or something has gone wrong.").distinguish();
         return false;
     }
 
