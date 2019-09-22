@@ -141,7 +141,7 @@ async function runCommand(inboxMessage, reddit, database, masterSettings, comman
     const imageUrlInfo = await getImageUrl(submission);
     if (!imageUrlInfo)
         {
-        log.warn("Could not download submission to run inbox mod command:", await printSubmission(submission));
+        log.warn("Could not download submission to run inbox mod command in submission:", submission.id);
         inboxMessage.reply("I couldn't do that that... image is deleted, has default thumbnail, or something has gone wrong.").distinguish();
         return false;
         }
