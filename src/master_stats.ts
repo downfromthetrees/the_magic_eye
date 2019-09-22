@@ -6,7 +6,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 const { Stats, addSubredditStat, getSubredditStat } = require('./mongodb_master_data.js');
 
-async function logActionRepost(subredditName, timeTaken) {
+export async function logActionRepost(subredditName, timeTaken) {
     if (!process.env.LOG_STATS)
         return;
 
@@ -14,7 +14,7 @@ async function logActionRepost(subredditName, timeTaken) {
     await addSubredditStat(statistic);
 }
 
-async function logActionBlacklisted(subredditName, timeTaken) {
+export async function logActionBlacklisted(subredditName, timeTaken) {
     if (!process.env.LOG_STATS)
         return;
 
@@ -22,7 +22,7 @@ async function logActionBlacklisted(subredditName, timeTaken) {
     await addSubredditStat(statistic);
 }
 
-async function logApproval(subredditName, timeTaken) {
+export async function logApproval(subredditName, timeTaken) {
     if (!process.env.LOG_STATS)
         return;
 
@@ -30,7 +30,7 @@ async function logApproval(subredditName, timeTaken) {
     await addSubredditStat(statistic);
 }
 
-async function logRepostDetected(subredditName) {
+export async function logRepostDetected(subredditName) {
     if (!process.env.LOG_STATS)
         return;
 
@@ -38,7 +38,7 @@ async function logRepostDetected(subredditName) {
     await addSubredditStat(statistic);
 }
 
-async function logDetectText(timeTaken) {
+export async function logDetectText(timeTaken) {
     if (!process.env.LOG_STATS)
         return;
 
@@ -46,7 +46,7 @@ async function logDetectText(timeTaken) {
     await addSubredditStat(statistic);
 }
 
-async function logRemoveBroken(subredditName, timeTaken) {
+export async function logRemoveBroken(subredditName, timeTaken) {
     if (!process.env.LOG_STATS)
         return;
 
@@ -54,7 +54,7 @@ async function logRemoveBroken(subredditName, timeTaken) {
     await addSubredditStat(statistic);
 }
 
-async function logRemoveUncropped(subredditName, timeTaken) {
+export async function logRemoveUncropped(subredditName, timeTaken) {
     if (!process.env.LOG_STATS)
         return;
 
@@ -62,7 +62,7 @@ async function logRemoveUncropped(subredditName, timeTaken) {
     await addSubredditStat(statistic);
 }
 
-async function logRemoveText(subredditName, timeTaken) {
+export async function logRemoveText(subredditName, timeTaken) {
     if (!process.env.LOG_STATS)
         return;
 
@@ -70,7 +70,7 @@ async function logRemoveText(subredditName, timeTaken) {
     await addSubredditStat(statistic);
 }
 
-async function logRemoveSmall(subredditName, timeTaken) {
+export async function logRemoveSmall(subredditName, timeTaken) {
     if (!process.env.LOG_STATS)
         return;
 
@@ -78,7 +78,7 @@ async function logRemoveSmall(subredditName, timeTaken) {
     await addSubredditStat(statistic);
 }
 
-async function logProcessPost(subredditName, timeTaken) {
+export async function logProcessPost(subredditName, timeTaken) {
     if (!process.env.LOG_STATS)
         return;
 
@@ -86,7 +86,7 @@ async function logProcessPost(subredditName, timeTaken) {
     await addSubredditStat(statistic);
 }
 
-async function logProcessCycle(timeTaken) {
+export async function logProcessCycle(timeTaken) {
     if (!process.env.LOG_STATS)
         return;
 
@@ -95,7 +95,7 @@ async function logProcessCycle(timeTaken) {
 }
 
 
-function getDateString(){
+export function getDateString(){
     const date = new Date();
     const day = date.getDate();
     const month = date.getMonth() + 1;
@@ -103,7 +103,7 @@ function getDateString(){
     return year + '-' + month + '-' + day;
 }
 
-async function printStats() {
+export async function printStats() {
     log.info('Retrieving stats...');
 
     const startDate = moment('25/04/2019', 'DD/MM/YYYY');
@@ -157,19 +157,3 @@ async function printStats() {
        
 }
 
-
-
-module.exports = {
-    logActionRepost,
-    logActionBlacklisted,
-    logApproval,
-    logRepostDetected,
-    logDetectText,
-    logRemoveBroken,
-    logRemoveUncropped,
-    logRemoveText,
-    logRemoveSmall,
-    logProcessPost,
-    logProcessCycle,
-    printStats
-};

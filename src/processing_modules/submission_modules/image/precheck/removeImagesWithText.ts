@@ -11,7 +11,7 @@ const { logRemoveText } = require('../../../../master_stats.js');
 
 //=====================================
 
-async function removeImagesWithText(reddit, submission, imageDetails, subSettings, subredditName, submissionType) {
+export async function removeImagesWithText(reddit, submission, imageDetails, subSettings, subredditName, submissionType) {
     if (!subSettings.removeImagesWithText_hidden || submissionType !== 'image') {
         return true;
     }
@@ -48,7 +48,3 @@ async function action(submission, removalReason, subSettings, reddit, subredditN
 
     logRemoveText(subredditName, null);
 }
-
-module.exports = {
-    removeImagesWithText,
-};

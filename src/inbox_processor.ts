@@ -12,7 +12,7 @@ const { sliceSubmissionId } = require('./reddit_utils.js');
 const { updateModdedSubreddits } = require('./modded_subreddits.js');
 
 
-async function processInboxMessage(inboxMessage, reddit, database, messageSubreddit, masterSettings) {
+export async function processInboxMessage(inboxMessage, reddit, database, messageSubreddit, masterSettings) {
     const subredditName = messageSubreddit ? messageSubreddit.display_name : null;
     const subreddit = messageSubreddit ? await reddit.getSubreddit(subredditName) : null;
     
@@ -193,7 +193,3 @@ async function command_setExactMatchOnly(submission, existingMagicSubmission, da
     return true; 
 }
 
-
-module.exports = {
-    processInboxMessage
-};

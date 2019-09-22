@@ -7,9 +7,9 @@ const { processSubmission } = require('./submission_processor.js');
 const { setSubredditSettings, getMasterProperty, setMasterProperty } = require('./mongodb_master_data.js');
 const { printSubmission } = require('./reddit_utils.js');
 
-let inProgress = [];
+let inProgress = Array<string>();
 
-async function firstTimeInit(reddit, subredditName, database, masterSettings) {
+export async function firstTimeInit(reddit, subredditName, database, masterSettings) {
     const subreddit = await reddit.getSubreddit(subredditName);   
 
     log.info(chalk.blue(`[${subredditName}]`, 'Beginning first time initialisation for', subredditName, '. Retrieving top posts...'));
@@ -81,7 +81,7 @@ async function firstTimeInit(reddit, subredditName, database, masterSettings) {
     log.info(`[${subredditName}]`, 'First time init finalised successfully.');
 }
 
-async function processOldSubmissions(submissions, alreadyProcessed, name, subredditName, database, masterSettings) {
+export async function processOldSubmissions(submissions, alreadyProcessed, name, subredditName, database, masterSettings) {
     const submissionsToProcess = submissions.filter(submission => !alreadyProcessed.includes(submission.id));
     log.info(`[${subredditName}]`, 'Retrived', submissions.length, name, 'posts for', subredditName, ',', submissionsToProcess.length, ' are new posts.');
     let processedCount = 0;
@@ -105,7 +105,7 @@ async function processOldSubmissions(submissions, alreadyProcessed, name, subred
                 }
                 await setMasterProperty('known_poisoned_ids', knownPoisonedIds);
             } else {
-                log.info(`[${subredditName}][first_time_init]`, 'Skipping poison submission:', await printSubmission(submission), e);    
+                log.info(`[${subredditName}][first_time_init]`, 'Skipping poison submission:', await printSubmission(submission));    
             }
         } catch (e) {
             log.info(`[${subredditName}][first_time_init]`, 'Error thrown while processing:', await printSubmission(submission), e);
@@ -120,17 +120,10 @@ async function processOldSubmissions(submissions, alreadyProcessed, name, subred
     log.info(`[${subredditName}]`, chalk.blue('Processed', processedCount, name, ' submissions for ', subredditName),' Took: ', (endTime - startTime) / 1000, 's.');
 }
 
-function isInitialising(subredditName) {
+export function isInitialising(subredditName) {
     return inProgress.includes(subredditName);
 }
 
-function isAnythingInitialising() {
+export function isAnythingInitialising() {
     return inProgress.length > 0;
 }
-
-
-module.exports = {
-    firstTimeInit,
-    isInitialising,
-    isAnythingInitialising
-};

@@ -12,7 +12,7 @@ const { logRemoveSmall } = require('../../../../master_stats.js');
 
 // 330px https://i.imgur.com/7jTFozp.png
 
-async function removeSmallImages(reddit, submission, imageDetails, subSettings, subredditName, submissionType) {
+export async function removeSmallImages(reddit, submission, imageDetails, subSettings, subredditName, submissionType) {
     if (!subSettings.removeSmallImages || submissionType !== 'image') {
         return true;
     }   
@@ -44,7 +44,3 @@ function isImageTooSmall(imageDetails, smallDimension) {
 
     return (imageDetails.height * imageDetails.width) < (smallDimension * smallDimension);
 }
-
-module.exports = {
-    removeSmallImages,
-};

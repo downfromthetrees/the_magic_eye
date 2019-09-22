@@ -7,7 +7,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 let moddedSubsCache = null;
 
 // returns concat string for multi, "meow_irl+hmmm+aww"
-async function getModdedSubredditsMulti(reddit) {
+export async function getModdedSubredditsMulti(reddit) {
     if (moddedSubsCache) {
         return moddedSubsCache;
     }
@@ -44,11 +44,6 @@ async function getModdedSubredditsRecursive(reddit, after) {
     }
 }
 
-function updateModdedSubreddits() {
+export function updateModdedSubreddits() {
     moddedSubsCache = null;
 }
-
-module.exports = {
-    getModdedSubredditsMulti,
-    updateModdedSubreddits
-};

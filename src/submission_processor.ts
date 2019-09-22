@@ -21,7 +21,7 @@ const { removeBlacklisted } = require('./processing_modules/submission_modules/i
 const { removeReposts } = require('./processing_modules/submission_modules/image/existing_submission/removeReposts.js');
 
 
-async function processSubmission(submission, masterSettings, database, reddit, activeMode) {
+export async function processSubmission(submission, masterSettings, database, reddit, activeMode) {
     const subredditName = masterSettings._id;
 
     // check if we have already processed submission
@@ -176,8 +176,3 @@ async function processNewSubmission(submission, imageDetails, database, activeMo
     const newMagicSubmission = new MagicSubmission(imageDetails.dhash, submission, await submission.score, submissionType);
     await database.saveMagicSubmission(newMagicSubmission, true);
 }
-
-
-module.exports = {
-    processSubmission,
-};

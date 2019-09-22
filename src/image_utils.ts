@@ -1,5 +1,3 @@
-var parseDbUrl = require("parse-database-url");
-var hammingDistance = require("hamming");
 var dhashLibrary = require("./dhash_gen.js");
 const chalk = require('chalk');
 const { promisify } = require('util');
@@ -113,7 +111,7 @@ export async function getImageUrl(submission) {
                 return {imageUrl: albumData.data[0].link, submissionType: 'image'};
             } else if (albumData.success && albumData.data && albumData.data.images && albumData.data.images[0]) {
                 // Not sure if case is valid - log for testing
-                logger.warn('Abnormal gallery url for processing: ', imageUrl); 
+                log.warn('Abnormal gallery url for processing: ', imageUrl); 
                 return null;
             } else {
                 // gallery but only one image

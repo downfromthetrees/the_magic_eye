@@ -18,7 +18,7 @@ const { logActionRepost } = require('../../../../master_stats.js');
 
 //=====================================
 
-async function removeReposts(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings, subredditName, submissionType) {
+export async function removeReposts(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings, subredditName, submissionType) {
     if (!subSettings.reposts) {
         return true;
     }
@@ -203,6 +203,3 @@ async function getTimeAgoString(submission) {
 
 
 
-module.exports = {
-    removeReposts,
-};

@@ -9,7 +9,7 @@ const { printSubmission, isRepostOnlyByUserRemoval } = require('../../../../redd
 
 //=====================================
 
-async function allowRepostsOnlyByUser(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings, subredditName, submissionType) {
+export async function allowRepostsOnlyByUser(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings, subredditName, submissionType) {
     if (!subSettings.removeBlacklisted) { // rely on blacklisted instead
         return true;
     }
@@ -28,7 +28,3 @@ async function allowRepostsOnlyByUser(reddit, modComment, submission, lastSubmis
 
     return true;
 }
-
-module.exports = {
-    allowRepostsOnlyByUser,
-};

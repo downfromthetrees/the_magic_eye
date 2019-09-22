@@ -12,7 +12,7 @@ const { logActionBlacklisted } = require('../../../../master_stats.js');
 
 //=====================================
 
-async function removeBlacklisted(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings, subredditName, submissionType) {
+export async function removeBlacklisted(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings, subredditName, submissionType) {
     if (!subSettings.removeBlacklisted) {
         return true;
     }
@@ -91,8 +91,3 @@ async function logModcomment(reddit, submissionId, subredditName) {
     const comments = await submission.comments;
     log.info(`[${subredditName}]`, JSON.stringify(comments));
 }
-
-
-module.exports = {
-    removeBlacklisted,
-};

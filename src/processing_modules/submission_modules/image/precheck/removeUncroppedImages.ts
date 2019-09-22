@@ -11,7 +11,7 @@ const { logRemoveUncropped } = require('../../../../master_stats.js');
 
 //=====================================
 
-async function removeUncroppedImages(reddit, submission, imageDetails, subSettings, subredditName, submissionType) {
+export async function removeUncroppedImages(reddit, submission, imageDetails, subSettings, subredditName, submissionType) {
     if (!subSettings.removeUncroppedImages || submissionType !== 'image') {
         return true;
     }
@@ -57,7 +57,3 @@ function imageIsVertical(imageDetails) {
     console.log("imageIsVertical", imageDetails.height > imageDetails.width * 1.8);
     return imageDetails.height > imageDetails.width * 1.8;
 }
-
-module.exports = {
-    removeUncroppedImages,
-};
