@@ -5,7 +5,7 @@ const chalk = require('chalk');
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-const { getImageDetails } = require('./image_utils.js');
+const { getImageDetails, getImageUrl } = require('./image_utils.js');
 
 // magic eye modules
 const { sliceSubmissionId } = require('./reddit_utils.js');
