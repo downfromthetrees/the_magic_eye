@@ -44,7 +44,7 @@ const tumblrClient = tumblr.createClient({
 
 const socialTime = 3 * 60 * 60 * 1000; // hours
 
-async function mainSocial(reddit, firstTimeDelay) {
+export async function mainSocial(reddit, firstTimeDelay) {
     try {
         if (firstTimeDelay){ // prevent a large task if starting up repeatedly
             setTimeout(mainSocial, socialTime, reddit);
@@ -101,13 +101,13 @@ async function uploadToTwitter(fileName, reddit_id) {
         const data = fs.readFileSync(fileName);
         const mediaResult = await twitterClient.post('media/upload', {media: data}); 
         if (!mediaResult || mediaResult.error) {
-            log.error('Error uploading to twitter: ' + result);
+            log.error('Error uploading to twitter: ' + mediaResult);
             return;
         } 
 
         const tweetResult = await twitterClient.post('statuses/update', { status: 'hmmm', media_ids: mediaResult.media_id_string });
         if (!tweetResult || tweetResult.error) {
-            log.error('Error uploading to twitter: ' + result);
+            log.error('Error uploading to twitter: ' + mediaResult);
             return;
         }
     } catch(e) {
@@ -173,8 +173,3 @@ async function consumeUnprocessedSubmissions(items) {
     return chosenItem;
 }
 
-
-
-module.exports = {
-    mainSocial
-}

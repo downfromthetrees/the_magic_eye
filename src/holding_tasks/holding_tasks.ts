@@ -21,7 +21,7 @@ const reddit = new snoowrap({
 reddit.config({requestDelay: 1000, continueAfterRatelimitError: true});
 
 
-async function nukeHolding() {
+export async function nukeHolding() {
     const holdingSubreddit = await reddit.getSubreddit(process.env.HOLDING_SUBREDDIT);
     const submissions = await holdingSubreddit.getNew({'limit': 500});
     
@@ -36,7 +36,7 @@ async function nukeHolding() {
 
 }
 
-async function mainHolding() {
+export async function mainHolding() {
     try {
         if (!process.env.HOLDING_TARGET_SUBREDDITS) {
             return;
@@ -53,7 +53,7 @@ async function mainHolding() {
             return;
         }
 
-        const unprocessedTargetSubmissions = await consumeTargetSubmissions(submissions, 'target');
+        const unprocessedTargetSubmissions = await consumeTargetSubmissions(submissions);
 
         // crosspost
         await crossPostFromTargetSubreddit(unprocessedTargetSubmissions, reddit);
@@ -146,7 +146,7 @@ async function processRemovedPosts(unprocessedItems, reddit) {
 
 
 
-async function uploadToImgur(imagePath) {
+export async function uploadToImgur(imagePath) {
     const fileStats = fs.statSync(imagePath);
     const fileSizeInBytes = fileStats.size;
     let readStream = fs.createReadStream(imagePath);
@@ -165,7 +165,7 @@ async function uploadToImgur(imagePath) {
 
 
 // overkill, but well tested
-async function consumeUnprocessedModlog(latestItems, suffix) {
+export async function consumeUnprocessedModlog(latestItems, suffix?) {
     latestItems.sort((a, b) => { return a.created_utc - b.created_utc}); // oldest first
 
     let propertyId = 'holding_processed_modlog';
@@ -243,7 +243,7 @@ async function consumeTargetSubmissions(latestItems) {
 
 
 const garbageCollectionTime = 2 * 60 * 60 * 1000; // 2 hours
-async function garbageCollectionHolding(firstTimeDelay) {
+export async function garbageCollectionHolding(firstTimeDelay) {
     if (firstTimeDelay){ // prevent a large task if starting up repeatedly
         setTimeout(garbageCollectionHolding, garbageCollectionTime);
         return;
@@ -287,15 +287,9 @@ async function garbageCollectionHolding(firstTimeDelay) {
 }
 
 
-async function deleteHoldingPost(submissionId) {
+export async function deleteHoldingPost(submissionId) {
     log.info('[HOLDING] Deleting ', `http://redd.it/${submissionId}`, 'as holding repost');
     const submission = await reddit.getSubmission(submissionId);
     await submission.delete();
 }
 
-module.exports = {
-    mainHolding,
-    garbageCollectionHolding,
-    deleteHoldingPost,
-    nukeHolding
-};

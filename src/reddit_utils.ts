@@ -7,7 +7,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 // reddit modules
 const chalk = require('chalk');
 
-import { deleteHoldingPost } from './holding_tasks/holding_tasks.ts';
+import { deleteHoldingPost } from './holding_tasks/holding_tasks';
 
 export async function getModComment(reddit, submissionId) {
     const submission = reddit.getSubmission(submissionId);

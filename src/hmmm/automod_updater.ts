@@ -6,7 +6,7 @@ const log = require('loglevel');
 const indentString = require('indent-string');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-async function enableFilterMode(reddit, enable) {
+export async function enableFilterMode(reddit, enable) {
     const subredditName = 'hmmm';
     log.info(`[${subredditName}]`, 'Setting filter mode:', enable);
 
@@ -97,8 +97,3 @@ function modifyFilteringConfig(currentConfig, enable) {
 
 //     return baseConfig + configAddition;
 // }
-
-
-module.exports = {
-    enableFilterMode
-};

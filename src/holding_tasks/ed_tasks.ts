@@ -20,7 +20,7 @@ const reddit = new snoowrap({
 reddit.config({requestDelay: 1000, continueAfterRatelimitError: true});
 
 
-async function mainEdHolding() {
+export async function mainEdHolding() {
     try {
         if (!process.env.ED_HOLDING_TARGET_SUBREDDITS) {
             return;
@@ -38,7 +38,7 @@ async function mainEdHolding() {
             return;
         }
 
-        const unprocessedTargetSubmissions = await consumeTargetSubmissions(modmails, 'target');
+        const unprocessedTargetSubmissions = await consumeTargetSubmissions(modmails);
 
         // crosspost
         await crossPostFromTargetSubreddit(unprocessedTargetSubmissions, reddit);
@@ -195,7 +195,7 @@ async function processRemovedPosts(unprocessedItems, reddit) {
 
 
 // overkill, but well tested
-async function consumeUnprocessedModlog(latestItems, suffix) {
+async function consumeUnprocessedModlog(latestItems, suffix?) {
     latestItems.sort((a, b) => { return a.created_utc - b.created_utc}); // oldest first
 
     let propertyId = 'ed_holding_processed_modlog';
@@ -270,8 +270,3 @@ async function consumeTargetSubmissions(latestItems) {
 
     return newItems;
 }
-
-
-module.exports = {
-    mainEdHolding
-};

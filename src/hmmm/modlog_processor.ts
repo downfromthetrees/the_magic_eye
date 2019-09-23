@@ -8,7 +8,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 import { getMasterProperty, setMasterProperty } from '../mongodb_master_data.js';
 
-async function processModlog(subredditName, reddit) {
+export async function processModlog(subredditName, reddit) {
     try {
         const modlogSubreddit = await reddit.getSubreddit(subredditName);
         const removedSubmissions = await modlogSubreddit.getModerationLog({type: 'removelink', 'limit': 200});
@@ -79,8 +79,3 @@ async function consumeRemovedSubmissions(latestItems, suffix) {
     
     return newItems;
 }
-
-
-module.exports = {
-    processModlog
-};
