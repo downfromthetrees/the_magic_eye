@@ -5,14 +5,13 @@ const chalk = require('chalk');
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-const { getImageDetails, getImageUrl } = require('./image_utils.js');
-
 // magic eye modules
-const { sliceSubmissionId } = require('./reddit_utils.js');
-const { updateModdedSubreddits } = require('./modded_subreddits.js');
+import { getImageDetails, getImageUrl } from './image_utils';
+import { sliceSubmissionId } from './reddit_utils';
+import { updateModdedSubreddits } from './modded_subreddits';
 
 
-async function processInboxMessage(inboxMessage, reddit, database, messageSubreddit, masterSettings) {
+export async function processInboxMessage(inboxMessage, reddit, database, messageSubreddit, masterSettings) {
     const subredditName = messageSubreddit ? messageSubreddit.display_name : null;
     const subreddit = messageSubreddit ? await reddit.getSubreddit(subredditName) : null;
     
@@ -193,7 +192,3 @@ async function command_setExactMatchOnly(submission, existingMagicSubmission, da
     return true; 
 }
 
-
-module.exports = {
-    processInboxMessage
-};

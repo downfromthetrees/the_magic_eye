@@ -5,11 +5,11 @@ const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 // magic eye modules
-const { printSubmission, isRepostOnlyByUserRemoval } = require('../../../../reddit_utils.js');
+import { printSubmission, isRepostOnlyByUserRemoval } from '../../../../reddit_utils';
 
 //=====================================
 
-async function allowRepostsOnlyByUser(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings, subredditName, submissionType) {
+export async function allowRepostsOnlyByUser(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings, subredditName, submissionType) {
     if (!subSettings.removeBlacklisted) { // rely on blacklisted instead
         return true;
     }
@@ -19,7 +19,7 @@ async function allowRepostsOnlyByUser(reddit, modComment, submission, lastSubmis
     const sameUserForBothSubmissions = lastSubmissionDeleted || await lastSubmission.author.name == await submission.author.name;
 
     if (lastIsRepostOnlyByUser && sameUserForBothSubmissions) {
-        log.info(`[${subredditName}]`, 'Found matching hash for submission', await printSubmission(submission), ', but ignoring as special user only repost of submission: http://redd.it/', existingMagicSubmission.reddit_id);
+        log.info(`[${subredditName}]`, 'Found matching hash for submission', await printSubmission(submission, submissionType), ', but ignoring as special user only repost of submission: http://redd.it/', existingMagicSubmission.reddit_id);
         existingMagicSubmission.approve = true; // just auto-approve as this is almost certainly the needed action
         existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
         // submission.approve(); hold off on approving
@@ -28,7 +28,3 @@ async function allowRepostsOnlyByUser(reddit, modComment, submission, lastSubmis
 
     return true;
 }
-
-module.exports = {
-    allowRepostsOnlyByUser,
-};

@@ -6,12 +6,12 @@ const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 // magic eye modules
-const { removePost, printSubmission } = require('../../../../reddit_utils.js');
-const { logRemoveUncropped } = require('../../../../master_stats.js');
+import { removePost, printSubmission } from '../../../../reddit_utils';
+import { logRemoveUncropped } from '../../../../master_stats';
 
 //=====================================
 
-async function removeUncroppedImages(reddit, submission, imageDetails, subSettings, subredditName, submissionType) {
+export async function removeUncroppedImages(reddit, submission, imageDetails, subSettings, subredditName, submissionType) {
     if (!subSettings.removeUncroppedImages || submissionType !== 'image') {
         return true;
     }
@@ -57,7 +57,3 @@ function imageIsVertical(imageDetails) {
     console.log("imageIsVertical", imageDetails.height > imageDetails.width * 1.8);
     return imageDetails.height > imageDetails.width * 1.8;
 }
-
-module.exports = {
-    removeUncroppedImages,
-};

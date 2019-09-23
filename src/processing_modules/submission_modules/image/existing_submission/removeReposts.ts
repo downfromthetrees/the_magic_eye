@@ -12,13 +12,13 @@ TimeAgo.addLocale(en_locale);
 const timeAgo = new TimeAgo('en');
 
 // magic eye modules
-const { isRepostRemoval, removePost, printSubmission } = require('../../../../reddit_utils.js');
-const { logActionRepost } = require('../../../../master_stats.js');
+import { isRepostRemoval, removePost, printSubmission } from '../../../../reddit_utils';
+import { logActionRepost } from '../../../../master_stats';
 
 
 //=====================================
 
-async function removeReposts(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings, subredditName, submissionType) {
+export async function removeReposts(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings, subredditName, submissionType) {
     if (!subSettings.reposts) {
         return true;
     }
@@ -123,7 +123,7 @@ async function actionAsRepost(submission, lastSubmission, noOriginalSubmission, 
         log.error(`[${subredditName}]`, 'Unknown action', subSettings.reposts.action);
     }
 
-    logActionRepost(subredditName);
+    logActionRepost(subredditName, null);
 }
 
 async function warnAsRepost(submission, lastSubmission) {
@@ -203,6 +203,3 @@ async function getTimeAgoString(submission) {
 
 
 
-module.exports = {
-    removeReposts,
-};

@@ -1,12 +1,11 @@
 // standard server modules
-const express = require('express');
+import express = require('express');
 const app = express();
 const chalk = require('chalk');
 const fs = require('fs');
 require('dotenv').config();
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
-const babel = require("babel-core/register");
 
 if (!process.env.ACCOUNT_USERNAME ||
     !process.env.PASSWORD ||
@@ -34,17 +33,17 @@ if (!process.env.ACCOUNT_USERNAME ||
 
 
 // magic eye modules
-const { initDatabase } = require('./mongodb_data.js');
-const { processSubmission, } = require('./submission_processor.js');
-const { processInboxMessage } = require('./inbox_processor.js');
-const { processUnmoderated } = require('./unmoderated_processor.js');
-const { firstTimeInit, isAnythingInitialising } = require('./first_time_init.js');
-const { SubredditSettings, getSubredditSettings, setSubredditSettings,
+import { initDatabase } from './mongodb_data';
+import { processSubmission } from './submission_processor';
+import { processInboxMessage } from './inbox_processor';
+import { processUnmoderated } from './unmoderated_processor';
+import { firstTimeInit, isAnythingInitialising } from './first_time_init';
+import { SubredditSettings, getSubredditSettings, setSubredditSettings,
     getMasterProperty, setMasterProperty, initMasterDatabase,
-    refreshDatabaseList, upgradeMasterSettings, needsUpgrade } = require('./mongodb_master_data.js');
-const { updateSettings, createDefaultSettings, writeSettings } = require('./wiki_utils.js');
-const { logProcessPost, logProcessCycle, printStats } = require('./master_stats.js');
-const { getModdedSubredditsMulti } = require('./modded_subreddits.js');
+    refreshDatabaseList, upgradeMasterSettings, needsUpgrade } from './mongodb_master_data';
+import { updateSettings, createDefaultSettings, writeSettings } from './wiki_utils';
+import { logProcessPost, logProcessCycle, printStats } from './master_stats';
+import { getModdedSubredditsMulti } from './modded_subreddits';
 
 // Create a new snoowrap requester with OAuth credentials
 // See here: https://github.com/not-an-aardvark/reddit-oauth-helper
@@ -149,7 +148,7 @@ async function main() {
         // get messages time: ${messagesTimeTaken.toFixed(1)}
         // `);
         if (cycleTimeTaken > 30) {
-            log.warn('======== Time warning: cycle was ', cycleTimeTaken, 'seconds');
+            log.warn('Time warning: cycle was ', cycleTimeTaken, 'seconds');
         }
         logProcessCycle(cycleTimeTaken);
 
@@ -162,7 +161,7 @@ async function main() {
     setTimeout(main, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
 }
 
-async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
+async function processSubreddit(subredditName: string, unprocessedSubmissions, reddit) {
     if (subredditName.startsWith('u_')) {
         return;
     }

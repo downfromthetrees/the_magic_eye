@@ -1,9 +1,5 @@
-var parseDbUrl = require("parse-database-url");
-var hammingDistance = require("hamming");
-var dhashLibrary = require("./dhash_gen.js");
 const chalk = require('chalk');
 const { promisify } = require('util');
-const dhashGet = promisify(dhashLibrary);
 const fs = require('fs');
 const imageDownloader = require('image-downloader');
 const imageMagick = require('imagemagick');
@@ -12,9 +8,12 @@ const stripchar = require('stripchar').StripChar;
 const fetch = require("node-fetch");
 const imageSize = require('image-size');
 
-const commonWords = require('./common_words.js').getCommonWords();
+import { dhash_gen } from './dhash_gen';
+const dhashGet = promisify(dhash_gen);
+import { getCommonWords } from './common_words';
+const commonWords = getCommonWords();
 
-const { logDetectText } = require('./master_stats.js');
+import { logDetectText } from './master_stats';
 
 require('dotenv').config();
 const log = require('loglevel');
@@ -73,7 +72,7 @@ export async function getImageUrl(submission) {
     const isGfycat = imageUrl.includes('gfycat.com');
     const animatedMedia = ['gif', 'gifv', 'mp4', 'webm'];
     if (animatedMedia.includes(suffix) || isVid || isGfycat || isCrosspostVid) {
-        return await animatedMediaUrl(thumbnail, submission);
+        return animatedMediaUrl(thumbnail);
     }
 
     const isImgur = imageUrl.includes('imgur.com');
@@ -108,12 +107,12 @@ export async function getImageUrl(submission) {
             if (albumData.success && albumData.data && albumData.data[0]) {
                 // gallery with multiple images
                 if (albumData.data[0].animated) {
-                    return await animatedMediaUrl(thumbnail, submission);
+                    return animatedMediaUrl(thumbnail);
                 }
                 return {imageUrl: albumData.data[0].link, submissionType: 'image'};
             } else if (albumData.success && albumData.data && albumData.data.images && albumData.data.images[0]) {
                 // Not sure if case is valid - log for testing
-                logger.warn('Abnormal gallery url for processing: ', imageUrl); 
+                log.warn('Abnormal gallery url for processing: ', imageUrl); 
                 return null;
             } else {
                 // gallery but only one image
@@ -122,7 +121,7 @@ export async function getImageUrl(submission) {
                 const albumImage = await imageResult.json();             
                 if (albumImage.success && albumImage.data) {
                     if (albumImage.data.animated) {
-                        return await animatedMediaUrl(thumbnail, submission);
+                        return animatedMediaUrl(thumbnail);
                     }
 
                     return {imageUrl: albumImage.data.link, submissionType: 'image'};
@@ -137,7 +136,7 @@ export async function getImageUrl(submission) {
             const singleImage = await result.json();
             if (singleImage.success && singleImage.data) {
                 if (singleImage.data.animated) {
-                    return await animatedMediaUrl(thumbnail, submission);
+                    return animatedMediaUrl(thumbnail);
                 }
 
                 return {imageUrl: singleImage.data.link, submissionType: 'image'};
@@ -151,14 +150,11 @@ export async function getImageUrl(submission) {
     return null;
 }
 
-async function animatedMediaUrl(thumbnail, submission) {
-    const submissionId = await submission.id;
-    const submissionUrl = await submission.url;
-    log.warn('Found animated media for id: ', submissionId, ", thumbnail: ", thumbnail, ", submission url: ", submissionUrl);
+function animatedMediaUrl(thumbnail) {
     return thumbnail === "default" ? null : {imageUrl: thumbnail, submissionType: 'animated'};
 }
 
-async function getImageDetails(submissionUrl, includeWords, blacklistedWords) {
+export async function getImageDetails(submissionUrl, includeWords, blacklistedWords?): Promise<any> {
     const imagePath = await downloadImage(submissionUrl);
     if (imagePath == null) {
         return null;
@@ -169,7 +165,7 @@ async function getImageDetails(submissionUrl, includeWords, blacklistedWords) {
         return { tooLarge: true };
     }
 
-    const imageDetails = { dhash: null, height: null, width: null, trimmedHeight: null, trimmedWidth: null, words: null };
+    const imageDetails = { dhash: null, height: null, width: null, trimmedHeight: null, trimmedWidth: null, words: null, tooLarge: false, ignore: false };
 
     const imagePHash = await getImageSize(imagePath, submissionUrl); 
     if (imagePHash != null) {
@@ -181,14 +177,14 @@ async function getImageDetails(submissionUrl, includeWords, blacklistedWords) {
         imageDetails.width = imagePHash.width;
     } else {
         log.error('Failed to generate size for ', submissionUrl);
-        return { ignore: true };
+        return { ignore: true, tooLarge: false };
     }
 
     imageDetails.dhash = await generateDHash(imagePath, submissionUrl);
 
     if (isSolidColor(imageDetails.dhash)) {
         log.info('Rejecting solid colour dhash:', imageDetails.dhash);
-        return { ignore: true };
+        return { ignore: true, tooLarge: false };
     }
 
     if (imageDetails.dhash == null) {
@@ -207,12 +203,12 @@ async function getImageDetails(submissionUrl, includeWords, blacklistedWords) {
         } else {
             log.error('Failed to generate trimmed size for ', submissionUrl);
         }
-        await deleteImage(trimmedPath);
+        deleteImage(trimmedPath);
     } catch (e) {
         log.error(chalk.red('Could not trim submission:'), submissionUrl, ' - imagemagick error: ', e);
     }
 
-    await deleteImage(imagePath);
+    deleteImage(imagePath);
     return imageDetails;
 }
 
@@ -272,8 +268,3 @@ async function getWordsInImage(originalImagePath, height, blacklistedWords) {
     }
     return [];
 }
-
-module.exports = {
-    getImageDetails,
-    getImageUrl
-};    

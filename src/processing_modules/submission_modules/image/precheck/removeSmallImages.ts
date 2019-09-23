@@ -6,13 +6,13 @@ const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 // magic eye modules
-const { removePost, printSubmission } = require('../../../../reddit_utils.js');
-const { logRemoveSmall } = require('../../../../master_stats.js');
+import { removePost, printSubmission } from '../../../../reddit_utils';
+import { logRemoveSmall } from '../../../../master_stats';
 //=====================================
 
 // 330px https://i.imgur.com/7jTFozp.png
 
-async function removeSmallImages(reddit, submission, imageDetails, subSettings, subredditName, submissionType) {
+export async function removeSmallImages(reddit, submission, imageDetails, subSettings, subredditName, submissionType) {
     if (!subSettings.removeSmallImages || submissionType !== 'image') {
         return true;
     }   
@@ -44,7 +44,3 @@ function isImageTooSmall(imageDetails, smallDimension) {
 
     return (imageDetails.height * imageDetails.width) < (smallDimension * smallDimension);
 }
-
-module.exports = {
-    removeSmallImages,
-};

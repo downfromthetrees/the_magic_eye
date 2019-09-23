@@ -5,7 +5,7 @@ const chalk = require('chalk');
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-async function processUnmoderated(submissions, settings, subredditName) {
+export async function processUnmoderated(submissions, settings, subredditName) {
     for (const submission of submissions) {
         let alreadyReported = submission.mod_reports && submission.mod_reports.length > 0;
         if (!submission.approved && !alreadyReported && submission.score > settings.reportUnmoderated.reportUnmoderatedScore) {
@@ -13,7 +13,3 @@ async function processUnmoderated(submissions, settings, subredditName) {
         }
     }
 }
-
-module.exports = {
-    processUnmoderated,
-};
