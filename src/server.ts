@@ -1,12 +1,11 @@
 // standard server modules
-const express = require('express');
+import express = require('express');
 const app = express();
 const chalk = require('chalk');
 const fs = require('fs');
 require('dotenv').config();
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
-const babel = require("babel-core/register");
 
 if (!process.env.ACCOUNT_USERNAME ||
     !process.env.PASSWORD ||
@@ -34,22 +33,24 @@ if (!process.env.ACCOUNT_USERNAME ||
 
 
 // magic eye modules
-const { initDatabase } = require('./mongodb_data.js');
-const { processSubmission, } = require('./submission_processor.js');
-const { processInboxMessage } = require('./inbox_processor.js');
-const { processUnmoderated } = require('./unmoderated_processor.js');
-const { processModlog } = require('./hmmm/modlog_processor.js');
-const { firstTimeInit, isAnythingInitialising } = require('./first_time_init.js');
-const { SubredditSettings, getSubredditSettings, setSubredditSettings,
+
+import { initDatabase } from './mongodb_data';
+import { processSubmission } from './submission_processor';
+import { processInboxMessage } from './inbox_processor';
+import { processUnmoderated } from './unmoderated_processor';
+import { firstTimeInit, isAnythingInitialising } from './first_time_init';
+import { SubredditSettings, getSubredditSettings, setSubredditSettings,
     getMasterProperty, setMasterProperty, initMasterDatabase,
-    refreshDatabaseList, upgradeMasterSettings, needsUpgrade } = require('./mongodb_master_data.js');
-const { updateSettings, createDefaultSettings, writeSettings } = require('./wiki_utils.js');
-const { enableFilterMode } = require('./hmmm/automod_updater.js');
-const { mainHolding, garbageCollectionHolding, nukeHolding } = require('./holding_tasks/holding_tasks.js');
-const { mainEdHolding } = require('./holding_tasks/ed_tasks.js');
-const { mainSocial } = require('./holding_tasks/social.js');
-const { logProcessPost, logProcessCycle, printStats } = require('./master_stats.js');
-const { getModdedSubredditsMulti } = require('./modded_subreddits.js');
+    refreshDatabaseList, upgradeMasterSettings, needsUpgrade } from './mongodb_master_data';
+import { updateSettings, createDefaultSettings, writeSettings } from './wiki_utils';
+import { enableFilterMode } from './hmmm/automod_updater';
+import { mainHolding, garbageCollectionHolding, nukeHolding } from './holding_tasks/holding_tasks';
+import { mainEdHolding } from './holding_tasks/ed_tasks';
+import { mainSocial } from './holding_tasks/social.js';
+import { logProcessPost, logProcessCycle, printStats } from './master_stats.js';
+import { getModdedSubredditsMulti } from './modded_subreddits';
+import { processModlog } from './hmmm/modlog_processor';
+
 
 // https://not-an-aardvark.github.io/snoowrap/snoowrap.html
 // Create a new snoowrap requester with OAuth credentials
@@ -166,7 +167,7 @@ async function main() {
         // get messages time: ${messagesTimeTaken.toFixed(1)}
         // `);
         if (cycleTimeTaken > 30) {
-            log.warn('======== Time warning: cycle was ', cycleTimeTaken, 'seconds');
+            log.warn('Time warning: cycle was ', cycleTimeTaken, 'seconds');
         }
         logProcessCycle(cycleTimeTaken);
 
@@ -179,7 +180,7 @@ async function main() {
     setTimeout(main, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
 }
 
-async function processSubreddit(subredditName, unprocessedSubmissions, reddit) {
+async function processSubreddit(subredditName: string, unprocessedSubmissions, reddit) {
     if (subredditName.startsWith('u_')) {
         return;
     }

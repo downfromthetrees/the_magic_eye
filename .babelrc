@@ -1,6 +1,0 @@
-{
-    "presets": ["env", "react"],
-    "plugins": ["syntax-async-functions","transform-regenerator","babel-polyfill"],
-    "sourceMaps": "both",
-    "retainLines": true
-}

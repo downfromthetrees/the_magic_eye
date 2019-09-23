@@ -6,10 +6,10 @@ const log = require('loglevel');
 const indentString = require('indent-string');
 const Validator = require('jsonschema').Validator;
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
-const { getSubredditSettings, setSubredditSettings, getMasterProperty, setMasterProperty } = require('./mongodb_master_data.js');
+import { getSubredditSettings, setSubredditSettings, getMasterProperty, setMasterProperty } from './mongodb_master_data';
 
 
-async function createDefaultSettings(subredditName, masterSettings, reddit) {
+export async function createDefaultSettings(subredditName, masterSettings, reddit) {
     log.info(`[${subredditName}]`, 'Creating default settings for', subredditName, '...');
     const wikiPage = await reddit.getSubreddit(subredditName).getWikiPage('magic_eye');
 
@@ -39,7 +39,7 @@ async function createDefaultSettings(subredditName, masterSettings, reddit) {
     }
 }
 
-async function writeSettings(subredditName, masterSettings, reddit) {
+export async function writeSettings(subredditName, masterSettings, reddit) {
     log.info(`[${subredditName}]`, 'Upgrading settings for', subredditName, '...');
     const wikiPage = await reddit.getSubreddit(subredditName).getWikiPage('magic_eye');
 
@@ -58,7 +58,7 @@ async function writeSettings(subredditName, masterSettings, reddit) {
 }
 
 
-async function updateSettings(subredditMulti, reddit) {
+export async function updateSettings(subredditMulti, reddit) {
     const wikiChanges = await subredditMulti.getModerationLog({type: 'wikirevise'});
     const newChanges = wikiChanges.filter(change => change.details.includes('Page magic_eye edited') && change.mod != process.env.ACCOUNT_USERNAME);
     const unprocessedChanges = await consumeUnprocessedWikiChanges(newChanges);
@@ -104,7 +104,7 @@ async function consumeUnprocessedWikiChanges(latestItems) {
 
 
 
-async function doUpdateSettings(subredditName, change, reddit) {
+export async function doUpdateSettings(subredditName, change, reddit) {
     log.info('Updating settings for', subredditName);
     const subreddit = await reddit.getSubreddit(subredditName); 
     const wikiPage = await subreddit.getWikiPage('magic_eye');
@@ -153,8 +153,3 @@ Use https://jsonlint.com/ to find the issue (typically a trailing comma, missing
 
 const settingsSchema = ``;
 
-module.exports = {
-    updateSettings,
-    createDefaultSettings,
-    writeSettings
-};

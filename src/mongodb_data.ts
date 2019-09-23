@@ -22,7 +22,7 @@ class User {
     }
 }
 
-class MagicProperty {
+export class MagicProperty {
     _id;
     value;
 
@@ -32,7 +32,7 @@ class MagicProperty {
     }
 }
 
-class MagicSubmission {
+export class MagicSubmission {
     _id; // dhash of the original
     createdAt; // automatic expiry indicator
     reddit_id; // the last reddit id that matched the dhash (dhash within hamming distance)
@@ -213,7 +213,7 @@ class MagicDatabase {
 
 }
 
-async function initDatabase(name, connectionUrl) {
+export async function initDatabase(name, connectionUrl) {
     if (!databaseConnectionList[name]) {
         log.debug(chalk.blue('Connecting to database...', name, '-', connectionUrl));
         try {
@@ -230,10 +230,10 @@ async function initDatabase(name, connectionUrl) {
     const startTime = new Date().getTime();
 
     const submissionCollection = await connection.collection(getCollectionName('submissions', name));
-    submissionCollection.ensureIndex( { "createdAt": 1 }, { expireAfterSeconds: 60 * 60 * 24 * process.env.DAYS_EXPIRY } );
+    submissionCollection.ensureIndex( { "createdAt": 1 }, { expireAfterSeconds: 60 * 60 * 24 * parseInt(process.env.DAYS_EXPIRY, 10) } );
    
     const userCollection = await connection.collection(getCollectionName('users', name));
-    userCollection.ensureIndex( { "createdAt": 1 }, { expireAfterSeconds: 60 * 60 * 24 * process.env.DAYS_EXPIRY } );
+    userCollection.ensureIndex( { "createdAt": 1 }, { expireAfterSeconds: 60 * 60 * 24 * parseInt(process.env.DAYS_EXPIRY, 10) } );
 
     const dhash_cache = await submissionCollection.find().project({_id: 1}).map(x => x._id).toArray();
     const endTime = new Date().getTime();
@@ -243,8 +243,3 @@ async function initDatabase(name, connectionUrl) {
 }
 
 
-
-module.exports = {
-    MagicSubmission,
-    initDatabase,
-};

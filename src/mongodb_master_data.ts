@@ -6,7 +6,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 let masterConnection = null;
 
-class MasterProperty {
+export class MasterProperty {
     _id;
     value;
 
@@ -16,7 +16,7 @@ class MasterProperty {
     }
 }
 
-class Stats {
+export class Stats {
     subredditName;
     action;
     timeTaken;
@@ -34,7 +34,7 @@ class Stats {
 const currentVersion = "1";
 
 // default mod editable settings
-class SubredditSettings {
+export class SubredditSettings {
     _id; // subreddit name
     config; // private config settings
     settings; // default settings
@@ -74,12 +74,12 @@ class SubredditSettings {
     }
 }
 
-function needsUpgrade(masterSettings) {
+export function needsUpgrade(masterSettings) {
     return masterSettings.version != currentVersion;
 }
 
 
-function upgradeMasterSettings(masterSettings) {
+export function upgradeMasterSettings(masterSettings) {
     let newMasterSettings = masterSettings;
 
     // upgrade version
@@ -113,24 +113,24 @@ function upgradeMasterSettings(masterSettings) {
 
 
 
-function getCollectionName(collection) {
+export function getCollectionName(collection) {
     const collectionPrefix = (process.env.NODE_ENV == 'production' ? '' : process.env.NODE_ENV + ':');
     return collectionPrefix + collection;
 }
 
-async function getSubredditSettingsCollection() {
+export async function getSubredditSettingsCollection() {
     return masterConnection.collection(getCollectionName('subreddit-settings'));
 }
 
-async function getPropertyCollection() {
+export async function getPropertyCollection() {
     return masterConnection.collection(getCollectionName('properties'));
 }
 
-async function getStatsCollection() {
+export async function getStatsCollection() {
     return masterConnection.collection(getCollectionName('stats'));
 }
 
-async function addSubredditStat(statistic) {   
+export async function addSubredditStat(statistic) {   
     try {
         const collection = await getStatsCollection();
         await collection.save(statistic);
@@ -140,7 +140,7 @@ async function addSubredditStat(statistic) {
     }
 }
 
-async function getSubredditStat(actionName) {   
+export async function getSubredditStat(actionName) {   
     try {
         const collection = await getStatsCollection();
         return await collection.find({'action': actionName}).toArray();
@@ -151,7 +151,7 @@ async function getSubredditStat(actionName) {
 }
 
 
-async function setSubredditSettings(subredditName, settings) {   
+export async function setSubredditSettings(subredditName, settings) {   
     try {
         const collection = await getSubredditSettingsCollection();
         await collection.save(settings);
@@ -161,7 +161,7 @@ async function setSubredditSettings(subredditName, settings) {
     }
 }
 
-async function getSubredditSettings(subredditName) {
+export async function getSubredditSettings(subredditName) {
     try {
         const collection = await getSubredditSettingsCollection();
         const property = (await collection.findOne({'_id': subredditName}));
@@ -174,7 +174,7 @@ async function getSubredditSettings(subredditName) {
     return null;
 }
 
-async function setMasterProperty(key, value) {
+export async function setMasterProperty(key, value) {
     try {
         const collection = await getPropertyCollection();
         const newMasterProp = new MasterProperty(key, value);
@@ -185,7 +185,7 @@ async function setMasterProperty(key, value) {
     }
 }
 
-async function getMasterProperty(key) {
+export async function getMasterProperty(key) {
     try {
         const collection = await getPropertyCollection();
         const property = (await collection.findOne({'_id': key}));
@@ -199,7 +199,7 @@ async function getMasterProperty(key) {
 }
 
 
-async function initMasterDatabase() {
+export async function initMasterDatabase() {
     log.info(chalk.blue('Connecting to master database...'));
     try {
         const client = await MongoClient.connect(process.env.MONGODB_URI, { useNewUrlParser: true });
@@ -211,7 +211,7 @@ async function initMasterDatabase() {
     return true;
 }
 
-async function refreshDatabaseList() {
+export async function refreshDatabaseList() {
     try {
         const masterDatabaseUrls = process.env.EXTERNAL_DATABASES.split(',');
         let databaseList = await getMasterProperty('databases');
@@ -234,19 +234,3 @@ async function refreshDatabaseList() {
         return null;
     }
 }
-
-
-module.exports = {
-    SubredditSettings,
-    initMasterDatabase,
-    refreshDatabaseList,
-    setSubredditSettings,
-    getSubredditSettings,
-    getMasterProperty,
-    setMasterProperty,
-    needsUpgrade,
-    upgradeMasterSettings,
-    addSubredditStat,
-    getSubredditStat,
-    Stats
-};

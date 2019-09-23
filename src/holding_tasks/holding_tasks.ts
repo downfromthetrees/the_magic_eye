@@ -7,8 +7,8 @@ require('dotenv').config();
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-const { getMasterProperty, setMasterProperty } = require('../mongodb_master_data.js');
-const { downloadImage, deleteImage } = require('../image_utils.js');
+import { getMasterProperty, setMasterProperty } from '../mongodb_master_data';
+import { downloadImage, deleteImage } from '../image_utils';
 
 const snoowrap = require('snoowrap');
 const reddit = new snoowrap({

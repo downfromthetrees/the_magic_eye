@@ -5,8 +5,8 @@ require('dotenv').config();
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-const { downloadImage, deleteImage } = require('../image_utils.js');
-const { getMasterProperty, setMasterProperty } = require('../mongodb_master_data.js');
+import { downloadImage, deleteImage } from '../image_utils';
+import { getMasterProperty, setMasterProperty } from '../mongodb_master_data';
 
 // facebook
 const facebook = require('fb');

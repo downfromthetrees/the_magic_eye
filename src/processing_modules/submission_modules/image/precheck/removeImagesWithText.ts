@@ -6,12 +6,12 @@ const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 // magic eye modules
-const { removePost, printSubmission } = require('../../../../reddit_utils.js');
-const { logRemoveText } = require('../../../../master_stats.js');
+import { removePost, printSubmission } from '../../../../reddit_utils';
+import { logRemoveText } from '../../../../master_stats';
 
 //=====================================
 
-async function removeImagesWithText(reddit, submission, imageDetails, subSettings, subredditName, submissionType) {
+export async function removeImagesWithText(reddit, submission, imageDetails, subSettings, subredditName, submissionType) {
     if (!subSettings.removeImagesWithText_hidden || submissionType !== 'image') {
         return true;
     }
@@ -48,7 +48,3 @@ async function action(submission, removalReason, subSettings, reddit, subredditN
 
     logRemoveText(subredditName, null);
 }
-
-module.exports = {
-    removeImagesWithText,
-};

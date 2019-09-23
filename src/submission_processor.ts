@@ -6,22 +6,22 @@ const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 // magic eye general
-const { getImageDetails, getImageUrl } = require('./image_utils.js');
-const { MagicSubmission } = require('./mongodb_data.js');
-const { getModComment, isMagicIgnore, isAnyTagRemoval, removePost, printSubmission } = require('./reddit_utils.js');
-const { logRemoveBroken } = require('./master_stats.js');
+import { getImageDetails, getImageUrl } from './image_utils';
+import { MagicSubmission } from './mongodb_data';
+import { getModComment, isMagicIgnore, isAnyTagRemoval, removePost, printSubmission } from './reddit_utils';
+import { logRemoveBroken } from './master_stats';
 
 // precheck modules
-const { removeImagesWithText } = require('./processing_modules/submission_modules/image/precheck/removeImagesWithText.js');
-const { removeSmallImages } = require('./processing_modules/submission_modules/image/precheck/removeSmallImages.js');
-const { removeUncroppedImages } = require('./processing_modules/submission_modules/image/precheck/removeUncroppedImages.js');
+import { removeImagesWithText } from './processing_modules/submission_modules/image/precheck/removeImagesWithText';
+import { removeSmallImages }  from'./processing_modules/submission_modules/image/precheck/removeSmallImages';
+import { removeUncroppedImages } from './processing_modules/submission_modules/image/precheck/removeUncroppedImages';
 // modules
-const { allowRepostsOnlyByUser } = require('./processing_modules/submission_modules/image/existing_submission/allowRepostOnlyByUser.js');
-const { removeBlacklisted } = require('./processing_modules/submission_modules/image/existing_submission/removeBlacklisted.js');
-const { removeReposts } = require('./processing_modules/submission_modules/image/existing_submission/removeReposts.js');
+import { allowRepostsOnlyByUser } from './processing_modules/submission_modules/image/existing_submission/allowRepostOnlyByUser';
+import { removeBlacklisted } from './processing_modules/submission_modules/image/existing_submission/removeBlacklisted';
+import { removeReposts } from './processing_modules/submission_modules/image/existing_submission/removeReposts';
 
 
-async function processSubmission(submission, masterSettings, database, reddit, activeMode) {
+export async function processSubmission(submission, masterSettings, database, reddit, activeMode) {
     const subredditName = masterSettings._id;
 
     // check if we have already processed submission
@@ -183,8 +183,3 @@ async function processNewSubmission(submission, imageDetails, database, activeMo
         return;
     }        
 }
-
-
-module.exports = {
-    processSubmission,
-};
