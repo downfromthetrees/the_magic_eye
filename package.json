@@ -6,7 +6,6 @@
     "start": "node ./build/server.js",
     "clean": "shx rm -rf build",
     "build": "npm run clean && tsc",
-    "start-ts": "ts-node ./src/server.ts",
     "hamming": "node ./src/scripts/hamming_compare.js 1.jpg 2.jpg",
     "check-types": "tsc"
   },
@@ -53,9 +52,11 @@
     "tesseract.js": "^1.0.10"
   },
   "devDependencies": {
+    "@babel/cli": "^7.6.0",
     "@babel/core": "^7.6.0",
     "@babel/node": "^7.6.1",
     "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/plugin-proposal-numeric-separator": "^7.2.0",
     "@babel/plugin-proposal-object-rest-spread": "^7.5.5",
     "@babel/preset-env": "^7.6.0",
     "@babel/preset-typescript": "^7.6.0",

@@ -6,7 +6,7 @@ const fs = require('fs');
 require('dotenv').config();
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
-const babel = require("babel-core/register");
+//const babel = require("babel-core/register");
 
 if (!process.env.ACCOUNT_USERNAME ||
     !process.env.PASSWORD ||
