@@ -92,7 +92,7 @@ export async function removePostWithReply(submission, removalReason, subSettings
     replyable.distinguish();
 }
 
-export async function printSubmission(submission, submissionType) {
+export async function printSubmission(submission, submissionType?: string) {
     const username = (await submission.author) ? (await submission.author.name) : null;
     const idForLog = await submission.id;
     const type = submissionType ? ` [${submissionType}]` : ""; 

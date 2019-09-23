@@ -6,9 +6,8 @@ const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 // magic eye modules
-const { isRepostRemoval, removePost, printSubmission } = require('../../../../reddit_utils.js');
-
-const { logActionBlacklisted } = require('../../../../master_stats.js');
+import { isRepostRemoval, removePost, printSubmission } from '../../../../reddit_utils';
+import { logActionBlacklisted } from '../../../../master_stats';
 
 //=====================================
 
@@ -24,11 +23,11 @@ export async function removeBlacklisted(reddit, modComment, submission, lastSubm
     if (imageIsBlacklisted) {
         const removalReason = await getRemovalReason(modComment, subredditName);
         if (removalReason == null) {
-            log.info(`[${subredditName}]`, chalk.red("Ignoring submission because couldn't read the last removal message. Submission: ", await printSubmission(submission), ", removal message thread: http://redd.it/" + existingMagicSubmission.reddit_id));
+            log.info(`[${subredditName}]`, chalk.red("Ignoring submission because couldn't read the last removal message. Submission: ", await printSubmission(submission, submissionType), ", removal message thread: http://redd.it/" + existingMagicSubmission.reddit_id));
             existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
             await logModcomment(reddit, await lastSubmission.id, subredditName);
         } else {
-            removeAsBlacklisted(reddit, submission, lastSubmission, removalReason, subSettings, subredditName);
+            removeAsBlacklisted(reddit, submission, lastSubmission, removalReason, subSettings, subredditName, submissionType);
         }
     
         return false;
@@ -37,8 +36,8 @@ export async function removeBlacklisted(reddit, modComment, submission, lastSubm
     return true;
 }
 
-async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklistReason, subSettings, subredditName){
-    log.info(`[${subredditName}]`, 'Removing as blacklisted:', await printSubmission(submission), '. Origin: ', await printSubmission(lastSubmission));
+async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklistReason, subSettings, subredditName, submissionType){
+    log.info(`[${subredditName}]`, 'Removing as blacklisted:', await printSubmission(submission, submissionType), '. Origin: ', await printSubmission(lastSubmission, submissionType));
 
     // get removal text
     let removalReason = "";

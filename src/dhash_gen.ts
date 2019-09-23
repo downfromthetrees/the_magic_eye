@@ -20,7 +20,8 @@ function binaryToHex(s: any) {
    }
    return output;
 }
-module.exports = (path: any, callback: any, hashSize: any) => {
+
+export function dhash_gen(path: any, callback: any, hashSize: any) {
    const height = hashSize || DEFAULT_HASH_SIZE;
    const width = height + 1; // Covert to small gray image 
    gm(path).colorspace('GRAY').resize(width, height, '!').stream('png', (err: any, stream: any) => {

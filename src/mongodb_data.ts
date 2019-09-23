@@ -32,7 +32,7 @@ export class MagicProperty {
     }
 }
 
-class MagicSubmission {
+export class MagicSubmission {
     _id; // dhash of the original
     createdAt; // automatic expiry indicator
     reddit_id; // the last reddit id that matched the dhash (dhash within hamming distance)

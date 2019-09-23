@@ -3,9 +3,9 @@ const log = require('loglevel');
 const outdent = require('outdent');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-const { processSubmission } = require('./submission_processor.js');
-const { setSubredditSettings, getMasterProperty, setMasterProperty } = require('./mongodb_master_data.js');
-const { printSubmission } = require('./reddit_utils.js');
+import { processSubmission } from './submission_processor';
+import { setSubredditSettings, getMasterProperty, setMasterProperty } from './mongodb_master_data';
+import { printSubmission } from './reddit_utils';
 
 let inProgress = Array<string>();
 

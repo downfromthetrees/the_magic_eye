@@ -6,7 +6,7 @@ const log = require('loglevel');
 const indentString = require('indent-string');
 const Validator = require('jsonschema').Validator;
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
-const { getSubredditSettings, setSubredditSettings, getMasterProperty, setMasterProperty } = require('./mongodb_master_data.js');
+import { getSubredditSettings, setSubredditSettings, getMasterProperty, setMasterProperty } from './mongodb_master_data';
 
 
 export async function createDefaultSettings(subredditName, masterSettings, reddit) {
