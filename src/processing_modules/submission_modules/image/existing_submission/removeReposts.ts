@@ -76,8 +76,6 @@ export async function removeReposts(reddit, modComment, submission, lastSubmissi
     // over the repost limit
     const lastSubmissionRemoved = await lastSubmission.removed;
     if (!lastSubmissionRemoved || lastIsRemovedAsRepost) {
-        log.info(`[${subredditName}]`, 'Found matching hash for submission ', await printSubmission(submission), ', matched,', existingMagicSubmission.reddit_id,' - valid as over the repost limit.');
-
         if (processorSettings.approveIfOverRepostDays === true) {
             submission.approve();
         }
@@ -93,7 +91,7 @@ export async function removeReposts(reddit, modComment, submission, lastSubmissi
         }   
     }
 
-    log.info(`[${subredditName}]`, 'Found matching hash for removed submission ', await printSubmission(submission), ', matched,', existingMagicSubmission.reddit_id,' - valid as over the repost limit.');
+    log.info(`[${subredditName}]`, 'Found matching hash for ', await printSubmission(submission), ', matched,', existingMagicSubmission.reddit_id,' - valid as over the repost limit.');
     existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
     return true;
 }
