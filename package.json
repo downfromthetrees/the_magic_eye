@@ -7,7 +7,7 @@
     "start-ts": "ts-node ./src/server.ts",
     "clean": "shx rm -rf build",
     "build": "npm run clean && tsc",
-    "hamming": "node ./src/scripts/hamming_compare.js 1.jpg 2.jpg"
+    "compare": "ts-node ./src/scripts/hamming_compare.ts"
   },
   "repository": {
     "type": "git",

@@ -1,14 +1,14 @@
 var hammingDistance = require("hamming");
-var dhashLibrary = require("dhash");
 var phashLibrary = require("phash-imagemagick");
 const chalk = require('chalk');
 const { promisify } = require('util');
 const phashGet = promisify(phashLibrary.get);
-const dhashGet = promisify(dhashLibrary);
 const fs = require('fs');
 const imageDownloader = require('image-downloader');
 const imageMagick = require('imagemagick');
 
+import { dhash_gen } from "../dhash_gen";
+const dhashGet = promisify(dhash_gen);
 
 async function generateDHash(imagePath, logUrl) {
   try {
@@ -31,12 +31,12 @@ async function generatePHash(imagePath, logUrl) {
 async function runHammingCompare() {
 
     console.log(__dirname);
-  let image1 = __dirname + '/../../tmp/' + process.argv[2];
+  let image1 = __dirname + '/../../tmp/' + ( process.argv[2] ? process.argv[2] : "1.jpg");
   if (!image1.endsWith('.jpg') && !image1.endsWith('.png')) {
       image1 = image1 + '.jpg'; // can be lazy
   }
   
-  let image2 = __dirname + '/../../tmp/' + process.argv[3];
+  let image2 = __dirname + '/../../tmp/' + ( process.argv[3] ? process.argv[3] : "2.jpg");
   if (!image2.endsWith('.jpg') && !image2.endsWith('.png')) {
       image2 = image2 + '.jpg'; // can be lazy
   }

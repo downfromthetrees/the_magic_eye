@@ -29,7 +29,7 @@ export function dhash_gen(path: any, callback: any, hashSize: any) {
          if (callback) {
             callback(err);
          }
-      } else { // Get pixel data 
+      } else { // Get pixel data         
          toArray(stream, (toArrayErr: any, arr: any) => {
             if (toArrayErr) {
                if (callback) {
