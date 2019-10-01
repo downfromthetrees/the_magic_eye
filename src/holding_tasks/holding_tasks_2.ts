@@ -8,7 +8,6 @@ const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 import { getMasterProperty, setMasterProperty } from '../mongodb_master_data';
-import { downloadImage, deleteImage } from '../image_utils';
 
 const snoowrap = require('snoowrap');
 const reddit = new snoowrap({
@@ -21,33 +20,20 @@ const reddit = new snoowrap({
 reddit.config({requestDelay: 1000, continueAfterRatelimitError: true});
 
 
-export async function nukeHolding() {
-    const holdingSubreddit = await reddit.getSubreddit(process.env.HOLDING_SUBREDDIT);
-    const submissions = await holdingSubreddit.getNew({'limit': 500});
-    
-    for (let submission of submissions) {
-        try {
-            submission.delete();
-        } catch (e) {
-            log.error('[HOLDING] Error nuking submission:' + submission.id, e);
-        }
-    };
-}
-
-export async function mainHolding() {
+export async function mainHolding2() {
     try {
-        if (!process.env.HOLDING_TARGET_SUBREDDITS) {
+        if (!process.env.HOLDING_TARGET_SUBREDDITS_2) {
             return;
         }
         
-        log.debug(chalk.blue("[HOLDING] Starting holding processing cycle"));
-        const targetSubreddit = await reddit.getSubreddit(process.env.HOLDING_TARGET_SUBREDDITS);
+        log.debug(chalk.blue("[HOLDING_2] Starting holding processing cycle"));
+        const targetSubreddit = await reddit.getSubreddit(process.env.HOLDING_TARGET_SUBREDDITS_2);
 
         // get new target submissions
         const submissions = await targetSubreddit.getNew({'limit': 25});
         if (!submissions) {
             log.error(chalk.red('[HOLDING] Cannot get new submissions to process - api is probably down for maintenance.'));
-            setTimeout(mainHolding, 60 * 1000); // run again in 60 seconds
+            setTimeout(mainHolding2, 60 * 1000); // run again in 60 seconds
             return;
         }
 
@@ -57,7 +43,7 @@ export async function mainHolding() {
         await crossPostFromTargetSubreddit(unprocessedTargetSubmissions, reddit);
 
         // check for approved posts
-        const holdingSubreddit = await reddit.getSubreddit(process.env.HOLDING_SUBREDDIT);
+        const holdingSubreddit = await reddit.getSubreddit(process.env.HOLDING_SUBREDDIT_2);
         const approvedLinks = await holdingSubreddit.getModerationLog({type: 'approvelink'});
         const unprocessedHoldingItems = await consumeUnprocessedModlog(approvedLinks);
         await processApprovedPosts(unprocessedHoldingItems, reddit);
@@ -66,30 +52,26 @@ export async function mainHolding() {
         const unprocessedRemovedHoldingItems = await consumeUnprocessedModlog(removedLinks, 'removed');
         await processRemovedPosts(unprocessedRemovedHoldingItems, reddit);
     } catch (err) {
-        log.error(chalk.red("[HOLDING] Main holding loop error: ", err));
+        log.error(chalk.red("[HOLDING_2] Main holding loop error: ", err));
     }
     
     
     // done
-    log.debug(chalk.blue("[HOLDING] End holding processing cycle"));
-    setTimeout(mainHolding, 120 * 1000); // run again in 120 seconds
+    log.debug(chalk.blue("[HOLDING_2] End holding processing cycle"));
+    setTimeout(mainHolding2, 120 * 1000); // run again in 120 seconds
 }
 
 async function crossPostFromTargetSubreddit(unprocessedSubmissions, reddit) {
     for (let submission of unprocessedSubmissions) {
         try {
-            const submissionUrl = await submission.url;
-            const isImage = (submissionUrl.includes('imgur') || submissionUrl.includes('i.red')) && !submissionUrl.includes('.gif');
-            if (isImage) {
-                await reddit.submitCrosspost({  
-                    title: submission.id,
-                    originalPost: submission,
-                    subredditName: process.env.HOLDING_SUBREDDIT
-                });
-            }
+            await reddit.submitCrosspost({  
+                title: submission.id,
+                originalPost: submission,
+                subredditName: process.env.HOLDING_SUBREDDIT
+            });
         } catch (e) {
             // must be subscribed to subreddit to x-post
-            log.error('[HOLDING] Error crossPosting from target subreddit for:' + submission.id, e);
+            log.error('[HOLDING_2] Error crossPosting from target subreddit for:' + submission.id, e);
         }
     };
 }
@@ -105,20 +87,12 @@ async function processApprovedPosts(unprocessedItems, reddit) {
         try {            
             const submissionId = item.target_permalink.split('/')[4]; // "/r/hmmm/comments/a0uwkf/hmmm/eakgqi3/"
             const submission = await reddit.getSubmission(submissionId);
-            const imagePath = await downloadImage(await submission.url);
-            if (!imagePath) {
-                log.error('[HOLDING] Error downloading approved post (probably deleted):', item.target_permalink);    
-                await submission.delete();
-                return;
-            }
-            const uploadResponse = await uploadToImgur(imagePath);
-            const finalSubmission = await destinationSubreddit.submitLink({title: 'hmmm', url: `https://imgur.com/${uploadResponse.data.id}.png`});
+            const finalSubmission = await destinationSubreddit.submitLink({title: 'hmmm', url: await submission.url});
             const finalSubmissionId = await finalSubmission.id;
             await submission.delete();
-            await deleteImage(imagePath);
-            log.info(chalk.blue(`[HOLDING] Uploaded https://www.redd.it/${finalSubmissionId} to target`));
+            log.info(chalk.blue(`[HOLDING_2] Uploaded https://www.redd.it/${finalSubmissionId} to target`));
         } catch (e) {
-            log.error('[HOLDING] Error processing approved posts:', item.target_permalink, e);
+            log.error('[HOLDING_2] Error processing approved posts:', item.target_permalink, e);
         }
     }
 }
@@ -142,31 +116,11 @@ async function processRemovedPosts(unprocessedItems, reddit) {
 }
 
 
-
-
-export async function uploadToImgur(imagePath) {
-    const fileStats = fs.statSync(imagePath);
-    const fileSizeInBytes = fileStats.size;
-    let readStream = fs.createReadStream(imagePath);
-
-    const response = await fetch('https://api.imgur.com/3/image', {
-        method: 'POST',
-        headers: {
-            "Content-length": fileSizeInBytes,
-            "Authorization": `Client-ID 2352d6202611901`
-        },
-        body: readStream
-    });
-    return await response.json();
-}
-
-
-
 // overkill, but well tested
 export async function consumeUnprocessedModlog(latestItems, suffix?) {
     latestItems.sort((a, b) => { return a.created_utc - b.created_utc}); // oldest first
 
-    let propertyId = 'holding_processed_modlog';
+    let propertyId = 'holding_processed_modlog_2';
     if (suffix) {
         propertyId = propertyId + suffix;
     }
@@ -206,7 +160,7 @@ export async function consumeUnprocessedModlog(latestItems, suffix?) {
 async function consumeTargetSubmissions(latestItems) {
     latestItems.sort((a, b) => { return a.created_utc - b.created_utc}); // oldest first
 
-    const propertyId = 'holding_processed_target_ids';
+    const propertyId = 'holding_processed_target_ids_2';
 
     const maxCheck = 10;
     if (latestItems.length > maxCheck) {
