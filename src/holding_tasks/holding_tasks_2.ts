@@ -32,7 +32,7 @@ export async function mainHolding2() {
         // get new target submissions
         const submissions = await targetSubreddit.getNew({'limit': 25});
         if (!submissions) {
-            log.error(chalk.red('[HOLDING] Cannot get new submissions to process - api is probably down for maintenance.'));
+            log.error(chalk.red('[HOLDING_2] Cannot get new submissions to process - api is probably down for maintenance.'));
             setTimeout(mainHolding2, 60 * 1000); // run again in 60 seconds
             return;
         }
@@ -67,7 +67,7 @@ async function crossPostFromTargetSubreddit(unprocessedSubmissions, reddit) {
             await reddit.submitCrosspost({  
                 title: submission.id,
                 originalPost: submission,
-                subredditName: process.env.HOLDING_SUBREDDIT
+                subredditName: process.env.HOLDING_SUBREDDIT_2
             });
         } catch (e) {
             // must be subscribed to subreddit to x-post
@@ -81,7 +81,7 @@ async function processApprovedPosts(unprocessedItems, reddit) {
         return;
     }
 
-    const destinationSubreddit = await reddit.getSubreddit(process.env.HOLDING_DESTINATION_SUBREDDIT);
+    const destinationSubreddit = await reddit.getSubreddit(process.env.HOLDING_DESTINATION_SUBREDDIT_2);
 
     for (let item of unprocessedItems) {
         try {            
@@ -110,7 +110,7 @@ async function processRemovedPosts(unprocessedItems, reddit) {
             const submission = await reddit.getSubmission(submissionId);
             submission.delete();
         } catch (e) {
-            log.error('[HOLDING] Error processing approved posts:', item.target_permalink, e);
+            log.error('[HOLDING_2] Error processing approved posts:', item.target_permalink, e);
         }
     }
 }
@@ -127,7 +127,7 @@ export async function consumeUnprocessedModlog(latestItems, suffix?) {
 
     const maxCheck = 500;
     if (latestItems.length > maxCheck) {
-        log.info('[HOLDING] Passed more than maxCheck items:', latestItems.length);
+        log.info('[HOLDING_2] Passed more than maxCheck items:', latestItems.length);
         latestItems = latestItems.slice(latestItems.length - maxCheck, latestItems.length);
     }
 
@@ -137,7 +137,7 @@ export async function consumeUnprocessedModlog(latestItems, suffix?) {
 
     const processedIds = await getMasterProperty(propertyId);
     if (!processedIds) {
-        log.warn(chalk.magenta('[HOLDING] Could not find the last processed id list when retrieving unprocessed modlog changes. Regenerating...'));
+        log.warn(chalk.magenta('[HOLDING_2] Could not find the last processed id list when retrieving unprocessed modlog changes. Regenerating...'));
         const intialProcessedIds = latestItems.map(submission => submission.id);
         await setMasterProperty(propertyId, intialProcessedIds);
         return [];
@@ -164,7 +164,7 @@ async function consumeTargetSubmissions(latestItems) {
 
     const maxCheck = 10;
     if (latestItems.length > maxCheck) {
-        // log.info('[HOLDING] Passed more than maxCheck items:', latestItems.length);  // MUSTFIX - uncomment and make sane
+        // log.info('[HOLDING_2] Passed more than maxCheck items:', latestItems.length);  // MUSTFIX - uncomment and make sane
         latestItems = latestItems.slice(latestItems.length - maxCheck, latestItems.length);
     }
 
@@ -174,7 +174,7 @@ async function consumeTargetSubmissions(latestItems) {
 
     const processedIds = await getMasterProperty(propertyId);
     if (!processedIds) {
-        log.warn(chalk.magenta('[HOLDING] Could not find the last processed id list when retrieving unprocessed submissions. Regenerating...'));
+        log.warn(chalk.magenta('[HOLDING_2] Could not find the last processed id list when retrieving unprocessed submissions. Regenerating...'));
         const intialProcessedIds = latestItems.map(submission => submission.id);
         await setMasterProperty(propertyId, intialProcessedIds);
         return [];
@@ -194,53 +194,8 @@ async function consumeTargetSubmissions(latestItems) {
 }
 
 
-const garbageCollectionTime = 2 * 60 * 60 * 1000; // 2 hours
-export async function garbageCollectionHolding(firstTimeDelay) {
-    if (firstTimeDelay){ // prevent a large task if starting up repeatedly
-        setTimeout(garbageCollectionHolding, garbageCollectionTime);
-        return;
-    }
-
-    try {
-        log.debug(chalk.blue("[HOLDING] Starting garbage collection processing cycle"));
-
-        const holdingSubreddit = await reddit.getSubreddit(process.env.HOLDING_SUBREDDIT);
-
-        // get new target submissions
-        const submissions = await holdingSubreddit.getNew({'limit': 100});
-        if (!submissions) {
-            log.error(chalk.red('[HOLDING] Cannot get new submissions to garbage collect - api is probably down for maintenance.'));
-            setTimeout(garbageCollectionHolding, 10 * 60 * 1000); // run again in 10 minutes
-            return;
-        }
-
-        for (let submission of submissions) {
-            try {
-                const imagePath = await downloadImage(await submission.url);
-                if (!imagePath) {
-                    log.info('[HOLDING] Garbage collecting post:', submission.id);    
-                    submission.delete();
-                } else {
-                    await deleteImage(imagePath);
-                }
-            } catch (e) {
-                // must be subscribed to subreddit to x-post
-                log.error('[HOLDING] Error garbage collecting post:' + submission.id, e);
-            }
-        };
-
-        // done
-        log.debug(chalk.green('[HOLDING] End garbage collection processing cycle.'));
-    } catch (err) {
-        log.error(chalk.red("[HOLDING] Main garbage loop error: ", err));
-    }
-    
-    setTimeout(garbageCollectionHolding, garbageCollectionTime);
-}
-
-
 export async function deleteHoldingPost(submissionId) {
-    log.info('[HOLDING] Deleting ', `http://redd.it/${submissionId}`, 'as holding repost');
+    log.info('[HOLDING_2] Deleting ', `http://redd.it/${submissionId}`, 'as holding repost');
     const submission = await reddit.getSubmission(submissionId);
     await submission.delete();
 }

@@ -46,10 +46,11 @@ import { updateSettings, createDefaultSettings, writeSettings } from './wiki_uti
 import { enableFilterMode } from './hmmm/automod_updater';
 import { mainHolding, garbageCollectionHolding, nukeHolding } from './holding_tasks/holding_tasks';
 import { mainEdHolding } from './holding_tasks/ed_tasks';
-import { mainSocial } from './holding_tasks/social.js';
-import { logProcessPost, logProcessCycle, printStats } from './master_stats.js';
+import { mainSocial } from './holding_tasks/social';
+import { logProcessPost, logProcessCycle, printStats } from './master_stats';
 import { getModdedSubredditsMulti } from './modded_subreddits';
 import { processModlog } from './hmmm/modlog_processor';
+import { mainHolding2 } from './holding_tasks/holding_tasks_2';
 
 
 // https://not-an-aardvark.github.io/snoowrap/snoowrap.html
@@ -325,6 +326,7 @@ async function startServer() {
         log.info('The magic eye is ONLINE.');
         main(); // start mains loop
         mainHolding();
+        mainHolding2();
         mainEdHolding();
         garbageCollectionHolding(true);
         mainSocial(reddit, true);
