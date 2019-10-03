@@ -103,7 +103,7 @@ This workflow gives you a simple way to override old decisions, or let users rep
 
 * You can reply to a removal message by [u/MAGIC_EYE_BOT](https://www.reddit.com/user/MAGIC_EYE_BOT) with `clear` and it'll remove the image from it's database. There's generally no need to do this, except perhaps for rare problematic images (they tend to have [lots of grey space](https://i.imgur.com/Avp2Y57.png)).
 
-
+* Because of memory limits on the server, images greater than 6000 pixels in height or width will be ignored
 
 ## Features and Configuration
 
