@@ -108,7 +108,7 @@ async function isRecentRepost(currentSubmission, lastSubmission, processorSettin
 
 
 async function actionAsRepost(submission, lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, subredditName, submissionType, allTimeTopRemoval, reddit) {
-    log.info(`[${subredditName}]`, 'Found matching hash for submission: ', await printSubmission(submission), `, actioning [${subSettings.reposts.action}] as repost of:`, await lastSubmission.id, `[${submissionType}]`);
+    log.info(`[${subredditName}]`, 'Found matching hash for submission: ', await printSubmission(submission), `, actioning [${subSettings.reposts.action}] as ${allTimeTopRemoval ? "all time top" : "recent"} repost of:`, await lastSubmission.id, `[${submissionType}]`);
 
     if (!subSettings.reposts.action) {
         log.error(`[${subredditName}]`, 'Missing repost action - taking no action');
