@@ -30,7 +30,7 @@ export async function mainHolding2() {
         const targetSubreddit = await reddit.getSubreddit(process.env.HOLDING_TARGET_SUBREDDITS_2);
 
         // get new target submissions
-        const submissions = await targetSubreddit.getNew({'limit': 25});
+        const submissions = await targetSubreddit.getTop({time: 'day'}).fetchAll({amount: 25});
         if (!submissions) {
             log.error(chalk.red('[HOLDING_2] Cannot get new submissions to process - api is probably down for maintenance.'));
             setTimeout(mainHolding2, 60 * 1000); // run again in 60 seconds
