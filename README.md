@@ -148,6 +148,8 @@ Notes:
 
 ### Remove reposts (enabled by default)
 
+[Here is a handy image to describe what the threshold settings mean.](https://i.imgur.com/tU7D5iU.png)
+
     "reposts": {
         "smallScore": 0,
         "smallScoreRepostDays": 15,
@@ -179,7 +181,7 @@ Notes:
 * You can override the first sentence with `removalMessage`/`allTimeTopRemovalMessage`, or the whole message with `fullRemovalMessage` and use the variables as you like. `\n` for line break.
 * `actionRepostsIfDeleted`: Performs `action` on reposts even if the previous post was deleted.
 * `approveIfOverRepostDays`: Auto-approves a repost over the time limit to save you doing it
-* Score thresholds: Magic Eye keeps track of the last successful post of an image and uses the score it got + how long ago it was posted to determine what to do. There are a few thresholds so that it can make smarter decisions for reposts of popular vs less popular reposts. For example in the default settings: if the last matching submission got over `mediumScore` points (in this case 400), it'll be removed if it's less than `mediumScoreRepostDays` days old (in this case 25 days).
+* Score thresholds: Also described in [this image](https://i.imgur.com/tU7D5iU.png). Magic Eye keeps track of the last successful post of an image and uses the score it got + how long ago it was posted to determine what to do. There are a few thresholds so that it can make smarter decisions for reposts of popular vs less popular reposts. For example in the default settings: if the last matching submission got over `mediumScore` points (in this case 400), it'll be removed if it's less than `mediumScoreRepostDays` days old (in this case 25 days).
     * You can set `smallScore` higher than 0 and it will let anything through that got a score under that amount of points last time
     * If `topScore` is set lower it will remove any post that ever got over this threshold permanently, with a unique message saying it's an all time subreddit top post.
 * `actionAll`: As a shortcut, if instead of thresholds you just want to remove/warn about every repost detected regardless of time, add this field with the value `true` and it will override the threshold settings.
