@@ -166,14 +166,14 @@ async function consumeTargetSubmissions(latestItems) {
 
     const propertyId = 'holding_processed_target_ids_2';
 
-    const maxCheck = 10;
+    const maxCheck = 50;
     if (latestItems.length > maxCheck) {
         // log.info('[HOLDING_2] Passed more than maxCheck items:', latestItems.length);  // MUSTFIX - uncomment and make sane
         latestItems = latestItems.slice(latestItems.length - maxCheck, latestItems.length);
     }
 
     // don't process anything over several hours old for safeguard. created_utc is in seconds/getTime is in millis.
-    const hoursAgo = new Date().getTime() - 1000*60*60*8;
+    const hoursAgo = new Date().getTime() - 1000*60*60*24;
     latestItems = latestItems.filter(item => (item.created_utc * 1000) > hoursAgo); 
 
     const processedIds = await getMasterProperty(propertyId);
