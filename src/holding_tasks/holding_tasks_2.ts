@@ -27,20 +27,9 @@ export async function mainHolding2() {
         }
         
         log.debug(chalk.blue("[HOLDING_2] Starting holding processing cycle"));
-        const targetSubreddit = await reddit.getSubreddit("youtubehaiku");
 
-        // get new target submissions from top subs
-        const submissions = await targetSubreddit.getTop({time: 'day'}).fetchAll({amount: 25});
-        if (!submissions) {
-            log.error(chalk.red('[HOLDING_2] Cannot get new submissions to process - api is probably down for maintenance.'));
-            setTimeout(mainHolding2, 60 * 1000); // run again in 60 seconds
-            return;
-        }
-
-        const unprocessedTargetSubmissions = await consumeTargetSubmissions(submissions);
-
-        // crosspost
-        await crossPostFromTargetSubreddit(unprocessedTargetSubmissions, reddit);
+        await doCycle("youtubehaiku", 50);
+        await doCycle("deepintoyoutube", 50);
 
         // check for approved posts
         const holdingSubreddit = await reddit.getSubreddit(process.env.HOLDING_SUBREDDIT_2);
@@ -61,7 +50,24 @@ export async function mainHolding2() {
     setTimeout(mainHolding2, 120 * 1000); // run again in 120 seconds
 }
 
-async function crossPostFromTargetSubreddit(unprocessedSubmissions, reddit) {
+async function doCycle(subredditName: string, karmaLimit: number) {
+    const targetSubreddit = await reddit.getSubreddit(subredditName);
+
+    // get new target submissions from top subs
+    const submissions = await targetSubreddit.getTop({time: 'day'}).fetchAll({amount: 25});
+    if (!submissions) {
+        log.error(chalk.red('[HOLDING_2] Cannot get new submissions to process - api is probably down for maintenance.'));
+        setTimeout(mainHolding2, 60 * 1000); // run again in 60 seconds
+        return;
+    }
+
+    const unprocessedTargetSubmissions = await consumeTargetSubmissions(submissions);
+
+    // crosspost
+    await crossPostFromTargetSubreddit(unprocessedTargetSubmissions, reddit, karmaLimit);
+}
+
+async function crossPostFromTargetSubreddit(unprocessedSubmissions, reddit, karmaLimit: number) {
     for (let submission of unprocessedSubmissions) {
         try {
             const includesMeme = submission.title.toLowerCase().includes('meme');
@@ -161,7 +167,7 @@ export async function consumeUnprocessedModlog(latestItems, suffix?) {
 
 
 
-async function consumeTargetSubmissions(latestItems) {
+async function consumeTargetSubmissions(latestItems: any) {
     latestItems.sort((a, b) => { return a.created_utc - b.created_utc}); // oldest first
 
     const propertyId = 'holding_processed_target_ids_2';
