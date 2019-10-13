@@ -64,11 +64,15 @@ export async function mainHolding2() {
 async function crossPostFromTargetSubreddit(unprocessedSubmissions, reddit) {
     for (let submission of unprocessedSubmissions) {
         try {
-            await reddit.submitCrosspost({  
-                title: submission.id,
-                originalPost: submission,
-                subredditName: process.env.HOLDING_SUBREDDIT_2
-            });
+            const includesMeme = submission.title.toLowerCase().includes('meme');
+            const goodScore = submission.score > 100;
+            if (!includesMeme && goodScore) {
+                await reddit.submitCrosspost({  
+                    title: submission.id,
+                    originalPost: submission,
+                    subredditName: process.env.HOLDING_SUBREDDIT_2
+                });
+            }
         } catch (e) {
             // must be subscribed to subreddit to x-post
             log.error('[HOLDING_2] Error crossPosting from target subreddit for:' + submission.id, e);
