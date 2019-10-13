@@ -27,7 +27,7 @@ export async function mainHolding2() {
         }
         
         log.debug(chalk.blue("[HOLDING_2] Starting holding processing cycle"));
-        const targetSubreddit = await reddit.getSubreddit(process.env.HOLDING_TARGET_SUBREDDITS_2);
+        const targetSubreddit = await reddit.getSubreddit("youtubehaiku");
 
         // get new target submissions from top subs
         const submissions = await targetSubreddit.getTop({time: 'day'}).fetchAll({amount: 25});
