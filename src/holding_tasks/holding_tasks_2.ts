@@ -29,7 +29,7 @@ export async function mainHolding2() {
         log.debug(chalk.blue("[HOLDING_2] Starting holding processing cycle"));
         const targetSubreddit = await reddit.getSubreddit(process.env.HOLDING_TARGET_SUBREDDITS_2);
 
-        // get new target submissions
+        // get new target submissions from top subs
         const submissions = await targetSubreddit.getTop({time: 'day'}).fetchAll({amount: 25});
         if (!submissions) {
             log.error(chalk.red('[HOLDING_2] Cannot get new submissions to process - api is probably down for maintenance.'));
