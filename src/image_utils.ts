@@ -168,7 +168,7 @@ export async function getImageDetails(submissionUrl, includeWords, blacklistedWo
 
     const imagePHash = await getImageSize(imagePath, submissionUrl); 
     if (imagePHash != null) {
-        if (imagePHash.height > 5000 || imagePHash.width > 5000) {
+        if (imagePHash.height > 6000 || imagePHash.width > 6000) {
             return { tooLarge: true };
         }
 
