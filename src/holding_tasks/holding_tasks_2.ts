@@ -97,7 +97,7 @@ async function processApprovedPosts(unprocessedItems, reddit) {
     try {
       const submissionId = item.target_permalink.split('/')[4]; // "/r/hmmm/comments/a0uwkf/hmmm/eakgqi3/"
       const submission = await reddit.getSubmission(submissionId);
-      const title = getCleanTitle(submission);
+      const title = await getCleanTitle(submission);
 
       const finalSubmission = await destinationSubreddit.submitLink({
         title: title,
