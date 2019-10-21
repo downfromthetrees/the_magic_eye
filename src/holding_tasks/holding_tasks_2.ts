@@ -97,8 +97,10 @@ async function processApprovedPosts(unprocessedItems, reddit) {
     try {
       const submissionId = item.target_permalink.split('/')[4]; // "/r/hmmm/comments/a0uwkf/hmmm/eakgqi3/"
       const submission = await reddit.getSubmission(submissionId);
+      const title = getCleanTitle(submission);
+
       const finalSubmission = await destinationSubreddit.submitLink({
-        title: 'hmmm',
+        title: title,
         url: await submission.url
       });
       const finalSubmissionId = await finalSubmission.id;
@@ -108,6 +110,19 @@ async function processApprovedPosts(unprocessedItems, reddit) {
       log.error('[HOLDING_2] Error processing approved posts:', item.target_permalink, e);
     }
   }
+}
+
+async function getCleanTitle(submission) {
+  if ((await submission.link_flair_text) === 'hmmm') {
+    return 'hmmm';
+  }
+  let title = await submission.title;
+  title = title.toLowerCase();
+  const removeSubstrings = ['[poetry] ', '[haiku] ', '[meme] ', '[poetry]', '[haiku]', '[meme]'];
+  for (const removedSubString of removeSubstrings) {
+    title = title.replace(removedSubString, '');
+  }
+  return title;
 }
 
 async function processRemovedPosts(unprocessedItems, reddit) {
