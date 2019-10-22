@@ -113,8 +113,8 @@ async function processApprovedPosts(unprocessedItems, reddit) {
 }
 
 async function getCleanTitle(submission) {
-  if ((await submission.link_flair_text) === 'hmmm') {
-    return 'hmmm';
+  if (!!(await submission.link_flair_text)) {
+    return await submission.link_flair_text;
   }
   let title = await submission.title;
   title = title.toLowerCase();
