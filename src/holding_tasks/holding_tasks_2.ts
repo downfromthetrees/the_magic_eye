@@ -74,7 +74,7 @@ async function crossPostFromTargetSubreddit(unprocessedSubmissions, reddit, karm
       const goodScore = submission.score > karmaLimit;
       if (!includesMeme && goodScore) {
         await reddit.submitCrosspost({
-          title: submission.id,
+          title: submission.title,
           originalPost: submission,
           subredditName: process.env.HOLDING_SUBREDDIT_2
         });
