@@ -113,7 +113,8 @@ async function processApprovedPosts(unprocessedItems, reddit) {
       const flair = await item.link_flair_text;
       const uploadResponse = await uploadToImgur(imagePath);
       let finalSubmission;
-      if (!!flair) {
+      log.info('Item flair is: ', flair);
+      if (flair) {
         finalSubmission = await backupDestinationSubreddit.submitLink({ title: flair, url: `https://imgur.com/${uploadResponse.data.id}.png` });
       } else {
         finalSubmission = await destinationSubreddit.submitLink({ title: 'hmmm', url: `https://imgur.com/${uploadResponse.data.id}.png` });
