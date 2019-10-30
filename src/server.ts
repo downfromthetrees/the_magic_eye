@@ -150,7 +150,7 @@ async function main() {
         if (cycleTimeTaken > 30) {
             log.warn('========= TIME WARNING: cycle was ', cycleTimeTaken, 'seconds');
         } else {
-            log.warn('========= Cycle finsihed, time was ', cycleTimeTaken, 'seconds');
+            log.warn('========= Cycle finished, time was ', cycleTimeTaken, 'seconds');
         }
         logProcessCycle(cycleTimeTaken);
 
