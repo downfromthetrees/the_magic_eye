@@ -168,7 +168,9 @@ async function main() {
         // get messages time: ${messagesTimeTaken.toFixed(1)}
         // `);
         if (cycleTimeTaken > 30) {
-            log.warn('Time warning: cycle was ', cycleTimeTaken, 'seconds');
+            log.warn('========= TIME WARNING: cycle was ', cycleTimeTaken, 'seconds');
+        } else {
+            log.warn('========= Cycle finished, time was ', cycleTimeTaken, 'seconds');
         }
         logProcessCycle(cycleTimeTaken);
 
