@@ -130,8 +130,8 @@ Individually turn on/off processing of images or animated media (i.e. gifs/video
 
 The tolerance to image differences.
 
-- Range is 0-16, where 0 matches exact as possible images and 16 matches every image
-- The default is 5, but if you're a subreddit that has issues with similar memes/tweets, experiment with other numbers.
+- Range is 1-16, where 1 matches exact as possible images and 16 matches every image
+- The default is 5, but if you're a subreddit that has issues with similar memes/tweets, experiment with lower numbers.
 
 ### On user reply (enabled by default)
 
