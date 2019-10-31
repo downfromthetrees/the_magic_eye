@@ -57,13 +57,19 @@ export async function writeSettings(subredditName, masterSettings, reddit) {
     }
 }
 
+let updateSettingsCount = 0;
 
 export async function updateSettings(subreddits: string[], reddit: any) {
-    try {    
+    try {
+        updateSettingsCount++;
+        if (updateSettingsCount % 10 != 0) {
+            return; // only run this every few requests (about 5 minutes)
+        }
+
         log.info(chalk.blue("Starting updateSettings"));
         const startCycleTime = new Date().getTime();
     
-        const chunkSize = 30;
+        const chunkSize = 30; // chunk the requests because it can strain reddit asking for 200+ subs mod actions
         let remainingSubreddits = subreddits.slice();
         while (remainingSubreddits.length > 0) {
             let subredditsToProcess = remainingSubreddits.slice(0, chunkSize);

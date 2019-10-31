@@ -60,7 +60,6 @@ if (process.env.LOG_LEVEL == 'debug') {
     reddit.config({debug: true})
 }
 
-
 async function main() {
     let timeoutTimeSeconds = 30;
     try {
@@ -73,7 +72,7 @@ async function main() {
             setTimeout(main, 30 * 1000); // run again in 30 seconds
         }
 
-        await doNewSubmissionProcessing(moddedSubs);
+        await doSubredditProcessing(moddedSubs);
         await doInboxProcessing();
         await updateSettings(moddedSubs, reddit);
 
@@ -91,7 +90,7 @@ async function main() {
     setTimeout(main, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
 }
 
-async function doNewSubmissionProcessing(moddedSubs: string[]) {
+async function doSubredditProcessing(moddedSubs: string[]) {
     const moddedSubredditsMultiString = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
     const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
 
