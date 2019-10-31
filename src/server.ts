@@ -89,8 +89,6 @@ async function main() {
         const moddedSubsTimeTaken = (endModdedSubsTime - startModdedSubsTime) / 1000;
 
         // submissions for all subs
-        const startGetSubmissionsTime = new Date().getTime();
-
         const modqueueSubmissions = await subredditMulti.getModqueue({'limit': 100, 'only': 'links'});
         const newSubmissions = await subredditMulti.getNew({'limit': 100});
         const submissions = newSubmissions.concat(modqueueSubmissions);
@@ -100,33 +98,55 @@ async function main() {
             setTimeout(main, 30 * 1000); // run again in 30 seconds
             return;
         }
-        const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions); 
-        const endGetSubmissionsTime = new Date().getTime();
-        const getSubmissionsTimeTaken = (endGetSubmissionsTime - startGetSubmissionsTime) / 1000;
-        
-        const startSubmissionCycleTime = new Date().getTime();
-        for (const subredditName of moddedSubs) {
-            try {
-                const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
-                try {
-                    await processSubreddit(subredditName, unprocessedForSub, reddit);
-                } catch (e) {
-                    const possibleErrorIds = unprocessedForSub.map(item => item.id);
-                    log.error('Error processing subreddit: ', subredditName, ',', e, ', possible error threads:', possibleErrorIds);
-                }
-            } catch (e) {
-                log.error('Error processing subreddit: ', subredditName, ',', e);
-            }
-        }
-        const endSubmissionCycleTime = new Date().getTime();
-        const submissionCycleTimeTaken = (endSubmissionCycleTime - startSubmissionCycleTime) / 1000;
 
-        // inbox
-        const startMessagesTime = new Date().getTime();
+        await doNewSubmissionProcessing(moddedSubs, submissions);
+        await doInboxProcessing();
+        await updateSettings(subredditMulti, reddit);
+
+        // end cycle
+        const endCycleTime = new Date().getTime();
+        const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
+        timeoutTimeSeconds = Math.max(timeoutTimeSeconds - cycleTimeTaken, 0);
+
+        if (cycleTimeTaken > 30) {
+            log.warn('========= TIME WARNING: cycle was ', cycleTimeTaken, 'seconds');
+        } else {
+            log.warn('========= Cycle finished, time was ', cycleTimeTaken, 'seconds');
+        }
+        logProcessCycle(cycleTimeTaken);
+
+        log.debug(chalk.green('End Magic processing cycle, running again soon.'));
+    } catch (err) {
+        log.error(chalk.red("Main loop error: ", err));
+    }
+    
+    setTimeout(main, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
+}
+
+async function doNewSubmissionProcessing(moddedSubs: string[], submissions: any) {
+    const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions); 
+    const startTime = new Date().getTime();
+    for (const subredditName of moddedSubs) {
+        const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
+        try {                
+            await processSubreddit(subredditName, unprocessedForSub, reddit);
+        } catch (e) {
+            const possibleErrorIds = unprocessedForSub.map(item => item.id);
+            log.error('Error processing subreddit: ', subredditName, ',', e, ', possible error threads:', possibleErrorIds);
+        }
+    }
+    const endTime = new Date().getTime();
+    const getSubmissionsTimeTaken = (endTime - startTime) / 1000;
+    log.info(chalk.blue('========= Processed', unprocessedSubmissions.length, ' new submissions, took: ', getSubmissionsTimeTaken));
+}
+
+async function doInboxProcessing() {
+    // inbox
+    const startInboxTime = new Date().getTime();
+    try {
         const unreadMessages = await reddit.getUnreadMessages();
         if (!unreadMessages) {
             log.error(chalk.red('Cannot get new inbox items to process - api is probably down for maintenance.'));
-            setTimeout(main, 30 * 1000); // run again in 30 seconds
             return;
         }
         if (unreadMessages.length > 0) {
@@ -145,42 +165,12 @@ async function main() {
             }
             await processInboxMessage(message, reddit, database, messageSubreddit, masterSettings);
         }
-        log.debug(chalk.blue('Processed', unreadMessages.length, ' new inbox messages'));
-        const endMessagesTime = new Date().getTime();
-        const messagesTimeTaken = (endMessagesTime - startMessagesTime) / 1000;
-        
-        // update settings
-        await updateSettings(subredditMulti, reddit);
-
-        // end cycle
-        const endCycleTime = new Date().getTime();
-        const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
-        timeoutTimeSeconds = Math.max(timeoutTimeSeconds - cycleTimeTaken, 0);
-
-        // log.info(`=====Cycle info=====
-        // new posts: ${unprocessedSubmissions.length},
-        // total cycle time: ${cycleTimeTaken.toFixed(1)}, 
-        // submission cycle only: ${submissionCycleTimeTaken.toFixed(1)},
-        // cycle overhead: ${(cycleTimeTaken - submissionCycleTimeTaken).toFixed(1)},
-        // average time per post: ${(unprocessedSubmissions.length > 0 ? submissionCycleTimeTaken / unprocessedSubmissions.length : submissionCycleTimeTaken).toFixed(1)},
-        // timeout time in seconds: ${timeoutTimeSeconds.toFixed(1)},
-        // get submissions time: ${getSubmissionsTimeTaken.toFixed(1)},
-        // get messages time: ${messagesTimeTaken.toFixed(1)}
-        // `);
-        if (cycleTimeTaken > 30) {
-            log.warn('========= TIME WARNING: cycle was ', cycleTimeTaken, 'seconds');
-        } else {
-            log.warn('========= Cycle finished, time was ', cycleTimeTaken, 'seconds');
-        }
-        logProcessCycle(cycleTimeTaken);
-
-        log.debug(chalk.green('End Magic processing cycle, running again soon.'));
-
+        const endInboxTime = new Date().getTime();
+        const getTimeTaken = (endInboxTime - startInboxTime) / 1000;
+        log.info(chalk.blue('========= Processed', unreadMessages.length, ' new inbox messages, took: ', getTimeTaken));
     } catch (err) {
-        log.error(chalk.red("Main loop error: ", err));
+        log.error(chalk.red("Main loop error - INBOX processing: ", err));
     }
-    
-    setTimeout(main, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
 }
 
 async function processSubreddit(subredditName: string, unprocessedSubmissions, reddit) {
@@ -189,29 +179,7 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
     }
     let masterSettings = await getSubredditSettings(subredditName);
     if (!masterSettings) {
-        // find the database with least use
-        log.info(`[${subredditName}]`, chalk.yellow('No master settings for'), subredditName, ' - searching for least used database');
-        const databaseList = await getMasterProperty('databases');
-        let selectedDatabase = null;
-        let databaseCount = 99999;
-        for (const databaseKey of Object.keys(databaseList)) {
-            const database = databaseList[databaseKey];
-            if (database.count < databaseCount) {
-                selectedDatabase = database;
-                databaseCount = database.count;
-            }
-        }
-        if (!selectedDatabase) {
-            log.warn(`[${subredditName}]`, 'No databases available to house: ', subredditName);
-            return;            
-        }
-        masterSettings = new SubredditSettings(subredditName);
-        await createDefaultSettings(subredditName, masterSettings, reddit);
-        
-        masterSettings.config.databaseUrl = selectedDatabase.url;
-        await setSubredditSettings(subredditName, masterSettings);
-        selectedDatabase.count++;
-        await setMasterProperty('databases', databaseList);
+        masterSettings = await initialiseNewSubreddit(subredditName);
     }
 
     // safe check
@@ -241,7 +209,7 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
 
     // unmoderated
     if (masterSettings.settings.reportUnmoderated) {
-        if (masterSettings.config.reportUnmoderatedTime > 20) {
+        if (masterSettings.config.reportUnmoderatedTime > 40) {
             const subForUnmoderated = await reddit.getSubreddit(subredditName);
             const topSubmissionsDay = await subForUnmoderated.getTop({time: 'day'}).fetchAll({amount: 100});
             masterSettings.config.reportUnmoderatedTime = 0;
@@ -273,6 +241,32 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
     processModlog(subredditName, reddit);
 }
 
+async function initialiseNewSubreddit(subredditName: string) {
+    // find the database with least use
+    log.info(`[${subredditName}]`, chalk.yellow('No master settings for'), subredditName, ' - searching for least used database');
+    const databaseList = await getMasterProperty('databases');
+    let selectedDatabase = null;
+    let databaseCount = 99999;
+    for (const databaseKey of Object.keys(databaseList)) {
+        const database = databaseList[databaseKey];
+        if (database.count < databaseCount) {
+            selectedDatabase = database;
+            databaseCount = database.count;
+        }
+    }
+    if (!selectedDatabase) {
+        log.warn(`[${subredditName}]`, 'No databases available to house: ', subredditName);
+        return;            
+    }
+    const masterSettings = new SubredditSettings(subredditName);
+    await createDefaultSettings(subredditName, masterSettings, reddit);
+    
+    masterSettings.config.databaseUrl = selectedDatabase.url;
+    await setSubredditSettings(subredditName, masterSettings);
+    selectedDatabase.count++;
+    await setMasterProperty('databases', databaseList);
+    return masterSettings;
+}
 
 async function consumeUnprocessedSubmissions(latestItems) {
     latestItems.sort((a, b) => { return a.created_utc - b.created_utc}); // oldest first
