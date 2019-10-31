@@ -59,8 +59,13 @@ export async function writeSettings(subredditName, masterSettings, reddit) {
 
 
 export async function updateSettings(subredditMulti, reddit) {
+    log.info(chalk.blue("Starting updateSettings"));
+    const startCycleTime = new Date().getTime();
+
+    let changes = 0;
     try {
         const wikiChanges = await subredditMulti.getModerationLog({type: 'wikirevise'});
+        changes = wikiChanges.length;
         const newChanges = wikiChanges.filter(change => change.details.includes('Page magic_eye edited') && change.mod != process.env.ACCOUNT_USERNAME);
         const unprocessedChanges = await consumeUnprocessedWikiChanges(newChanges);
         for (const change of unprocessedChanges) {
@@ -70,6 +75,10 @@ export async function updateSettings(subredditMulti, reddit) {
     } catch (e) {
         log.error(chalk.red("Failed to update settings: ", e));
     }
+
+    const endCycleTime = new Date().getTime();
+    const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
+    log.info(chalk.blue('========= Update settings finished, time was ', cycleTimeTaken, 'seconds', changes));
 }
 
 // overkill, but well tested
