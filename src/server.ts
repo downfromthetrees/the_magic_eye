@@ -108,14 +108,8 @@ async function main() {
         const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
         timeoutTimeSeconds = Math.max(timeoutTimeSeconds - cycleTimeTaken, 0);
 
-        if (cycleTimeTaken > 30) {
-            log.warn('========= TIME WARNING: cycle was ', cycleTimeTaken, 'seconds');
-        } else {
-            log.warn('========= Cycle finished, time was ', cycleTimeTaken, 'seconds');
-        }
+        log.info(chalk.blue('========= Cycle finished, time was ', cycleTimeTaken, 'seconds', cycleTimeTaken > 30 ? 'TIME WARNING' : ''));
         logProcessCycle(cycleTimeTaken);
-
-        log.debug(chalk.green('End Magic processing cycle, running again soon.'));
     } catch (err) {
         log.error(chalk.red("Main loop error: ", err));
     }
@@ -124,20 +118,26 @@ async function main() {
 }
 
 async function doNewSubmissionProcessing(moddedSubs: string[], submissions: any) {
-    const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions); 
-    const startTime = new Date().getTime();
-    for (const subredditName of moddedSubs) {
-        const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
-        try {                
-            await processSubreddit(subredditName, unprocessedForSub, reddit);
-        } catch (e) {
-            const possibleErrorIds = unprocessedForSub.map(item => item.id);
-            log.error('Error processing subreddit: ', subredditName, ',', e, ', possible error threads:', possibleErrorIds);
+    let currentSubreddit = '';
+    try {
+        const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions); 
+        const startTime = new Date().getTime();
+        for (const subredditName of moddedSubs) {
+            const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
+            try {
+                currentSubreddit = subredditName;
+                await processSubreddit(subredditName, unprocessedForSub, reddit);
+            } catch (e) {
+                const possibleErrorIds = unprocessedForSub.map(item => item.id);
+                log.error('Error processing subreddit: ', subredditName, ',', e, ', possible error threads:', possibleErrorIds);
+            }
         }
+        const endTime = new Date().getTime();
+        const getSubmissionsTimeTaken = (endTime - startTime) / 1000;
+        log.info(chalk.blue('========= Processed', unprocessedSubmissions.length, ' new submissions, took: ', getSubmissionsTimeTaken));
+    } catch (e) {
+        log.error('Error processing subreddits, failed on: ', currentSubreddit, ', ', e);
     }
-    const endTime = new Date().getTime();
-    const getSubmissionsTimeTaken = (endTime - startTime) / 1000;
-    log.info(chalk.blue('========= Processed', unprocessedSubmissions.length, ' new submissions, took: ', getSubmissionsTimeTaken));
 }
 
 async function doInboxProcessing() {
@@ -169,7 +169,7 @@ async function doInboxProcessing() {
         const getTimeTaken = (endInboxTime - startInboxTime) / 1000;
         log.info(chalk.blue('========= Processed', unreadMessages.length, ' new inbox messages, took: ', getTimeTaken));
     } catch (err) {
-        log.error(chalk.red("Main loop error - INBOX processing: ", err));
+        log.error(chalk.red("Failed to process inbox: ", err));
     }
 }
 

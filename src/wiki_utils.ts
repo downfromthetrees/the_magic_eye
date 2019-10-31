@@ -59,12 +59,16 @@ export async function writeSettings(subredditName, masterSettings, reddit) {
 
 
 export async function updateSettings(subredditMulti, reddit) {
-    const wikiChanges = await subredditMulti.getModerationLog({type: 'wikirevise'});
-    const newChanges = wikiChanges.filter(change => change.details.includes('Page magic_eye edited') && change.mod != process.env.ACCOUNT_USERNAME);
-    const unprocessedChanges = await consumeUnprocessedWikiChanges(newChanges);
-    for (const change of unprocessedChanges) {
-        const subredditName = await change.subreddit.display_name;
-        await doUpdateSettings(subredditName, change, reddit);
+    try {
+        const wikiChanges = await subredditMulti.getModerationLog({type: 'wikirevise'});
+        const newChanges = wikiChanges.filter(change => change.details.includes('Page magic_eye edited') && change.mod != process.env.ACCOUNT_USERNAME);
+        const unprocessedChanges = await consumeUnprocessedWikiChanges(newChanges);
+        for (const change of unprocessedChanges) {
+            const subredditName = await change.subreddit.display_name;
+            await doUpdateSettings(subredditName, change, reddit);
+        }
+    } catch (e) {
+        log.error(chalk.red("Failed to update settings: ", e));
     }
 }
 
