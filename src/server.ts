@@ -82,26 +82,10 @@ async function main() {
             setTimeout(main, 30 * 1000); // run again in 30 seconds
         }
 
-        const startModdedSubsTime = new Date().getTime();
-        const moddedSubredditsMultiString = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
-        const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
-        const endModdedSubsTime = new Date().getTime();
-        const moddedSubsTimeTaken = (endModdedSubsTime - startModdedSubsTime) / 1000;
 
-        // submissions for all subs
-        const modqueueSubmissions = await subredditMulti.getModqueue({'limit': 100, 'only': 'links'});
-        const newSubmissions = await subredditMulti.getNew({'limit': 100});
-        const submissions = newSubmissions.concat(modqueueSubmissions);
-        
-        if (!submissions) {
-            log.error(chalk.red('Cannot get new submissions to process - api is probably down for maintenance.'));
-            setTimeout(main, 30 * 1000); // run again in 30 seconds
-            return;
-        }
-
-        await doNewSubmissionProcessing(moddedSubs, submissions);
+        await doNewSubmissionProcessing(moddedSubs);
         await doInboxProcessing();
-        await updateSettings(subredditMulti, reddit);
+        await updateSettings(moddedSubs, reddit);
 
         // end cycle
         const endCycleTime = new Date().getTime();
@@ -117,7 +101,21 @@ async function main() {
     setTimeout(main, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
 }
 
-async function doNewSubmissionProcessing(moddedSubs: string[], submissions: any) {
+async function doNewSubmissionProcessing(moddedSubs: string[]) {
+    const moddedSubredditsMultiString = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
+    const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
+
+    // hmmm only block - get the modqueue as well
+    const modqueueSubmissions = await subredditMulti.getModqueue({'limit': 100, 'only': 'links'});
+    const newSubmissions = await subredditMulti.getNew({'limit': 100});
+    const submissions = newSubmissions.concat(modqueueSubmissions);
+
+    if (!submissions) {
+        log.error(chalk.red('Cannot get new submissions to process - api is probably down for maintenance.'));
+        setTimeout(main, 30 * 1000); // run again in 30 seconds
+        return;
+    }
+
     let currentSubreddit = '';
     try {
         const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions); 
