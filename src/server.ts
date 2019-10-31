@@ -101,34 +101,8 @@ async function main() {
         const endSubmissionCycleTime = new Date().getTime();
         const submissionCycleTimeTaken = (endSubmissionCycleTime - startSubmissionCycleTime) / 1000;
 
-        // inbox
-        const startMessagesTime = new Date().getTime();
-        const unreadMessages = await reddit.getUnreadMessages();
-        if (!unreadMessages) {
-            log.error(chalk.red('Cannot get new inbox items to process - api is probably down for maintenance.'));
-            setTimeout(main, 30 * 1000); // run again in 30 seconds
-            return;
-        }
-        if (unreadMessages.length > 0) {
-            await reddit.markMessagesAsRead(unreadMessages);
-        }
-        for (let message of unreadMessages) {
-            const messageSubreddit = await message.subreddit;
-            let database = null;
-            let masterSettings = null;
-            if (messageSubreddit) {
-                const messageSubredditName = await messageSubreddit.display_name;
-                masterSettings = await getSubredditSettings(messageSubredditName);                 
-                if (masterSettings) {
-                    database = await initDatabase(messageSubredditName, masterSettings.config.databaseUrl);
-                }
-            }
-            await processInboxMessage(message, reddit, database, messageSubreddit, masterSettings);
-        }
-        log.debug(chalk.blue('Processed', unreadMessages.length, ' new inbox messages'));
-        const endMessagesTime = new Date().getTime();
-        const messagesTimeTaken = (endMessagesTime - startMessagesTime) / 1000;
-        
+        doInboxProcessing();
+
         // update settings
         await updateSettings(subredditMulti, reddit);
 
@@ -161,6 +135,36 @@ async function main() {
     }
     
     setTimeout(main, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
+}
+
+async function doInboxProcessing() {
+        // inbox
+        const startMessagesTime = new Date().getTime();
+        const unreadMessages = await reddit.getUnreadMessages();
+        if (!unreadMessages) {
+            log.error(chalk.red('Cannot get new inbox items to process - api is probably down for maintenance.'));
+            setTimeout(main, 30 * 1000); // run again in 30 seconds
+            return;
+        }
+        if (unreadMessages.length > 0) {
+            await reddit.markMessagesAsRead(unreadMessages);
+        }
+        for (let message of unreadMessages) {
+            const messageSubreddit = await message.subreddit;
+            let database = null;
+            let masterSettings = null;
+            if (messageSubreddit) {
+                const messageSubredditName = await messageSubreddit.display_name;
+                masterSettings = await getSubredditSettings(messageSubredditName);                 
+                if (masterSettings) {
+                    database = await initDatabase(messageSubredditName, masterSettings.config.databaseUrl);
+                }
+            }
+            await processInboxMessage(message, reddit, database, messageSubreddit, masterSettings);
+        }
+        log.debug(chalk.blue('Processed', unreadMessages.length, ' new inbox messages'));
+        const endMessagesTime = new Date().getTime();
+        const messagesTimeTaken = (endMessagesTime - startMessagesTime) / 1000;
 }
 
 async function processSubreddit(subredditName: string, unprocessedSubmissions, reddit) {
