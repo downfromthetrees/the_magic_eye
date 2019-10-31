@@ -72,19 +72,10 @@ async function main() {
             log.warn('No subreddits found. Sleeping.');
             setTimeout(main, 30 * 1000); // run again in 30 seconds
         }
-        const moddedSubredditsMultiString = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
-        const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
 
-        const submissions = await subredditMulti.getNew({'limit': 90});
-        if (!submissions) {
-            log.error(chalk.red('Cannot get new submissions to process - api is probably down for maintenance.'));
-            setTimeout(main, 30 * 1000); // run again in 30 seconds
-            return;
-        }
-
-        await doNewSubmissionProcessing(moddedSubs, submissions);
+        await doNewSubmissionProcessing(moddedSubs);
         await doInboxProcessing();
-        await updateSettings(subredditMulti, reddit);
+        await updateSettings(moddedSubs, reddit);
 
         // end cycle
         const endCycleTime = new Date().getTime();
@@ -100,7 +91,17 @@ async function main() {
     setTimeout(main, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
 }
 
-async function doNewSubmissionProcessing(moddedSubs: string[], submissions: any) {
+async function doNewSubmissionProcessing(moddedSubs: string[]) {
+    const moddedSubredditsMultiString = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
+    const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
+
+    const submissions = await subredditMulti.getNew({'limit': 90});
+    if (!submissions) {
+        log.error(chalk.red('Cannot get new submissions to process - api is probably down for maintenance.'));
+        setTimeout(main, 30 * 1000); // run again in 30 seconds
+        return;
+    }
+
     let currentSubreddit = '';
     try {
         const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions); 

@@ -58,27 +58,33 @@ export async function writeSettings(subredditName, masterSettings, reddit) {
 }
 
 
-export async function updateSettings(subredditMulti, reddit) {
-    log.info(chalk.blue("Starting updateSettings"));
-    const startCycleTime = new Date().getTime();
-
-    let changes = 0;
-    try {
-        const wikiChanges = await subredditMulti.getModerationLog({type: 'wikirevise'});
-        changes = wikiChanges.length;
-        const newChanges = wikiChanges.filter(change => change.details.includes('Page magic_eye edited') && change.mod != process.env.ACCOUNT_USERNAME);
-        const unprocessedChanges = await consumeUnprocessedWikiChanges(newChanges);
-        for (const change of unprocessedChanges) {
-            const subredditName = await change.subreddit.display_name;
-            await doUpdateSettings(subredditName, change, reddit);
+export async function updateSettings(subreddits: string[], reddit: any) {
+    try {    
+        log.info(chalk.blue("Starting updateSettings"));
+        const startCycleTime = new Date().getTime();
+    
+        const chunkSize = 30;
+        let remainingSubreddits = subreddits.slice();
+        while (remainingSubreddits.length > 0) {
+            let subredditsToProcess = remainingSubreddits.slice(0, chunkSize);
+            remainingSubreddits = remainingSubreddits.slice(chunkSize);
+            const subredditsMultiString = subredditsToProcess.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
+            const subredditMulti = await reddit.getSubreddit(subredditsMultiString);
+            const wikiChanges = await subredditMulti.getModerationLog({type: 'wikirevise'});
+            const newChanges = wikiChanges.filter(change => change.details.includes('Page magic_eye edited') && change.mod != process.env.ACCOUNT_USERNAME);
+            const unprocessedChanges = await consumeUnprocessedWikiChanges(newChanges);
+            for (const change of unprocessedChanges) {
+                const subredditName = await change.subreddit.display_name;
+                await doUpdateSettings(subredditName, change, reddit);
+            }
         }
+
+        const endCycleTime = new Date().getTime();
+        const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
+        log.info(chalk.blue('========= Update settings finished, time was ', cycleTimeTaken, 'seconds'));
     } catch (e) {
         log.error(chalk.red("Failed to update settings: ", e));
     }
-
-    const endCycleTime = new Date().getTime();
-    const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
-    log.info(chalk.blue('========= Update settings finished, time was ', cycleTimeTaken, 'seconds', changes));
 }
 
 // overkill, but well tested
