@@ -101,7 +101,7 @@ async function main() {
         const endSubmissionCycleTime = new Date().getTime();
         const submissionCycleTimeTaken = (endSubmissionCycleTime - startSubmissionCycleTime) / 1000;
 
-        doInboxProcessing();
+        await doInboxProcessing();
 
         // update settings
         await updateSettings(subredditMulti, reddit);
@@ -143,7 +143,6 @@ async function doInboxProcessing() {
         const unreadMessages = await reddit.getUnreadMessages();
         if (!unreadMessages) {
             log.error(chalk.red('Cannot get new inbox items to process - api is probably down for maintenance.'));
-            setTimeout(main, 30 * 1000); // run again in 30 seconds
             return;
         }
         if (unreadMessages.length > 0) {
