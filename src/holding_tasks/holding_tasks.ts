@@ -110,14 +110,13 @@ async function processApprovedPosts(unprocessedItems, reddit) {
         await submission.delete();
         return;
       }
-      const flair = await item.link_flair_text;
+      const flair = await submission.link_flair_text;
       const uploadResponse = await uploadToImgur(imagePath);
       let finalSubmission;
-      log.info('Item flair is: ', submissionId);
       if (flair) {
         finalSubmission = await backupDestinationSubreddit.submitLink({ title: flair, url: `https://imgur.com/${uploadResponse.data.id}.png` });
       } else {
-        //finalSubmission = await destinationSubreddit.submitLink({ title: 'hmmm', url: `https://imgur.com/${uploadResponse.data.id}.png` });
+        finalSubmission = await destinationSubreddit.submitLink({ title: 'hmmm', url: `https://imgur.com/${uploadResponse.data.id}.png` });
       }
       const finalSubmissionId = await finalSubmission.id;
       await submission.delete();
