@@ -137,7 +137,7 @@ export async function doUpdateSettings(subredditName, change, reddit) {
     try {
         settings = JSON.parse(await wikiPage.content_md);
     } catch (e) {
-        sendFailureReply(change.mod, reddit);
+        sendFailureReply(change.mod, reddit, subredditName);
         log.warn('Failed to update new settings for sub');
         return;
     }
