@@ -149,28 +149,28 @@ export async function doUpdateSettings(subredditName, change, reddit) {
         const masterSettings = await getSubredditSettings(subredditName);
         masterSettings.settings = settings;
         await setSubredditSettings(subredditName, masterSettings);
-        await sendSuccessReply(change.mod, reddit);
+        await sendSuccessReply(change.mod, reddit, subredditName);
         log.info('Update settings for successful for ', subredditName);
         return settings;
     } else {
-        await sendFailureReply(change.mod, reddit);
+        await sendFailureReply(change.mod, reddit, subredditName);
     }
 }
 
-async function sendSuccessReply(username, reddit) {
+async function sendSuccessReply(username, reddit, subredditName: string) {
     await reddit.composeMessage({
         to: await username,
-        subject: 'Success',
-        text: "Settings update successful. Let's nuke some posts!"
+        subject: 'Settings update successful',
+        text: `Settings update successful for r/${subredditName}. Let's nuke some posts!`
       });
 }
 
-async function sendFailureReply(username, reddit) {
+async function sendFailureReply(username, reddit, subredditName: string) {
     await reddit.composeMessage({
         to: await username,
         subject: 'Settings update failed',
         text: 
-`The changes you made to your settings aren't formatted right so I haven't updated them.
+`The changes you made to the settings for r/${subredditName} aren't formatted right so I haven't updated them.
         
 Use https://jsonlint.com/ to find the issue (typically a trailing comma, missing comma, or missing quotation marks). Either that or restore the last settings using the wiki page history.`
       });
