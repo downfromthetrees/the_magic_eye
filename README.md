@@ -11,25 +11,25 @@ Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support
 <!-- TOC -->
 
 - [Magic Eye](#magic-eye)
-  - [Features / What can it do](#features--what-can-it-do)
-  - [Getting Started](#getting-started)
-    - [Setup](#setup)
-    - [Repost removal workflow](#repost-removal-workflow)
-    - [General info](#general-info)
-  - [Features and Configuration](#features-and-configuration)
-    - [Media types (enabled by default)](#media-types-enabled-by-default)
-    - [Set the tolerance (enabled by default)](#set-the-tolerance-enabled-by-default)
-    - [On user reply (enabled by default)](#on-user-reply-enabled-by-default)
-    - [Remove reposts (enabled by default)](#remove-reposts-enabled-by-default)
-    - [Remove blacklisted images (enabled by default)](#remove-blacklisted-images-enabled-by-default)
-    - [Remove broken image links (enabled by default)](#remove-broken-image-links-enabled-by-default)
-    - [Remove small images](#remove-small-images)
-    - [Remove uncropped images](#remove-uncropped-images)
-    - [Custom footer](#custom-footer)
-    - [Report unmoderated posts](#report-unmoderated-posts)
-    - [Removal message type](#removal-message-type)
-  - [How does it work?](#how-does-it-work)
-  - [Credits](#credits)
+    - [Features / What can it do](#features--what-can-it-do)
+    - [Getting Started](#getting-started)
+        - [Setup](#setup)
+        - [Repost removal workflow](#repost-removal-workflow)
+        - [General info](#general-info)
+    - [Features and Configuration](#features-and-configuration)
+        - [Media types (enabled by default)](#media-types-enabled-by-default)
+        - [Set the tolerance (enabled by default)](#set-the-tolerance-enabled-by-default)
+        - [On user reply (enabled by default)](#on-user-reply-enabled-by-default)
+        - [Remove reposts (enabled by default)](#remove-reposts-enabled-by-default)
+        - [Remove blacklisted images (enabled by default)](#remove-blacklisted-images-enabled-by-default)
+        - [Remove broken image links (enabled by default)](#remove-broken-image-links-enabled-by-default)
+        - [Remove small images](#remove-small-images)
+        - [Remove uncropped images](#remove-uncropped-images)
+        - [Custom footer](#custom-footer)
+        - [Report unmoderated posts](#report-unmoderated-posts)
+        - [Removal message type](#removal-message-type)
+    - [How does it work?](#how-does-it-work)
+    - [Credits](#credits)
 
 <!-- /TOC -->
 
@@ -114,6 +114,8 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 - The settings are in JSON format. It is a different format from what AutoModerator uses, but it is still human readable.
 
 - MAGIC_EYE_BOT will let you know if your updates are successful, or give you help if there is a formatting issue. It keeps the actual settings in it's own database so if you mess up your wiki page it's not a concern, the bot will just keep using the last valid settings you had.
+
+- Because of the popularity of Magic Eye, it now takes 5-10 minutes to detect changes to the settings wiki page. Be patient and it will send you an notification eventually. 
 
 - Note: Magic Eye can't detect when you use the wiki page "revert" button. If you use it to revert to previous settings, just edit and save the wiki page (no changes needed) to get Magic Eye to pick up the change.
 
