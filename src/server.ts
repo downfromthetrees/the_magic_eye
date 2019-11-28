@@ -60,6 +60,10 @@ if (process.env.LOG_LEVEL == 'debug') {
     reddit.config({debug: true})
 }
 
+let heavyLoadMode = false;
+const heavyLoadSubmissionRequest = 350;
+const normalSubmissionRequest = 90;
+
 async function main() {
     let timeoutTimeSeconds = 30;
     try {
@@ -94,11 +98,7 @@ async function doSubredditProcessing(moddedSubs: string[]) {
     const moddedSubredditsMultiString = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
     const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
 
-    const startTimeRetrieval = new Date().getTime();
-    const submissions = await subredditMulti.getNew({'limit': 350});
-    const endTimeRetrieval = new Date().getTime();
-    const retrievalTimeTaken = (endTimeRetrieval - startTimeRetrieval) / 1000;
-    log.info(chalk.blue('========= Retrieval time for 90 was ', retrievalTimeTaken));
+    const submissions = await subredditMulti.getNew({'limit': heavyLoadMode ? normalSubmissionRequest : heavyLoadSubmissionRequest});
 
     if (!submissions) {
         log.error(chalk.red('Cannot get new submissions to process - api is probably down for maintenance.'));
@@ -283,8 +283,14 @@ async function consumeUnprocessedSubmissions(latestItems) {
     }
     await setMasterProperty('new_processed_ids', updatedProcessedIds);
     
-    if (newItems.length > 50) {
-        log.warn('WARNING: Queue appears backlogged with more than 50 items:', newItems.length);
+    if (newItems.length > (normalSubmissionRequest / 2)) {
+        log.warn(`WARNING: Queue appears backlogged with more than ${normalSubmissionRequest / 2} items:`, newItems.length, '. Engaging heavy load mode.');
+        if (!heavyLoadMode && newItems.length > normalSubmissionRequest) {
+            log.error(`ERROR: Submissions are at risk point becausue of heavy load. If it exceeds ${heavyLoadSubmissionRequest} then loss is guaranteed.`);
+        }
+        heavyLoadMode = true; 
+    } else {
+        heavyLoadMode = false;
     }
 
     return newItems;
