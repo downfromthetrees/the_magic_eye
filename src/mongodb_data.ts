@@ -44,7 +44,7 @@ export class MagicSubmission {
     this._id = dhash;
     this.createdAt = new Date();
     this.reddit_id = redditSubmission.id;
-    this.duplicates = [];
+    this.duplicates = [redditSubmission.id];
     this.exactMatchOnly = null;
     this.highest_score = highestScore;
     this.type = submissionType;
