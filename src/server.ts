@@ -95,7 +95,7 @@ async function doSubredditProcessing(moddedSubs: string[]) {
     const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
 
     const startTimeRetrieval = new Date().getTime();
-    const submissions = await subredditMulti.getNew({'limit': 90});
+    const submissions = await subredditMulti.getNew({'limit': 350});
     const endTimeRetrieval = new Date().getTime();
     const retrievalTimeTaken = (endTimeRetrieval - startTimeRetrieval) / 1000;
     log.info(chalk.blue('========= Retrieval time for 90 was ', retrievalTimeTaken));
