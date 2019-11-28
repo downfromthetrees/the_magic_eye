@@ -94,7 +94,12 @@ async function doSubredditProcessing(moddedSubs: string[]) {
     const moddedSubredditsMultiString = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
     const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
 
+    const startTimeRetrieval = new Date().getTime();
     const submissions = await subredditMulti.getNew({'limit': 90});
+    const endTimeRetrieval = new Date().getTime();
+    const retrievalTimeTaken = (endTimeRetrieval - startTimeRetrieval) / 1000;
+    log.info(chalk.blue('========= Retrieval time for 90 was ', retrievalTimeTaken));
+
     if (!submissions) {
         log.error(chalk.red('Cannot get new submissions to process - api is probably down for maintenance.'));
         setTimeout(main, 30 * 1000); // run again in 30 seconds
@@ -279,7 +284,7 @@ async function consumeUnprocessedSubmissions(latestItems) {
     await setMasterProperty('new_processed_ids', updatedProcessedIds);
     
     if (newItems.length > 50) {
-        log.warn('WARNING: Queue appears backlogged with more than 50 items');
+        log.warn('WARNING: Queue appears backlogged with more than 50 items:', newItems.length);
     }
 
     return newItems;
