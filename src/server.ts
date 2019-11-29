@@ -98,7 +98,7 @@ async function doSubredditProcessing(moddedSubs: string[]) {
     const moddedSubredditsMultiString = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
     const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
 
-    const submissions = await subredditMulti.getNew({'limit': heavyLoadMode ? normalSubmissionRequest : heavyLoadSubmissionRequest});
+    const submissions = await subredditMulti.getNew({'limit': heavyLoadMode ? heavyLoadSubmissionRequest : normalSubmissionRequest});
 
     if (!submissions) {
         log.error(chalk.red('Cannot get new submissions to process - api is probably down for maintenance.'));
@@ -284,12 +284,18 @@ async function consumeUnprocessedSubmissions(latestItems) {
     await setMasterProperty('new_processed_ids', updatedProcessedIds);
     
     if (newItems.length > (normalSubmissionRequest / 2)) {
-        log.warn(`WARNING: Queue appears backlogged with more than ${normalSubmissionRequest / 2} items:`, newItems.length, '. Engaging heavy load mode.');
+        log.warn(`HEAVY LOAD: Queue appears backlogged with more than ${normalSubmissionRequest / 2} items:`, newItems.length);
+        if (!heavyLoadMode) {
+            log.warn(`HEAVY LOAD: Engaging heavy load mode`);
+        }
         if (!heavyLoadMode && newItems.length > normalSubmissionRequest) {
-            log.error(`ERROR: Submissions are at risk point becausue of heavy load. If it exceeds ${heavyLoadSubmissionRequest} then loss is guaranteed.`);
+            log.error(`HEAVY LOAD: ERROR - Submissions are at risk point becausue of heavy load. If it exceeds ${heavyLoadSubmissionRequest} then loss is guaranteed.`);
         }
         heavyLoadMode = true; 
     } else {
+        if (heavyLoadMode) {
+            log.info(`HEAVY LOAD: Disabling heavy load mode`);
+        }
         heavyLoadMode = false;
     }
 
