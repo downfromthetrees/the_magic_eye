@@ -14,8 +14,8 @@ Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support
     - [Features / What can it do](#features--what-can-it-do)
     - [Getting Started](#getting-started)
         - [Setup](#setup)
-        - [Repost removal workflow](#repost-removal-workflow)
         - [General info](#general-info)
+        - [Repost removal workflow](#repost-removal-workflow)
     - [Features and Configuration](#features-and-configuration)
         - [Media types (enabled by default)](#media-types-enabled-by-default)
         - [Set the tolerance (enabled by default)](#set-the-tolerance-enabled-by-default)
@@ -77,18 +77,6 @@ By default Magic Eye will:
 
 See the [settings documentation](#settings) for tweaking this and enabling more features.
 
-### Repost removal workflow
-
-- When a repost is detected, Magic Eye looks at the last submission of that image to figure out what to do.
-- If the last submission is approved/unmoderated, Magic Eye acts based on your repost settings.
-- If the last submission was removed by a moderator...
-  - ...and it is blacklisted: Magic Eye will automatically remove it for you.
-  - ...and it is not blacklisted: Magic Eye will ignore it and treat the repost as a new submission.
-
-Because of this, most subreddits will want to blacklist images. See [the blacklisting section](#remove-blacklisted-images-enabled-by-default) for how to do it automatically with Toolbox.
-
-This workflow gives you a simple way to override old decisions, or let users repost with different titles etc.
-
 ### General info
 
 - If users reply to [u/MAGIC_EYE_BOT](https://www.reddit.com/user/MAGIC_EYE_BOT), it will report the comment so you can check it out.
@@ -104,6 +92,20 @@ This workflow gives you a simple way to override old decisions, or let users rep
 - You can reply to a removal message by [u/MAGIC_EYE_BOT](https://www.reddit.com/user/MAGIC_EYE_BOT) with `clear` and it'll remove the image from it's database. There's generally no need to do this, except perhaps for rare problematic images (they tend to have [lots of grey space](https://i.imgur.com/Avp2Y57.png)).
 
 - Because of memory limits on the server, images greater than 6000 pixels in height or width will be ignored
+
+### Repost removal workflow
+
+This section is helpful to read if you have a "what happens if" question, particularly about blacklisting.
+
+Magic Eye is designed so it is easy to override old decisions, let users repost with different titles etc.
+
+- When a repost is detected, Magic Eye looks at the last submission of that image to figure out what to do.
+- If the last submission is approved/unmoderated, Magic Eye acts based on your repost settings.
+- If the last submission was removed by a moderator...
+  - ...and it is blacklisted: Magic Eye will automatically remove it for you.
+  - ...and it is not blacklisted: Magic Eye will ignore it and treat the repost as a new submission.
+
+Because of this, most subreddits will want to blacklist images. See [the blacklisting section](#remove-blacklisted-images-enabled-by-default) for how to do it automatically with Toolbox.
 
 ## Features and Configuration
 
