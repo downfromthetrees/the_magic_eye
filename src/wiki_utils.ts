@@ -62,7 +62,7 @@ let updateSettingsCount = 0;
 export async function updateSettings(subreddits: string[], reddit: any) {
     try {
         updateSettingsCount++;
-        if (updateSettingsCount % 10 != 0) {
+        if (updateSettingsCount !== 1 && updateSettingsCount % 10 != 0) {
             return; // only run this every few requests (about 5 minutes)
         }
 

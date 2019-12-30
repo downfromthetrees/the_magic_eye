@@ -69,6 +69,10 @@ if (process.env.LOG_LEVEL == 'debug') {
     reddit.config({debug: true})
 }
 
+let heavyLoadMode = false;
+const heavyLoadSubmissionRequest = 350;
+const normalSubmissionRequest = 90;
+
 async function main() {
     let timeoutTimeSeconds = 30;
     try {
@@ -294,8 +298,20 @@ async function consumeUnprocessedSubmissions(latestItems) {
     }
     await setMasterProperty('new_processed_ids', updatedProcessedIds);
     
-    if (newItems.length > 50) {
-        log.warn('WARNING: Queue appears backlogged with more than 50 items');
+    if (newItems.length > (normalSubmissionRequest / 2)) {
+        log.warn(`HEAVY LOAD: Queue appears backlogged with more than ${normalSubmissionRequest / 2} items:`, newItems.length);
+        if (!heavyLoadMode) {
+            log.warn(`HEAVY LOAD: Engaging heavy load mode`);
+        }
+        if (!heavyLoadMode && newItems.length > normalSubmissionRequest) {
+            log.error(`HEAVY LOAD: ERROR - Submissions are at risk point becausue of heavy load. If it exceeds ${heavyLoadSubmissionRequest} then loss is guaranteed.`);
+        }
+        heavyLoadMode = true; 
+    } else {
+        if (heavyLoadMode) {
+            log.info(`HEAVY LOAD: Disabling heavy load mode`);
+        }
+        heavyLoadMode = false;
     }
 
     return newItems;
