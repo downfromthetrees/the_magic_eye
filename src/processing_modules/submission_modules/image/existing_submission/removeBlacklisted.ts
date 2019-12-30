@@ -47,7 +47,9 @@ async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklist
         removalReason = await createRemovalMessage(lastSubmission, blacklistReason);
     }
 
-    removePost(submission, removalReason, subSettings, reddit);
+    const silentRemoval = subSettings.removeBlacklisted.action && subSettings.removeBlacklisted.action.includes('silent');
+
+    removePost(submission, removalReason, subSettings, reddit, silentRemoval);
     logActionBlacklisted(subredditName, null);
 }
 

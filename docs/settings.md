@@ -94,6 +94,7 @@ Notes:
   - `"remove"`: removes the post and posts a message to the user
   - `"warn"`: reports the post and posts a removed comment in the thread with links
   - `"warnByModmail"`: sends a modmail with info about the repost
+  - `"silent"`: remove the thread without a comment or report
 - You can override the first sentence with `removalMessage`/`allTimeTopRemovalMessage`, or the whole message with `fullRemovalMessage` and use the variables as you like. `\n` for line break.
 - `actionRepostsIfDeleted`: Performs `action` on reposts even if the previous post was deleted.
 - `approveIfOverRepostDays`: Auto-approves a repost over the time limit to save you doing it
@@ -143,7 +144,8 @@ Optional fields:
 
     "removeBlacklisted": {
         ...,
-        "fullRemovalMessage": "I control this message buckaroo, here's my link: {{last_submission_link}}.\n\nAnd [here's the url]({{last_submission_url}}), and here's the blacklist reason: {{blacklist_reason}}"
+        "fullRemovalMessage": "I control this message buckaroo, here's my link: {{last_submission_link}}.\n\nAnd [here's the url]({{last_submission_url}}), and here's the blacklist reason: {{blacklist_reason}}",
+        "action": "silent"
     },
 
 Notes:
@@ -151,6 +153,8 @@ Notes:
 - Blacklisting works by looking at the *current state* of threads/comments every time, it doesn't store anything remotely. This means it's easy to override, modify old decisions etc. See the [repost removal workflow](../README.md#repost-removal-workflow) for more information.
 
 - You can customize the removal message with the `fullRemovalMessage` parameter, and variables shown in the example above will be substituted in.
+
+- To remove posts without a comment, set `"action"` to `"silent"`.
 
 ## Remove broken image links
 
@@ -221,5 +225,5 @@ Details:
 
     "removalMethod": "default",
 
-- `default`: (or the setting is absent): Reply in the thread
-- `replyAsSubreddit`: Reply on behalf of the subreddit, so it can be seen in modmail (**requires** `mail` **permission**)
+- `"default"`: (or the setting is absent): Reply in the thread
+- `"replyAsSubreddit"`: Reply on behalf of the subreddit, causing all replies to go to modmail (**requires** `mail` **permission**)

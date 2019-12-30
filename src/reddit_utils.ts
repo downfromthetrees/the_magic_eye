@@ -44,11 +44,13 @@ export function sliceSubmissionId(submissionId) {
     return submissionId.slice(3, submissionId.length); // id is prefixed with "id_"
 }
 
-export async function removePost(submission, removalReason, subSettings, reddit) {
+export async function removePost(submission, removalReason, subSettings, reddit, silent=false) {
     try { 
         await submission.remove();
 
-        if (subSettings.removalMethod === 'replyAsSubreddit') {
+        if (silent || subSettings.removalMethod === 'silent') {
+            return;
+        } else if (subSettings.removalMethod === 'replyAsSubreddit') {
             await removePostWithPrivateMessage(submission, removalReason, subSettings, reddit);
         } else {
             await removePostWithReply(submission, removalReason, subSettings);
