@@ -45,7 +45,7 @@ Once you've invited Magic Eye as a mod it will:
 
 - If users reply to [u/MAGIC_EYE_BOT](https://www.reddit.com/user/MAGIC_EYE_BOT), by default it will report the comment so you can check it out.
 
-- Magic Eye has sensible default repost settings (a ~15-50 day repost limit depending on karma of last post) so is safe to add.
+- Magic Eye has sensible default repost settings (a 15-50 day repost limit depending on karma of last post) so is safe to add.
 
 - You can safely demod/remod Magic Eye at any time without affecting your database of images.
 
@@ -67,16 +67,16 @@ Magic Eye is designed so it is easy to override old decisions or fix mistakes.
   - ...and it is blacklisted: Magic Eye will automatically remove it for you.
   - ...and it is not blacklisted: Magic Eye will ignore it and treat the repost as a new submission.
 
-Because of this, most subreddits will want to blacklist images. See [the blacklisting section](./docs/settings#remove-blacklisted-images-enabled-by-default) for how to do it automatically with Toolbox.
+Because of this, most subreddits will want to blacklist images. See [the blacklisting section](./docs/settings.md#remove-blacklisted-images-enabled-by-default) for how to do it automatically with Toolbox.
 
 ## Features and Configuration
 
-[**Find the configuration details for all Magic Eye settings here.**](./docs/settings)
+[**Find the configuration details for all Magic Eye settings here.**](./docs/settings.md)
 
 By default Magic Eye will:
 
-- Remove recent reposts (~15 day repost period)
-- Remove blacklisted images (see [how to blacklist images](./docs/settings#remove-blacklisted-images-enabled-by-default))
+- Remove recent reposts (15-50 day repost period)
+- Remove blacklisted images (see [how to blacklist images](./docs/settings.md#remove-blacklisted-images-enabled-by-default))
 - Remove broken image links
 
 But it has several other moderation features, such as reporting images over a karma threshold or removing small images.
