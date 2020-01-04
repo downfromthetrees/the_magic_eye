@@ -129,12 +129,15 @@ async function doSubredditProcessing(moddedSubs: string[]) {
 
 
 function setSubmissionRequestsForNextTime(queueSize: number) {
+    if (queueSize && queueSize == submissionRequests) {
+        log.error("========= ERROR: Request size and queue size were the same indicating posts were missed.");    
+    }
     if (!queueSize || queueSize < 50) {
         submissionRequests = 100;    
     } else {
         submissionRequests = queueSize + 100;
     }
-    log.info("Next request:", submissionRequests, " current was", queueSize);
+    log.info("========= Next request size:", submissionRequests, " current was", queueSize);
 }
 
 
