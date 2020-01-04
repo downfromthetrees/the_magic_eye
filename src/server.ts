@@ -60,9 +60,7 @@ if (process.env.LOG_LEVEL == 'debug') {
     reddit.config({debug: true})
 }
 
-let heavyLoadMode = false;
-const heavyLoadSubmissionRequest = 350;
-const normalSubmissionRequest = 90;
+let submissionRequests = 100;
 
 async function main() {
     let timeoutTimeSeconds = 30;
@@ -85,7 +83,7 @@ async function main() {
         const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
         timeoutTimeSeconds = Math.max(timeoutTimeSeconds - cycleTimeTaken, 0);
 
-        log.info(chalk.blue('========= Cycle finished, time was ', cycleTimeTaken, 'seconds', cycleTimeTaken > 30 ? 'TIME WARNING' : ''));
+        log.info(chalk.blue('========= Cycle finished, time was ', cycleTimeTaken, 'seconds', cycleTimeTaken > 60 ? 'TIME WARNING' : ''));
         logProcessCycle(cycleTimeTaken);
     } catch (err) {
         log.error(chalk.red("Main loop error: ", err));
@@ -98,17 +96,18 @@ async function doSubredditProcessing(moddedSubs: string[]) {
     const moddedSubredditsMultiString = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
     const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
 
-    const submissions = await subredditMulti.getNew({'limit': heavyLoadMode ? heavyLoadSubmissionRequest : normalSubmissionRequest});
+    const submissions = await subredditMulti.getNew({'limit': submissionRequests});
 
     if (!submissions) {
         log.error(chalk.red('Cannot get new submissions to process - api is probably down for maintenance.'));
-        setTimeout(main, 30 * 1000); // run again in 30 seconds
+        setTimeout(main, 60 * 1000); // run again in 60 seconds
         return;
     }
 
     let currentSubreddit = '';
     try {
-        const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions); 
+        const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions);
+        setSubmissionRequestsForNextTime(unprocessedSubmissions.length);
         const startTime = new Date().getTime();
         for (const subredditName of moddedSubs) {
             const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
@@ -127,6 +126,18 @@ async function doSubredditProcessing(moddedSubs: string[]) {
         log.error('Error processing subreddits, failed on: ', currentSubreddit, ', ', e);
     }
 }
+
+
+function setSubmissionRequestsForNextTime(queueSize: number) {
+    if (!queueSize || queueSize < 50) {
+        submissionRequests = 100;    
+    } else {
+        submissionRequests = queueSize + 100;
+    }
+    log.info("Next request:", submissionRequests, " current was", queueSize);
+}
+
+
 
 async function doInboxProcessing() {
     // inbox
@@ -283,25 +294,8 @@ async function consumeUnprocessedSubmissions(latestItems) {
     }
     await setMasterProperty('new_processed_ids', updatedProcessedIds);
     
-    if (newItems.length > (normalSubmissionRequest / 2)) {
-        log.warn(`HEAVY LOAD: Queue appears backlogged with more than ${normalSubmissionRequest / 2} items:`, newItems.length);
-        if (!heavyLoadMode) {
-            log.warn(`HEAVY LOAD: Engaging heavy load mode`);
-        }
-        if (!heavyLoadMode && newItems.length > normalSubmissionRequest) {
-            log.error(`HEAVY LOAD: ERROR - Submissions are at risk point becausue of heavy load. If it exceeds ${heavyLoadSubmissionRequest} then loss is guaranteed.`);
-        }
-        heavyLoadMode = true; 
-    } else {
-        if (heavyLoadMode) {
-            log.info(`HEAVY LOAD: Disabling heavy load mode`);
-        }
-        heavyLoadMode = false;
-    }
-
     return newItems;
 }
-
 
 // server
 async function startServer() {   
