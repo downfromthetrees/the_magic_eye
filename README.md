@@ -79,6 +79,8 @@ By default Magic Eye will:
 - Remove blacklisted images (see [how to blacklist images](./docs/settings.md#remove-blacklisted-images-enabled-by-default))
 - Remove broken image links
 
+If you find it has too many false positives, you can [lower the tolerance.](./docs/settings.md#set-the-tolerance)
+
 But it has several other moderation features, such as reporting images over a karma threshold or removing small images.
 
 ## How does it work?
