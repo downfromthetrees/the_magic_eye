@@ -136,8 +136,8 @@ function setSubmissionRequestsForNextTime(queueSize: number) {
         submissionRequests = 100;    
     } else {
         submissionRequests = queueSize + 100;
+        log.info("========= Heavy load. Next request size:", submissionRequests, " current was", queueSize);
     }
-    log.info("========= Next request size:", submissionRequests, " current was", queueSize);
 }
 
 
