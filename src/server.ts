@@ -326,14 +326,7 @@ app.get('/keepalive', async function(req, res) {
     res.send(JSON.stringify({ status: 'ok' }));
 });
 
-app.get('/stats/print', async function(req, res) {
-    printStats();
-    res.setHeader('Content-Type', 'application/json');
-    res.send(JSON.stringify({ status: 'Printed!' }));
-});
-
-
-
 process.on('unhandledRejection', (reason, p) => {
-    log.warn('Unhandled Rejection at: Promise', p, 'reason:', reason);
+    //log.warn('Unhandled promise Rejection at: Promise', p, 'reason:', reason);
+    log.warn('Unhandled promise pejection.');
   });
