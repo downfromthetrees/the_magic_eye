@@ -51,7 +51,8 @@
     "snoowrap": "^1.15.2",
     "stream-to-array": "^2.3.0",
     "stripchar": "^1.2.1",
-    "tesseract.js": "^1.0.19"
+    "tesseract.js": "^1.0.19",
+    "tslint": "^5.20.1"
   },
   "devDependencies": {
     "ts-node": "^8.4.1",
