@@ -270,7 +270,7 @@ async function initialiseNewSubreddit(subredditName: string) {
 async function consumeUnprocessedSubmissions(latestItems) {
     latestItems.sort((a, b) => { return a.created_utc - b.created_utc}); // oldest first
 
-    const maxCheck = 500;
+    const maxCheck = 1000;
     if (latestItems.length > maxCheck) {
         log.info('Passed more than maxCheck items:', latestItems.length);
         latestItems = latestItems.slice(latestItems.length - maxCheck, latestItems.length);
@@ -291,7 +291,7 @@ async function consumeUnprocessedSubmissions(latestItems) {
     // update the processed list before processing so we don't retry any submissions that cause exceptions
     const newItems = latestItems.filter(item => !processedIds.includes(item.id));
     let updatedProcessedIds = processedIds.concat(newItems.map(submission => submission.id)); // [3,2,1] + [new] = [3,2,1,new]
-    const processedCacheSize = maxCheck*5; // larger size for any weird/future edge-cases where a mod removes a lot of submissions
+    const processedCacheSize = 2500; // larger size for any weird/future edge-cases where a mod removes a lot of submissions
     if (updatedProcessedIds.length > processedCacheSize) { 
         updatedProcessedIds = updatedProcessedIds.slice(updatedProcessedIds.length - processedCacheSize); // [3,2,1,new] => [2,1,new]
     }
