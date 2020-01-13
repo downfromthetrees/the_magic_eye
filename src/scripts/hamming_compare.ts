@@ -46,7 +46,16 @@ async function runHammingCompare() {
   const distance = await hammingDistance(dhash1, dhash2); // hamming threshold
   console.log(chalk.blue(process.argv[2] + 'dhash:'), dhash1);
   console.log(chalk.blue(process.argv[3] + 'dhash:'), dhash2);
-  console.log(chalk.green('hamming distance:'), distance); 
+  console.log(chalk.green('dhash hamming distance:'), distance); 
+
+  
+  const phash1 = await generatePHash(image1, image1);
+  const phash2 = await generatePHash(image2, image2);
+  const phash_distance = await hammingDistance(phash1.pHash, phash2.pHash); // hamming threshold
+  console.log(chalk.blue(process.argv[2] + 'phash:'), phash1);
+  console.log(chalk.blue(process.argv[3] + 'phash:'), phash2);
+  console.log(chalk.green('hamming distance:'), phash_distance); 
+  // 165 / 168 max
 }
 
 runHammingCompare();
