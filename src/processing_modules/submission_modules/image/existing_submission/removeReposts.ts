@@ -225,11 +225,12 @@ async function removeAsRepost(submission, lastSubmission, noOriginalSubmission, 
 async function createFullCustomRemovalMessage(subSettings, lastSubmission, lastAuthor, submission) {
     const permalink = 'https://www.reddit.com' + (await lastSubmission.permalink);
     let removalText = subSettings.reposts.fullRemovalMessage;
-    removalText = removalText.replace('{{last_submission_link}}', permalink);
-    removalText = removalText.replace('{{last_submission_url}}', await lastSubmission.url);
-    removalText = removalText.replace('{{time_ago}}', await getTimeAgoString(lastSubmission));
-    removalText = removalText.replace('{{last_author}}', lastAuthor);
-    removalText = removalText.replace('{{author}}', await submission.author.name);
+    removalText = removalText.split("{{last_submission_link}}").join(permalink);
+    removalText = removalText.split("{{last_submission_url}}").join(await lastSubmission.url);
+    removalText = removalText.split("{{time_ago}}").join(await getTimeAgoString(lastSubmission));
+    removalText = removalText.split("{{last_author}}").join(lastAuthor);
+    removalText = removalText.split("{{author}}").join(await submission.author.name);
+    
     return removalText;
 }
 

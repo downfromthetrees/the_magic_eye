@@ -67,9 +67,9 @@ async function createRemovalMessage(lastSubmission, blacklistReason) {
 async function createFullCustomRemovalMessage(subSettings, lastSubmission, blacklistReason) {
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
     let removalText = subSettings.removeBlacklisted.fullRemovalMessage;
-    removalText = removalText.replace('{{last_submission_link}}', permalink);
-    removalText = removalText.replace('{{last_submission_url}}', await lastSubmission.url);
-    removalText = removalText.replace('{{blacklist_reason}}', blacklistReason);
+    removalText = removalText.split('{{last_submission_link}}').join(permalink);
+    removalText = removalText.split('{{last_submission_url}}').join(await lastSubmission.url);
+    removalText = removalText.split('{{blacklist_reason}}').join(blacklistReason);
     return removalText;
 }
 
