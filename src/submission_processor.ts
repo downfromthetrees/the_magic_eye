@@ -139,14 +139,14 @@ async function processExistingSubmission(submission, existingMagicSubmission, ma
         const magicIgnore = await isMagicIgnore(modComment);
         if (magicIgnore) {
             log.info(`[${subredditName}]`, 'Found repost of removed submission (http://redd.it/' + existingMagicSubmission.reddit_id, '), but magicIgnore/ignoreRemoval exists. Ignoring submission: ', await printSubmission(submission, submissionType));
-            existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
+            await existingMagicSubmission.updateSubmission(submission);
             return;
         }
 
         const hasRemovalTags = await isAnyTagRemoval(modComment);
         if (modComment == null || !hasRemovalTags) {
             log.info(`[${subredditName}]`, 'Found repost of removed submission (http://redd.it/' + existingMagicSubmission.reddit_id, '), but no relevant removal message exists. Ignoring submission: ', await printSubmission(submission, submissionType));
-            existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
+            await existingMagicSubmission.updateSubmission(submission);
             return;
         }
     }

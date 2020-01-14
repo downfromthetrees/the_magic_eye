@@ -24,7 +24,7 @@ export async function removeBlacklisted(reddit, modComment, submission, lastSubm
         const removalReason = await getRemovalReason(modComment, subredditName);
         if (removalReason == null) {
             log.info(`[${subredditName}]`, chalk.red("Ignoring submission because couldn't read the last removal message. Submission: ", await printSubmission(submission, submissionType), ", removal message thread: http://redd.it/" + existingMagicSubmission.reddit_id));
-            existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
+            await existingMagicSubmission.updateSubmission(submission);
             await logModcomment(reddit, await lastSubmission.id, subredditName);
         } else {
             removeAsBlacklisted(reddit, submission, lastSubmission, removalReason, subSettings, subredditName, submissionType);

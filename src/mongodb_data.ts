@@ -35,6 +35,7 @@ export class MagicSubmission {
   _id; // dhash of the original
   createdAt; // automatic expiry indicator
   reddit_id; // the last reddit id that matched the dhash (dhash within hamming distance)
+  author;
   duplicates; // array of reddit ids, includes removed and approved posts
   exactMatchOnly; // boolean value
   highest_score; // number
@@ -48,6 +49,12 @@ export class MagicSubmission {
     this.exactMatchOnly = null;
     this.highest_score = highestScore;
     this.type = submissionType;
+    this.author = redditSubmission.author.name;
+  }
+
+  async updateSubmission(redditSubmission) {
+    this.reddit_id = await redditSubmission.id
+    this.author = await redditSubmission.author.name;
   }
 }
 
