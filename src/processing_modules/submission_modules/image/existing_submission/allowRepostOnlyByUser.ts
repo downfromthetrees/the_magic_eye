@@ -6,7 +6,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 // magic eye modules
 import { printSubmission, isRepostOnlyByUserRemoval } from '../../../../reddit_utils';
-import { MagicSubmission } from '../../../../mongodb_data';
+import { MagicSubmission, updateMagicSubmission } from '../../../../mongodb_data';
 
 //=====================================
 
@@ -21,7 +21,7 @@ export async function allowRepostsOnlyByUser(reddit, modComment, submission, las
 
     if (lastIsRepostOnlyByUser && sameUserForBothSubmissions) {
         log.info(`[${subredditName}]`, 'Found matching hash for submission', await printSubmission(submission, submissionType), ', but ignoring as special user only repost of submission: http://redd.it/', existingMagicSubmission.reddit_id);
-        await existingMagicSubmission.updateSubmission(submission);
+        await updateMagicSubmission(existingMagicSubmission, submission);
         return false;
     }
 

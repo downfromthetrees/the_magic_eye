@@ -14,6 +14,7 @@ const timeAgo = new TimeAgo('en');
 // magic eye modules
 import { isRepostRemoval, removePost, printSubmission } from '../../../../reddit_utils';
 import { logActionRepost } from '../../../../master_stats';
+import { updateMagicSubmission } from '../../../../mongodb_data';
 
 //=====================================
 
@@ -40,7 +41,7 @@ export async function removeReposts(reddit, modComment, submission, lastSubmissi
             ', but approving as the last submission was deleted: http://redd.it/' + existingMagicSubmission.reddit_id
         );
         existingMagicSubmission.approve = true;
-        await existingMagicSubmission.updateSubmission(submission);
+        await updateMagicSubmission(existingMagicSubmission, submission);
         if (processorSettings.approveIfRepostDeleted === true) {
             submission.approve();
         }
@@ -57,7 +58,7 @@ export async function removeReposts(reddit, modComment, submission, lastSubmissi
             ', matched,',
             existingMagicSubmission.reddit_id
         );
-        await existingMagicSubmission.updateSubmission(submission);
+        await updateMagicSubmission(existingMagicSubmission, submission);
         return false;
     }
 
@@ -106,7 +107,7 @@ export async function removeReposts(reddit, modComment, submission, lastSubmissi
         existingMagicSubmission.reddit_id,
         ' - valid as over the repost limit.'
     );
-    await existingMagicSubmission.updateSubmission(submission);
+    await updateMagicSubmission(existingMagicSubmission, submission);
     return true;
 }
 

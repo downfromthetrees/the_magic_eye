@@ -51,11 +51,11 @@ export class MagicSubmission {
     this.type = submissionType;
     this.author = redditSubmission.author.name;
   }
+}
 
-  async updateSubmission(redditSubmission) {
-    this.reddit_id = await redditSubmission.id
-    this.author = await redditSubmission.author.name;
-  }
+export async function updateMagicSubmission(magicSubmission, redditSubmission) {
+  magicSubmission.reddit_id = await redditSubmission.id
+  magicSubmission.author = await redditSubmission.author.name;
 }
 
 function getCollectionName(collection, subredditName) {

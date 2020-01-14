@@ -326,7 +326,7 @@ app.get('/keepalive', async function(req, res) {
     res.send(JSON.stringify({ status: 'ok' }));
 });
 
-process.on('unhandledRejection', (reason, p) => {
+process.on('unhandledRejection', (reason: any, p: any) => {
     //log.warn('Unhandled promise Rejection at: Promise', p, 'reason:', reason);
-    log.warn('Unhandled promise pejection.');
+    log.warn('WARNING: Unhandled promise rejection. Investigate previous logs for details. Reason message: ', reason.message);
   });

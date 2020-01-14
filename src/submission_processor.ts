@@ -7,7 +7,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 // magic eye general
 import { getImageDetails, getImageUrl } from './image_utils';
-import { MagicSubmission } from './mongodb_data';
+import { MagicSubmission, updateMagicSubmission } from './mongodb_data';
 import { getModComment, isMagicIgnore, isAnyTagRemoval, removePost, printSubmission } from './reddit_utils';
 import { logRemoveBroken } from './master_stats';
 
@@ -139,14 +139,14 @@ async function processExistingSubmission(submission, existingMagicSubmission, ma
         const magicIgnore = await isMagicIgnore(modComment);
         if (magicIgnore) {
             log.info(`[${subredditName}]`, 'Found repost of removed submission (http://redd.it/' + existingMagicSubmission.reddit_id, '), but magicIgnore/ignoreRemoval exists. Ignoring submission: ', await printSubmission(submission, submissionType));
-            await existingMagicSubmission.updateSubmission(submission);
+            await updateMagicSubmission(existingMagicSubmission, submission);
             return;
         }
 
         const hasRemovalTags = await isAnyTagRemoval(modComment);
         if (modComment == null || !hasRemovalTags) {
             log.info(`[${subredditName}]`, 'Found repost of removed submission (http://redd.it/' + existingMagicSubmission.reddit_id, '), but no relevant removal message exists. Ignoring submission: ', await printSubmission(submission, submissionType));
-            await existingMagicSubmission.updateSubmission(submission);
+            await updateMagicSubmission(existingMagicSubmission, submission);
             return;
         }
     }
