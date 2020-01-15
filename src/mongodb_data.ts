@@ -226,7 +226,8 @@ export async function initDatabase(name, connectionUrl) {
       const client = await MongoClient.connect(connectionUrl, { useNewUrlParser: true, 
         server: {
             socketOptions: {
-                connectTimeoutMS: 5000
+                connectTimeoutMS: 5000,
+                socketTimeoutMS: 5000
             }
         } });
       databaseConnectionList[name] = await client.db();
