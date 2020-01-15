@@ -130,10 +130,13 @@ async function doSubredditProcessing(moddedSubs: string[]) {
 
 function setSubmissionRequestsForNextTime(queueSize: number) {
     if (queueSize && queueSize == submissionRequests) {
-        log.error("========= ERROR: Heavy load. Request size and queue size were the same indicating posts were missed.");    
+        log.error("========= ERROR: Heavy load. Request size and queue size were the same indicating posts were missed.");
+        submissionRequests = 1000;
+        return;
     }
+    
     if (!queueSize || queueSize < 50) {
-        submissionRequests = 100;    
+        submissionRequests = 100;
     } else {
         submissionRequests = queueSize + 100;
         log.info("========= Heavy load. Next request size:", submissionRequests, " current was", queueSize);
