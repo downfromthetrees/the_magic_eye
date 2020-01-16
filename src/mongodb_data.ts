@@ -223,7 +223,7 @@ export async function initDatabase(name, connectionUrl, expiry?: number | undefi
   if (!databaseConnectionList[name]) {
     log.debug(chalk.blue('Connecting to database...', name, '-', connectionUrl));
     try {
-      const client = await MongoClient.connect(connectionUrl, { useNewUrlParser: true, connectTimeoutMS: 5000, socketTimeoutMS: 5000});
+      const client = await MongoClient.connect(connectionUrl, { useNewUrlParser: true, connectTimeoutMS: 5000, socketTimeoutMS: 5000, poolSize: 100});
       databaseConnectionList[name] = await client.db();
     } catch (err) {
       log.error(chalk.red('Fatal MongoDb connection error for: '), name, err);
