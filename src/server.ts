@@ -165,7 +165,7 @@ async function doInboxProcessing() {
                 const messageSubredditName = await messageSubreddit.display_name;
                 masterSettings = await getSubredditSettings(messageSubredditName);                 
                 if (masterSettings) {
-                    database = await initDatabase(messageSubredditName, masterSettings.config.databaseUrl);
+                    database = await initDatabase(messageSubredditName, masterSettings.config.databaseUrl, masterSettings.config.expiryDays);
                 }
             }
             await processInboxMessage(message, reddit, database, messageSubreddit, masterSettings);
@@ -202,7 +202,7 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
     // first time init
     if (!masterSettings.config.firstTimeInit) {
         if (!isAnythingInitialising()) {
-            const database = await initDatabase(subredditName, masterSettings.config.databaseUrl);
+            const database = await initDatabase(subredditName, masterSettings.config.databaseUrl, masterSettings.config.expiryDays);
             firstTimeInit(reddit, subredditName, database, masterSettings).then(() => {
                 log.info(`[${subredditName}]`, chalk.green('Initialisation processing exited for ', subredditName));
               }, (e) => {
@@ -228,7 +228,7 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
 
     // submissions
     if (unprocessedSubmissions.length > 0) {
-        const database = await initDatabase(subredditName, masterSettings.config.databaseUrl);
+        const database = await initDatabase(subredditName, masterSettings.config.databaseUrl, masterSettings.config.expiryDays);
         if (database) {
             for (let submission of unprocessedSubmissions) {
                 const startTime = new Date().getTime();                

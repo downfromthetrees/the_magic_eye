@@ -219,17 +219,11 @@ class MagicDatabase {
   }
 }
 
-export async function initDatabase(name, connectionUrl) {
+export async function initDatabase(name, connectionUrl, expiry?: number | undefined) {
   if (!databaseConnectionList[name]) {
     log.debug(chalk.blue('Connecting to database...', name, '-', connectionUrl));
     try {
-      const client = await MongoClient.connect(connectionUrl, { useNewUrlParser: true, 
-        server: {
-            socketOptions: {
-                connectTimeoutMS: 5000,
-                socketTimeoutMS: 5000
-            }
-        } });
+      const client = await MongoClient.connect(connectionUrl, { useNewUrlParser: true, connectTimeoutMS: 5000, socketTimeoutMS: 5000});
       databaseConnectionList[name] = await client.db();
     } catch (err) {
       log.error(chalk.red('Fatal MongoDb connection error for: '), name, err);
@@ -237,15 +231,19 @@ export async function initDatabase(name, connectionUrl) {
     }
   }
 
+  const expiryDays = expiry ? expiry : parseInt(process.env.DAYS_EXPIRY, 10);
+  const finalExpirySeconds = 60 * 60 * 24 * expiryDays;
+  log.debug(chalk.blue('EXPIRYDAYS '), expiryDays);
+
   const connection = databaseConnectionList[name];
   log.debug(chalk.blue('Loading database cache for '), name);
   const startTime = new Date().getTime();
 
   const submissionCollection = await connection.collection(getCollectionName('submissions', name));
-  submissionCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * parseInt(process.env.DAYS_EXPIRY, 10) });
+  submissionCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: finalExpirySeconds });
 
   const userCollection = await connection.collection(getCollectionName('users', name));
-  userCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * parseInt(process.env.DAYS_EXPIRY, 10) });
+  userCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: finalExpirySeconds });
 
   const dhash_cache = await submissionCollection
     .find()
