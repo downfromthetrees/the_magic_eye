@@ -223,7 +223,7 @@ export async function initDatabase(name, connectionUrl, expiry?: number | undefi
   if (!databaseConnectionList[name]) {
     log.debug(chalk.blue('Connecting to database...', name, '-', connectionUrl));
     try {
-      const client = await MongoClient.connect(connectionUrl, { useNewUrlParser: true, connectTimeoutMS: 5000, socketTimeoutMS: 5000, poolSize: 200});
+      const client = await MongoClient.connect(connectionUrl, { useNewUrlParser: true, connectTimeoutMS: 5000, poolSize: 200});
       databaseConnectionList[name] = await client.db();
     } catch (err) {
       log.error(chalk.red('Fatal MongoDb connection error for: '), name, err);
@@ -236,7 +236,7 @@ export async function initDatabase(name, connectionUrl, expiry?: number | undefi
   log.debug(chalk.blue('EXPIRYDAYS '), expiryDays);
 
   const connection = databaseConnectionList[name];
-  log.debug(chalk.blue('Loading database cache for '), name);
+  log.info(chalk.blue('Loading database cache for '), name);
   const startTime = new Date().getTime();
 
   const submissionCollection = await connection.collection(getCollectionName('submissions', name));
@@ -251,7 +251,7 @@ export async function initDatabase(name, connectionUrl, expiry?: number | undefi
     .map(x => x._id)
     .toArray();
   const endTime = new Date().getTime();
-  log.debug(chalk.green('Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', dhash_cache.length, 'entries for ', name);
+  log.info(chalk.green('Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', dhash_cache.length, 'entries for ', name);
 
   return new MagicDatabase(name, connection, dhash_cache);
 }
