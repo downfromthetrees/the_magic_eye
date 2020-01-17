@@ -221,12 +221,13 @@ class MagicDatabase {
 
 export async function initDatabase(name, connectionUrl, expiry?: number | undefined) {
   if (!databaseConnectionList[name]) {
-    log.debug(chalk.blue('Connecting to database...', name, '-', connectionUrl));
+    log.info(chalk.blue('Connecting to database...', name, '-', connectionUrl));
     try {
       const client = await MongoClient.connect(connectionUrl, { useNewUrlParser: true, connectTimeoutMS: 5000, poolSize: 200});
       databaseConnectionList[name] = await client.db();
+      log.info(chalk.red('Finished connecting to: '), name);
     } catch (err) {
-      log.error(chalk.red('Fatal MongoDb connection error for: '), name, err);
+      log.info(chalk.red('Fatal MongoDb connection error for: '), name, err);
       return null;
     }
   }
