@@ -33,7 +33,7 @@ if (!process.env.ACCOUNT_USERNAME ||
 
 
 // magic eye modules
-import { initDatabase } from './mongodb_data';
+import { initDatabase, databaseConnectionListSize } from './mongodb_data';
 import { processSubmission } from './submission_processor';
 import { processInboxMessage } from './inbox_processor';
 import { processUnmoderated } from './unmoderated_processor';
@@ -85,6 +85,7 @@ async function main() {
 
         log.info(chalk.blue('========= Cycle finished, time was ', cycleTimeTaken, 'seconds', cycleTimeTaken > 60 ? 'TIME WARNING' : ''));
         logProcessCycle(cycleTimeTaken);
+        log.info('========= databaseConnectionListSize:', databaseConnectionListSize());
     } catch (err) {
         log.error(chalk.red("Main loop error: ", err));
     }

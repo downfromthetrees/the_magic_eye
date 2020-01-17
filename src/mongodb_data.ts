@@ -255,3 +255,8 @@ export async function initDatabase(name, connectionUrl, expiry?: number | undefi
 
   return new MagicDatabase(name, connection, dhash_cache);
 }
+
+
+export function databaseConnectionListSize() {
+  return Object.keys(databaseConnectionList).length;
+}
