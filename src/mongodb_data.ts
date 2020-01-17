@@ -227,16 +227,8 @@ export async function initDatabase(name, connectionUrl, expiry?: number | undefi
       databaseConnectionList[name] = await client.db();
       log.debug(chalk.red('Finished connecting to: '), name);
     } catch (err) {
-      log.info(chalk.red('Fatal MongoDb connection error 1 for: '), name, err);
-
-      try {
-        const client = await MongoClient.connect(connectionUrl, { useNewUrlParser: true, connectTimeoutMS: 5000, poolSize: 200});
-        databaseConnectionList[name] = await client.db();
-        log.debug(chalk.red('Finished connecting to: '), name);
-      } catch (err) {
-        log.info(chalk.red('Fatal MongoDb connection error 2 for: '), name, err);
-        return null;
-      }
+      log.info(chalk.red('Fatal MongoDb connection error for: '), name, err);
+      return null;
     }
   }
 
