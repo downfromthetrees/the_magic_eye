@@ -236,7 +236,7 @@ export async function initDatabase(name, connectionUrl, expiry?: number | undefi
   log.debug(chalk.blue('EXPIRYDAYS '), expiryDays);
 
   const connection = databaseConnectionList[name];
-  log.info(chalk.blue('Loading database cache for '), name);
+  log.debug(chalk.blue('Loading database cache for '), name);
   const startTime = new Date().getTime();
 
   const submissionCollection = await connection.collection(getCollectionName('submissions', name));
@@ -251,7 +251,7 @@ export async function initDatabase(name, connectionUrl, expiry?: number | undefi
     .map(x => x._id)
     .toArray();
   const endTime = new Date().getTime();
-  log.info(chalk.green('Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', dhash_cache.length, 'entries for ', name);
+  log.debug(chalk.green('Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', dhash_cache.length, 'entries for ', name);
 
   return new MagicDatabase(name, connection, dhash_cache);
 }
