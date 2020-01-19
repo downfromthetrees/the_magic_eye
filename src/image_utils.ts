@@ -166,14 +166,14 @@ export async function getImageDetails(submissionUrl, includeWords, blacklistedWo
 
     const imageDetails = { dhash: null, height: null, width: null, trimmedHeight: null, trimmedWidth: null, words: null, tooLarge: false, ignore: false };
 
-    const imagePHash = await getImageSize(imagePath, submissionUrl); 
-    if (imagePHash != null) {
-        if (imagePHash.height > 6000 || imagePHash.width > 6000) {
+    const imageSize = await getImageSize(imagePath, submissionUrl); 
+    if (imageSize != null) {
+        if (imageSize.height > 6000 || imageSize.width > 6000) {
             return { tooLarge: true };
         }
 
-        imageDetails.height = imagePHash.height;
-        imageDetails.width = imagePHash.width;
+        imageDetails.height = imageSize.height;
+        imageDetails.width = imageSize.width;
     } else {
         log.error('Failed to generate size for ', submissionUrl);
         return { ignore: true, tooLarge: false };
@@ -190,15 +190,15 @@ export async function getImageDetails(submissionUrl, includeWords, blacklistedWo
         return null; // must generate a dhash to be valid details
     }
 
-    imageDetails.words = includeWords ? await getWordsInImage(imagePath, imagePHash.height, blacklistedWords) : [];
+    imageDetails.words = includeWords ? await getWordsInImage(imagePath, imageSize.height, blacklistedWords) : [];
 
     try {
         const trimmedPath = imagePath + '_trimmed';
         await promisify(imageMagick.convert)([imagePath, '-trim', trimmedPath]);
-        const trimmedPHash = await getImageSize(trimmedPath, submissionUrl);
-        if (trimmedPHash != null) {
-            imageDetails.trimmedHeight = trimmedPHash.height;
-            imageDetails.trimmedWidth = trimmedPHash.width;
+        const trimmedImageSize = await getImageSize(trimmedPath, submissionUrl);
+        if (trimmedImageSize != null) {
+            imageDetails.trimmedHeight = trimmedImageSize.height;
+            imageDetails.trimmedWidth = trimmedImageSize.width;
         } else {
             log.error('Failed to generate trimmed size for ', submissionUrl);
         }

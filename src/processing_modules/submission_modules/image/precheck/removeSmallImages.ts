@@ -24,7 +24,7 @@ export async function removeSmallImages(reddit, submission, imageDetails, subSet
 
         let removalReason = "";
         if (subSettings.removeSmallImages.fullRemovalMessage) {
-            removalReason = subSettings.removeSmallImages.fullRemovalMessage.replace('{{dimension}}', smallDimension);
+            removalReason = subSettings.removeSmallImages.fullRemovalMessage.split("{{dimension}}").join(smallDimension);
         } else {
             removalReason = `Your image has been removed because it is too small. Image submissions to this subreddit must be larger than ${smallDimension}px*${smallDimension}px.`;
         }

@@ -14,6 +14,7 @@ const timeAgo = new TimeAgo('en');
 // magic eye modules
 import { isRepostRemoval, removePost, printSubmission } from '../../../../reddit_utils';
 import { logActionRepost } from '../../../../master_stats';
+import { updateMagicSubmission } from '../../../../mongodb_data';
 
 //=====================================
 
@@ -27,8 +28,9 @@ export async function removeReposts(reddit, modComment, submission, lastSubmissi
         return true;
     }
 
+    const lastAuthor = existingMagicSubmission.author ? existingMagicSubmission.author : await lastSubmission.author.name;
     const processorSettings = subSettings.reposts;
-    const lastSubmissionDeleted = (await lastSubmission.author.name) == '[deleted]';
+    const lastSubmissionDeleted =  await lastSubmission.author.name === '[deleted]';
 
     // ignore deleted
     if (lastSubmissionDeleted && !processorSettings.actionRepostsIfDeleted) {
@@ -39,7 +41,7 @@ export async function removeReposts(reddit, modComment, submission, lastSubmissi
             ', but approving as the last submission was deleted: http://redd.it/' + existingMagicSubmission.reddit_id
         );
         existingMagicSubmission.approve = true;
-        existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
+        await updateMagicSubmission(existingMagicSubmission, submission);
         if (processorSettings.approveIfRepostDeleted === true) {
             submission.approve();
         }
@@ -63,14 +65,14 @@ export async function removeReposts(reddit, modComment, submission, lastSubmissi
             ', matched,',
             existingMagicSubmission.reddit_id
         );
-        existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
+        await updateMagicSubmission(existingMagicSubmission, submission);
         return false;
     }
 
     // all time top posts
     const topRepost = existingMagicSubmission.highest_score > +processorSettings.topScore;
     if (topRepost) {
-        actionAsRepost(submission, lastSubmission, false, false, subSettings, subredditName, submissionType, true, reddit);
+        actionAsRepost(submission, lastSubmission, false, false, subSettings, subredditName, submissionType, true, reddit, lastAuthor);
         return false;
     }
 
@@ -88,7 +90,8 @@ export async function removeReposts(reddit, modComment, submission, lastSubmissi
             subredditName,
             submissionType,
             false,
-            reddit
+            reddit,
+            lastAuthor
         );
         return false;
     }
@@ -119,7 +122,7 @@ export async function removeReposts(reddit, modComment, submission, lastSubmissi
         existingMagicSubmission.reddit_id,
         ' - valid as over the repost limit.'
     );
-    existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
+    await updateMagicSubmission(existingMagicSubmission, submission);
     return true;
 }
 
@@ -146,7 +149,7 @@ async function isRecentRepost(currentSubmission, lastSubmission, processorSettin
     return daysSincePosted < daysLimit;
 }
 
-async function actionAsRepost(submission, lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, subredditName, submissionType, allTimeTopRemoval, reddit) {
+async function actionAsRepost(submission, lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, subredditName, submissionType, allTimeTopRemoval, reddit, lastAuthor) {
     log.info(
         `[${subredditName}]`,
         'Found matching hash for submission: ',
@@ -162,7 +165,7 @@ async function actionAsRepost(submission, lastSubmission, noOriginalSubmission, 
     }
 
     if (subSettings.reposts.action.includes('remove')) {
-        await removeAsRepost(submission, lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, subredditName, submissionType, allTimeTopRemoval, reddit);
+        await removeAsRepost(submission, lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, subredditName, submissionType, allTimeTopRemoval, reddit, lastAuthor);
     } else if (subSettings.reposts.action.includes('warnByModmail')) {
         await warnByModmailAsRepost(submission, lastSubmission, subredditName, reddit);
     } else if (subSettings.reposts.action.includes('warn')) {
@@ -217,7 +220,7 @@ async function warnByModmailAsRepost(submission, lastSubmission, subredditName: 
     }
 }
 
-async function removeAsRepost(submission, lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, subredditName, submissionType, allTimeTopRemoval, reddit) {
+async function removeAsRepost(submission, lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, subredditName, submissionType, allTimeTopRemoval, reddit, lastAuthor) {
     if (submission.id == (await lastSubmission.id)) {
         log.error(`[${subredditName}]`, chalk.red('Duplicate detection error, ignoring but this indicates a real issue.', `[${submissionType}]`));
         return;
@@ -226,7 +229,7 @@ async function removeAsRepost(submission, lastSubmission, noOriginalSubmission, 
     // get removal text
     let removalReason = '';
     if (subSettings.reposts.fullRemovalMessage) {
-        removalReason = await createFullCustomRemovalMessage(subSettings, lastSubmission);
+        removalReason = await createFullCustomRemovalMessage(subSettings, lastSubmission, lastAuthor, submission);
     } else {
         removalReason = await createRemovalMessage(lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, allTimeTopRemoval);
     }
@@ -234,12 +237,15 @@ async function removeAsRepost(submission, lastSubmission, noOriginalSubmission, 
     await removePost(submission, removalReason, subSettings, reddit);
 }
 
-async function createFullCustomRemovalMessage(subSettings, lastSubmission) {
+async function createFullCustomRemovalMessage(subSettings, lastSubmission, lastAuthor, submission) {
     const permalink = 'https://www.reddit.com' + (await lastSubmission.permalink);
     let removalText = subSettings.reposts.fullRemovalMessage;
-    removalText = removalText.replace('{{last_submission_link}}', permalink);
-    removalText = removalText.replace('{{last_submission_url}}', await lastSubmission.url);
-    removalText = removalText.replace('{{time_ago}}', await getTimeAgoString(lastSubmission));
+    removalText = removalText.split("{{last_submission_link}}").join(permalink);
+    removalText = removalText.split("{{last_submission_url}}").join(await lastSubmission.url);
+    removalText = removalText.split("{{time_ago}}").join(await getTimeAgoString(lastSubmission));
+    removalText = removalText.split("{{last_author}}").join(lastAuthor);
+    removalText = removalText.split("{{author}}").join(await submission.author.name);
+    
     return removalText;
 }
 

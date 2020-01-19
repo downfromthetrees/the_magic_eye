@@ -35,6 +35,7 @@ export class MagicSubmission {
   _id; // dhash of the original
   createdAt; // automatic expiry indicator
   reddit_id; // the last reddit id that matched the dhash (dhash within hamming distance)
+  author;
   duplicates; // array of reddit ids, includes removed and approved posts
   exactMatchOnly; // boolean value
   highest_score; // number
@@ -48,7 +49,13 @@ export class MagicSubmission {
     this.exactMatchOnly = null;
     this.highest_score = highestScore;
     this.type = submissionType;
+    this.author = redditSubmission.author.name;
   }
+}
+
+export async function updateMagicSubmission(magicSubmission, redditSubmission) {
+  magicSubmission.reddit_id = await redditSubmission.id
+  magicSubmission.author = await redditSubmission.author.name;
 }
 
 function getCollectionName(collection, subredditName) {
@@ -212,27 +219,32 @@ class MagicDatabase {
   }
 }
 
-export async function initDatabase(name, connectionUrl) {
+export async function initDatabase(name, connectionUrl, expiry?: number | undefined) {
   if (!databaseConnectionList[name]) {
     log.debug(chalk.blue('Connecting to database...', name, '-', connectionUrl));
     try {
-      const client = await MongoClient.connect(connectionUrl, { useNewUrlParser: true });
+      const client = await MongoClient.connect(connectionUrl, { useNewUrlParser: true, connectTimeoutMS: 5000, poolSize: 200});
       databaseConnectionList[name] = await client.db();
+      log.debug(chalk.red('Finished connecting to: '), name);
     } catch (err) {
-      log.error(chalk.red('Fatal MongoDb connection error for: '), name, err);
+      log.info(chalk.red('Fatal MongoDb connection error for: '), name, err);
       return null;
     }
   }
+
+  const expiryDays = expiry ? expiry : parseInt(process.env.DAYS_EXPIRY, 10);
+  const finalExpirySeconds = 60 * 60 * 24 * expiryDays;
+  log.debug(chalk.blue('EXPIRYDAYS '), expiryDays);
 
   const connection = databaseConnectionList[name];
   log.debug(chalk.blue('Loading database cache for '), name);
   const startTime = new Date().getTime();
 
   const submissionCollection = await connection.collection(getCollectionName('submissions', name));
-  submissionCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * parseInt(process.env.DAYS_EXPIRY, 10) });
+  submissionCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: finalExpirySeconds });
 
   const userCollection = await connection.collection(getCollectionName('users', name));
-  userCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * parseInt(process.env.DAYS_EXPIRY, 10) });
+  userCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: finalExpirySeconds });
 
   const dhash_cache = await submissionCollection
     .find()
@@ -243,4 +255,9 @@ export async function initDatabase(name, connectionUrl) {
   log.debug(chalk.green('Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', dhash_cache.length, 'entries for ', name);
 
   return new MagicDatabase(name, connection, dhash_cache);
+}
+
+
+export function databaseConnectionListSize() {
+  return Object.keys(databaseConnectionList).length;
 }

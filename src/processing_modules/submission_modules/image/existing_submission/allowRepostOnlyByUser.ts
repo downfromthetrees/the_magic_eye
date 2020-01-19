@@ -6,10 +6,11 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 // magic eye modules
 import { printSubmission, isRepostOnlyByUserRemoval } from '../../../../reddit_utils';
+import { MagicSubmission, updateMagicSubmission } from '../../../../mongodb_data';
 
 //=====================================
 
-export async function allowRepostsOnlyByUser(reddit, modComment, submission, lastSubmission, existingMagicSubmission, subSettings, subredditName, submissionType) {
+export async function allowRepostsOnlyByUser(reddit, modComment, submission, lastSubmission, existingMagicSubmission: MagicSubmission, subSettings, subredditName, submissionType) {
     if (!subSettings.removeBlacklisted) { // rely on blacklisted instead
         return true;
     }
@@ -20,9 +21,7 @@ export async function allowRepostsOnlyByUser(reddit, modComment, submission, las
 
     if (lastIsRepostOnlyByUser && sameUserForBothSubmissions) {
         log.info(`[${subredditName}]`, 'Found matching hash for submission', await printSubmission(submission, submissionType), ', but ignoring as special user only repost of submission: http://redd.it/', existingMagicSubmission.reddit_id);
-        existingMagicSubmission.approve = true; // just auto-approve as this is almost certainly the needed action
-        existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
-        // submission.approve(); hold off on approving
+        await updateMagicSubmission(existingMagicSubmission, submission);
         return false;
     }
 

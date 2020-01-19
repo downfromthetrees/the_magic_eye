@@ -8,6 +8,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 // magic eye modules
 import { isRepostRemoval, removePost, printSubmission } from '../../../../reddit_utils';
 import { logActionBlacklisted } from '../../../../master_stats';
+import { updateMagicSubmission } from '../../../../mongodb_data';
 
 //=====================================
 
@@ -23,8 +24,8 @@ export async function removeBlacklisted(reddit, modComment, submission, lastSubm
     if (imageIsBlacklisted) {
         const removalReason = await getRemovalReason(modComment, subredditName);
         if (removalReason == null) {
-            // log.info(`[${subredditName}]`, chalk.red("Ignoring submission because couldn't read the last removal message. Submission: ", await printSubmission(submission), ", removal message thread: http://redd.it/" + existingMagicSubmission.reddit_id));
-            // existingMagicSubmission.reddit_id = await submission.id; // update the last/reference post
+            // log.info(`[${subredditName}]`, chalk.red("Ignoring submission because couldn't read the last removal message. Submission: ", await printSubmission(submission, submissionType), ", removal message thread: http://redd.it/" + existingMagicSubmission.reddit_id));
+            //await updateMagicSubmission(existingMagicSubmission, submission);
             // await logModcomment(reddit, await lastSubmission.id, subredditName);
             return true;
         } else {
@@ -67,9 +68,9 @@ async function createRemovalMessage(lastSubmission, blacklistReason) {
 async function createFullCustomRemovalMessage(subSettings, lastSubmission, blacklistReason) {
     const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
     let removalText = subSettings.removeBlacklisted.fullRemovalMessage;
-    removalText = removalText.replace('{{last_submission_link}}', permalink);
-    removalText = removalText.replace('{{last_submission_url}}', await lastSubmission.url);
-    removalText = removalText.replace('{{blacklist_reason}}', blacklistReason);
+    removalText = removalText.split('{{last_submission_link}}').join(permalink);
+    removalText = removalText.split('{{last_submission_url}}').join(await lastSubmission.url);
+    removalText = removalText.split('{{blacklist_reason}}').join(blacklistReason);
     return removalText;
 }
 

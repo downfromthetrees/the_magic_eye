@@ -33,8 +33,7 @@ if (!process.env.ACCOUNT_USERNAME ||
 
 
 // magic eye modules
-
-import { initDatabase } from './mongodb_data';
+import { initDatabase, databaseConnectionListSize } from './mongodb_data';
 import { processSubmission } from './submission_processor';
 import { processInboxMessage } from './inbox_processor';
 import { processUnmoderated } from './unmoderated_processor';
@@ -94,6 +93,7 @@ async function main() {
 
         log.info(chalk.blue('========= Cycle finished, time was ', cycleTimeTaken, 'seconds', cycleTimeTaken > 60 ? 'TIME WARNING' : ''));
         logProcessCycle(cycleTimeTaken);
+        log.info('========= databaseConnectionListSize:', databaseConnectionListSize());
     } catch (err) {
         log.error(chalk.red("Main loop error: ", err));
     }
@@ -142,10 +142,13 @@ async function doSubredditProcessing(moddedSubs: string[]) {
 
 function setSubmissionRequestsForNextTime(queueSize: number) {
     if (queueSize && queueSize == submissionRequests) {
-        log.error("========= ERROR: Request size and queue size were the same indicating posts were missed.");    
+        log.error("========= ERROR: Heavy load. Request size and queue size were the same indicating posts were missed.");
+        submissionRequests = 1000;
+        return;
     }
+    
     if (!queueSize || queueSize < 50) {
-        submissionRequests = 100;    
+        submissionRequests = 100;
     } else {
         submissionRequests = queueSize + 100;
         log.info("========= Heavy load. Next request size:", submissionRequests, " current was", queueSize);
@@ -174,7 +177,7 @@ async function doInboxProcessing() {
                 const messageSubredditName = await messageSubreddit.display_name;
                 masterSettings = await getSubredditSettings(messageSubredditName);                 
                 if (masterSettings) {
-                    database = await initDatabase(messageSubredditName, masterSettings.config.databaseUrl);
+                    database = await initDatabase(messageSubredditName, masterSettings.config.databaseUrl, masterSettings.config.expiryDays);
                 }
             }
             await processInboxMessage(message, reddit, database, messageSubreddit, masterSettings);
@@ -211,7 +214,7 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
     // first time init
     if (!masterSettings.config.firstTimeInit) {
         if (!isAnythingInitialising()) {
-            const database = await initDatabase(subredditName, masterSettings.config.databaseUrl);
+            const database = await initDatabase(subredditName, masterSettings.config.databaseUrl, masterSettings.config.expiryDays);
             firstTimeInit(reddit, subredditName, database, masterSettings).then(() => {
                 log.info(`[${subredditName}]`, chalk.green('Initialisation processing exited for ', subredditName));
               }, (e) => {
@@ -237,7 +240,7 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
 
     // submissions
     if (unprocessedSubmissions.length > 0) {
-        const database = await initDatabase(subredditName, masterSettings.config.databaseUrl);
+        const database = await initDatabase(subredditName, masterSettings.config.databaseUrl, masterSettings.config.expiryDays);
         if (database) {
             for (let submission of unprocessedSubmissions) {
                 const startTime = new Date().getTime();                
@@ -285,7 +288,7 @@ async function initialiseNewSubreddit(subredditName: string) {
 async function consumeUnprocessedSubmissions(latestItems) {
     latestItems.sort((a, b) => { return a.created_utc - b.created_utc}); // oldest first
 
-    const maxCheck = 500;
+    const maxCheck = 1000;
     if (latestItems.length > maxCheck) {
         log.info('Passed more than maxCheck items:', latestItems.length);
         latestItems = latestItems.slice(latestItems.length - maxCheck, latestItems.length);
@@ -306,7 +309,7 @@ async function consumeUnprocessedSubmissions(latestItems) {
     // update the processed list before processing so we don't retry any submissions that cause exceptions
     const newItems = latestItems.filter(item => !processedIds.includes(item.id));
     let updatedProcessedIds = processedIds.concat(newItems.map(submission => submission.id)); // [3,2,1] + [new] = [3,2,1,new]
-    const processedCacheSize = maxCheck*5; // larger size for any weird/future edge-cases where a mod removes a lot of submissions
+    const processedCacheSize = 2500; // larger size for any weird/future edge-cases where a mod removes a lot of submissions
     if (updatedProcessedIds.length > processedCacheSize) { 
         updatedProcessedIds = updatedProcessedIds.slice(updatedProcessedIds.length - processedCacheSize); // [3,2,1,new] => [2,1,new]
     }
@@ -391,6 +394,8 @@ app.get('/stats/print', async function(req, res) {
 
 
 
-process.on('unhandledRejection', (reason, p) => {
-    log.warn('Unhandled Rejection at: Promise', p, 'reason:', reason);
+process.on('unhandledRejection', (reason: any, p: any) => {
+    //log.warn('Unhandled promise Rejection at: Promise', p, 'reason:', reason);
+    log.warn('WARNING: Unhandled promise rejection. Investigate previous logs for details. Reason message: ', reason.message);
+
   });
