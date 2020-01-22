@@ -3,6 +3,7 @@ const chalk = require('chalk');
 const MongoClient = require('mongodb').MongoClient;
 const hammingDistance = require('hamming');
 const log = require('loglevel');
+const sizeof = require('object-sizeof')
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 let databaseConnectionList = {};
@@ -252,7 +253,7 @@ export async function initDatabase(name, connectionUrl, expiry?: number | undefi
     .map(x => x._id)
     .toArray();
   const endTime = new Date().getTime();
-  log.debug(chalk.green('Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', dhash_cache.length, 'entries for ', name);
+  log.info(chalk.green('Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', dhash_cache.length, 'entries for ', name, 'database size', sizeof(dhash_cache));
 
   return new MagicDatabase(name, connection, dhash_cache);
 }
