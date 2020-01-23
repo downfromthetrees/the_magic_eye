@@ -309,8 +309,6 @@ export async function initDatabase(name, connectionUrl, expiry?: number | undefi
     
   const local_dhash_cache = getLocalDatabaseCache(name);
   
-  log.info(chalk.red("local_dhash_cache: ", local_dhash_cache));
-
   const used = process.memoryUsage().heapUsed / 1024 / 1024;
   log.info(chalk.green('Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', local_dhash_cache.length, 'entries for ', name, ', database records: ', sizeof(local_dhash_cache), `, memory usage is: ${Math.round(used * 100) / 100} MB`);
   
