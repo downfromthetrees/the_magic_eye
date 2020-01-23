@@ -242,7 +242,7 @@ function setLocalDatabaseCache(name: string, dhash_cache: any) {
   if (databaseConnectionList[name]) {
     databaseConnectionList[name].dhash_cache = dhash_cache;
   } else {
-    log.error(chalk.red('ERROR: No database cache exists for: '), name);
+    log.error(chalk.red('ERROR: No database exists to set dhash cache for: '), name);
   }
 }
 
