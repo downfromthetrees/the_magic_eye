@@ -251,10 +251,15 @@ function getLocalDatabaseConnection(name: string): any {
 }
 
 function getLocalDatabaseCache(name: string): string[] | undefined {
-  if (!databaseConnectionList[name] || !databaseConnectionList[name].dhash_cache) {
+  if (!databaseConnectionList[name]) {
     log.error(chalk.red('ERROR: No database cache exists for: '), name);
     return undefined;
   }
+
+  if (!databaseConnectionList[name].dhash_cache) {
+    return undefined;
+  }
+
   return databaseConnectionList[name].dhash_cache;
 }
 
