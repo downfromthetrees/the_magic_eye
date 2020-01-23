@@ -6,7 +6,17 @@ const log = require('loglevel');
 const sizeof = require('object-sizeof')
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-let databaseConnectionList = {};
+
+interface LocalDatabase {
+  connection: any;
+  dhash_cache: string[] | null;
+}
+
+interface LocalDatabases {
+  [name:string]: LocalDatabase
+};
+
+const databaseConnectionList:LocalDatabases = {};
 
 class User {
   _id;
@@ -220,12 +230,40 @@ class MagicDatabase {
   }
 }
 
+function setLocalDatabaseConnection(name: string, connection: any) {
+  if (databaseConnectionList[name]) {
+    log.error(chalk.red('ERROR: Database connection already exists for: '), name);
+  }
+  
+  databaseConnectionList[name] = { connection: connection, dhash_cache: null };
+}
+
+function setLocalDatabaseCache(name: string, dhash_cache: any) {
+  if (databaseConnectionList[name]) {
+    databaseConnectionList[name].dhash_cache = dhash_cache;
+  } else {
+    log.error(chalk.red('ERROR: No database cache exists for: '), name);
+  }
+}
+
+function getLocalDatabaseConnection(name: string): any {
+    return databaseConnectionList[name] ? databaseConnectionList[name].connection : undefined;
+}
+
+function getLocalDatabaseCache(name: string): string[] | undefined {
+  if (!databaseConnectionList[name] || !databaseConnectionList[name].dhash_cache) {
+    log.error(chalk.red('ERROR: No database cache exists for: '), name);
+    return undefined;
+  }
+  return databaseConnectionList[name].dhash_cache;
+}
+
 export async function initDatabase(name, connectionUrl, expiry?: number | undefined) {
-  if (!databaseConnectionList[name]) {
+  if (!getLocalDatabaseConnection(name)) {
     log.debug(chalk.blue('Connecting to database...', name, '-', connectionUrl));
     try {
       const client = await MongoClient.connect(connectionUrl, { useNewUrlParser: true, connectTimeoutMS: 5000});
-      databaseConnectionList[name] = await client.db();
+      setLocalDatabaseConnection(name, await client.db());
       log.debug(chalk.red('Finished connecting to: '), name);
     } catch (err) {
       log.info(chalk.red('Fatal MongoDb connection error for: '), name, err);
@@ -237,27 +275,46 @@ export async function initDatabase(name, connectionUrl, expiry?: number | undefi
   const finalExpirySeconds = 60 * 60 * 24 * expiryDays;
   log.debug(chalk.blue('EXPIRYDAYS '), expiryDays);
 
-  const connection = databaseConnectionList[name];
+  const connection = getLocalDatabaseConnection(name);
   log.debug(chalk.blue('Loading database cache for '), name);
   const startTime = new Date().getTime();
 
-  const submissionCollection = await connection.collection(getCollectionName('submissions', name));
-  submissionCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: finalExpirySeconds });
+  if (!getLocalDatabaseConnection(name)) {
+    log.error(chalk.red('ERROR: Could not access connection for: '), name);
+    return null;    
+  }
 
-  const userCollection = await connection.collection(getCollectionName('users', name));
-  userCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: finalExpirySeconds });
+  if (!getLocalDatabaseCache(name)) {
+    log.debug(chalk.blue('Connecting to database to get dhashes...', name, '-', connectionUrl));
+    try {
+      const submissionCollection = await connection.collection(getCollectionName('submissions', name));
+      submissionCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: finalExpirySeconds });
+    
+      const userCollection = await connection.collection(getCollectionName('users', name));
+      userCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: finalExpirySeconds });
+    
+      const dhash_cache = await submissionCollection
+        .find()
+        .project({ _id: 1 })
+        .map(x => x._id)
+        .toArray();
 
-  const dhash_cache = await submissionCollection
-    .find()
-    .project({ _id: 1 })
-    .map(x => x._id)
-    .toArray();
+        setLocalDatabaseCache(name, dhash_cache);       
+    } catch (err) {
+      log.info(chalk.red('Fatal MongoDb connection error for: '), name, err);
+      return null;
+    }
+  }
   const endTime = new Date().getTime();
+    
+  const local_dhash_cache = getLocalDatabaseCache(name);
   
+  log.info(chalk.red("local_dhash_cache: ", local_dhash_cache));
+
   const used = process.memoryUsage().heapUsed / 1024 / 1024;
-  log.info(chalk.green('Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', dhash_cache.length, 'entries for ', name, ', database records: ', sizeof(dhash_cache), `, memory usage is: ${Math.round(used * 100) / 100} MB`);
+  log.info(chalk.green('Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', local_dhash_cache.length, 'entries for ', name, ', database records: ', sizeof(local_dhash_cache), `, memory usage is: ${Math.round(used * 100) / 100} MB`);
   
-  return new MagicDatabase(name, connection, dhash_cache);
+  return new MagicDatabase(name, connection, local_dhash_cache);
 }
 
 
