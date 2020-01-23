@@ -40,6 +40,8 @@ export async function processSubmission(submission, masterSettings, database, re
     // first time init logging
     if (!activeMode) {
         log.info(chalk.yellow(`[${subredditName}][first_time_init]`, 'Starting process for submission: '), await printSubmission(submission));
+    } else {
+        log.info(chalk.yellow(`[${subredditName}]`, 'Starting process for submission: '), await printSubmission(submission));
     }
 
     // get image info
