@@ -42,6 +42,8 @@ export async function processSubmission(submission, masterSettings, database, re
         log.info(chalk.yellow(`[${subredditName}][first_time_init]`, 'Starting process for submission: '), await printSubmission(submission));
     }
 
+    log.info(chalk.yellow(`[${subredditName}][log1] `), await printSubmission(submission));
+
     // get image info
     const imageUrlInfo = await getImageUrl(submission);
     if (!imageUrlInfo)
@@ -101,6 +103,8 @@ export async function processSubmission(submission, masterSettings, database, re
             }
         }
     }
+
+    log.info(chalk.yellow(`[${subredditName}][log2] `), await printSubmission(submission));
 
     // process submission as new or existing
     const existingMagicSubmission = await database.getMagicSubmission(imageDetails.dhash, masterSettings.settings.similarityTolerance);

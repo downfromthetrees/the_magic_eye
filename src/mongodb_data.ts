@@ -313,9 +313,8 @@ export async function initDatabase(name, connectionUrl, expiry?: number | undefi
   const endTime = new Date().getTime();
     
   const local_dhash_cache = getLocalDatabaseCache(name);
-  
-  const used = process.memoryUsage().heapUsed / 1024 / 1024;
-  log.info(chalk.green('Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', local_dhash_cache.length, 'entries for ', name, ', database records: ', sizeof(local_dhash_cache), `, memory usage is: ${Math.round(used * 100) / 100} MB`);
+
+  log.info(chalk.green('[cacheload] Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', local_dhash_cache.length, 'entries for ', name);
   
   return new MagicDatabase(name, connection, local_dhash_cache);
 }
