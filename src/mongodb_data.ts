@@ -315,7 +315,7 @@ export async function initDatabase(name, connectionUrl, expiry?: number | undefi
     
   const local_dhash_cache = getLocalDatabaseCache(name);
 
-  log.info(chalk.green('[cacheload] Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', local_dhash_cache.length, 'entries for ', name);
+  log.debug(chalk.green('[cacheload] Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', local_dhash_cache.length, 'entries for ', name);
   
   return new MagicDatabase(name, connection, local_dhash_cache);
 }
