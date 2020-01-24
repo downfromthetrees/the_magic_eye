@@ -271,7 +271,7 @@ export async function initDatabase(name, connectionUrl, expiry?: number | undefi
       setLocalDatabaseConnection(name, await client.db());
       log.debug(chalk.red('Finished connecting to: '), name);
     } catch (err) {
-      log.info(chalk.red('********* Fatal MongoDb connection error for ********* : '), name, err.name);
+      log.info(chalk.red('********* Fatal MongoDb connection error for ********* : '), name, err.name, connectionUrl);
       return null;
     }
   }
