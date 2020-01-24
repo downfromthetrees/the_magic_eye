@@ -230,7 +230,6 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
 
     // submissions
     if (unprocessedSubmissions.length > 0) {
-        log.info(`[${subredditName}]`, chalk.green('[sublog] starting for ', subredditName, ', numb submissions: ', unprocessedSubmissions.length));
         const database = await initDatabase(subredditName, masterSettings.config.databaseUrl, masterSettings.config.expiryDays);
         if (database) {
             for (let submission of unprocessedSubmissions) {
