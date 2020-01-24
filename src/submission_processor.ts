@@ -109,10 +109,15 @@ export async function processSubmission(submission, masterSettings, database, re
     // process submission as new or existing
     const existingMagicSubmission = await database.getMagicSubmission(imageDetails.dhash, masterSettings.settings.similarityTolerance);
     if (existingMagicSubmission == null) {
+        log.info(chalk.yellow(`[${subredditName}][log3] `), await printSubmission(submission));
         await processNewSubmission(submission, imageDetails, database, activeMode, subredditName, submissionType);
+        log.info(chalk.yellow(`[${subredditName}][log3.5] `), await printSubmission(submission));
     } else if (activeMode) {
+        log.info(chalk.yellow(`[${subredditName}][log4] `), await printSubmission(submission));
         await processExistingSubmission(submission, existingMagicSubmission, masterSettings, reddit, subredditName, submissionType);
+        log.info(chalk.yellow(`[${subredditName}][log4.5] `), await printSubmission(submission));
         await database.saveMagicSubmission(existingMagicSubmission); // save here to cover all updates
+        log.info(chalk.yellow(`[${subredditName}][log5] `), await printSubmission(submission));
     } else {
         log.info(chalk.yellow(`[${subredditName}][first_time_init]`, 'Ignoring existing submission for dhash, matched: ' + existingMagicSubmission._id));    
     }
