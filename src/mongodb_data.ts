@@ -294,9 +294,10 @@ export async function initDatabase(name, connectionUrl, expiry?: number | undefi
     try {
       const submissionCollection = await connection.collection(getCollectionName('submissions', name));
       submissionCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: finalExpirySeconds });
+      submissionCollection.ensureIndex({"reddit_id" : 1});    
     
-      const userCollection = await connection.collection(getCollectionName('users', name));
-      userCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: finalExpirySeconds });
+      // const userCollection = await connection.collection(getCollectionName('users', name));
+      // userCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: finalExpirySeconds });
     
       const dhash_cache = await submissionCollection
         .find()
