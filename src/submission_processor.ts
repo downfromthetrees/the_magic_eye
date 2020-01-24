@@ -42,8 +42,6 @@ export async function processSubmission(submission, masterSettings, database, re
         log.info(chalk.yellow(`[${subredditName}][first_time_init]`, 'Starting process for submission: '), await printSubmission(submission));
     }
 
-    log.info(chalk.yellow(`[${subredditName}][logdebug]`, 'HERE1: '), await printSubmission(submission));
-
     // get image info
     const imageUrlInfo = await getImageUrl(submission);
     if (!imageUrlInfo)
@@ -55,9 +53,6 @@ export async function processSubmission(submission, masterSettings, database, re
         }
         return;
         }
-
-    log.info(chalk.yellow(`[${subredditName}][logdebug]`, 'HERE2: '), await printSubmission(submission));
-
 
     const { imageUrl, submissionType } = imageUrlInfo;
     const isRemoveImagesWithText = masterSettings.settings.removeImagesWithText_hidden;   
@@ -80,8 +75,6 @@ export async function processSubmission(submission, masterSettings, database, re
         log.info(`[${subredditName}]`, "Image is too large/ignore problem image: ", await printSubmission(submission));
         return;
     }
-
-    log.info(chalk.yellow(`[${subredditName}][logdebug]`, 'HERE3: '), await printSubmission(submission));
 
     // only run on approved media 
     const processImages = masterSettings.settings.processImages === true || masterSettings.settings.processImages === undefined;
@@ -108,8 +101,6 @@ export async function processSubmission(submission, masterSettings, database, re
             }
         }
     }
-
-    log.info(chalk.yellow(`[${subredditName}][logdebug]`, 'HERE4: '), await printSubmission(submission));
 
     // process submission as new or existing
     const existingMagicSubmission = await database.getMagicSubmission(imageDetails.dhash, masterSettings.settings.similarityTolerance);
