@@ -268,7 +268,7 @@ function getLocalDatabaseCache(name: string): string[] | undefined {
 export async function initDatabase(name, legacyConnectionUrl, expiry?: number | undefined) {
   const connectionUrl = await getNewConnectionUrl(legacyConnectionUrl);
   if (!getLocalDatabaseConnection(name)) {
-    log.debug(chalk.blue('Connecting to database...', name, '-', connectionUrl));
+    log.info(chalk.blue('Connecting to database...', name, '-', connectionUrl));
     try {
       const client = await MongoClient.connect(connectionUrl, { useNewUrlParser: true, connectTimeoutMS: 5000});
       setLocalDatabaseConnection(name, await client.db());
@@ -333,6 +333,7 @@ async function getNewConnectionUrl(oldConnectionUrl) {
     }
     const updateInfo = newDatabaseList.find(databaseInfo => databaseInfo.url === oldConnectionUrl);
     if (updateInfo && updateInfo.swap) {
+        log.info(chalk.red('RETURNING: '), updateInfo.url);
         return updateInfo.url;
     }
 
