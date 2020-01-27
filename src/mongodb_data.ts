@@ -1,3 +1,5 @@
+import { getMasterProperty } from "./mongodb_master_data";
+
 require('dotenv').config();
 const chalk = require('chalk');
 const MongoClient = require('mongodb').MongoClient;
@@ -263,7 +265,8 @@ function getLocalDatabaseCache(name: string): string[] | undefined {
   return databaseConnectionList[name].dhash_cache;
 }
 
-export async function initDatabase(name, connectionUrl, expiry?: number | undefined) {
+export async function initDatabase(name, legacyConnectionUrl, expiry?: number | undefined) {
+  const connectionUrl = await getNewConnectionUrl(legacyConnectionUrl);
   if (!getLocalDatabaseConnection(name)) {
     log.debug(chalk.blue('Connecting to database...', name, '-', connectionUrl));
     try {
@@ -318,6 +321,22 @@ export async function initDatabase(name, connectionUrl, expiry?: number | undefi
   log.debug(chalk.green('[cacheload] Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', local_dhash_cache.length, 'entries for ', name);
   
   return new MagicDatabase(name, connection, local_dhash_cache);
+}
+
+
+  // TODO: Remove and permanently add these to master settings by cycling through them
+async function getNewConnectionUrl(oldConnectionUrl) {
+    const newDatabaseList = await getMasterProperty('new-databases');
+    if (!newDatabaseList) {
+      log.info('No newDatabaseList found');
+      return oldConnectionUrl;
+    }
+    const updateInfo = newDatabaseList.find(databaseInfo => databaseInfo.url === oldConnectionUrl);
+    if (updateInfo && updateInfo.swap) {
+        return updateInfo.url;
+    }
+
+    return oldConnectionUrl;
 }
 
 
