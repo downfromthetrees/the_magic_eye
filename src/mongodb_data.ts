@@ -254,7 +254,6 @@ function getLocalDatabaseConnection(name: string): any {
 
 function getLocalDatabaseCache(name: string): string[] | undefined {
   if (!databaseConnectionList[name]) {
-    log.error(chalk.red('ERROR: No database cache exists for: '), name);
     return undefined;
   }
 
@@ -292,7 +291,9 @@ export async function initDatabase(name, legacyConnectionUrl, expiry?: number | 
     return null;    
   }
 
-  if (!getLocalDatabaseCache(name)) {
+  let dhash_cache = getLocalDatabaseCache(name);
+
+  if (!dhash_cache) {
     log.debug(chalk.blue('Connecting to database to get dhashes...', name, '-', connectionUrl));
     try {
       const submissionCollection = await connection.collection(getCollectionName('submissions', name));
@@ -302,25 +303,28 @@ export async function initDatabase(name, legacyConnectionUrl, expiry?: number | 
       // const userCollection = await connection.collection(getCollectionName('users', name));
       // userCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: finalExpirySeconds });
     
-      const dhash_cache = await submissionCollection
+      dhash_cache = await submissionCollection
         .find()
         .project({ _id: 1 })
         .map(x => x._id)
         .toArray();
 
-        setLocalDatabaseCache(name, dhash_cache);       
+        const used = process.memoryUsage().heapUsed / 1024 / 1024;
+        if (used < 300) {
+          setLocalDatabaseCache(name, dhash_cache);
+        } else {
+          log.info(chalk.red('dhash_cache ignore for: '), name);
+        }
     } catch (err) {
       log.info(chalk.red('Fatal MongoDb error access hashes for: '), name, err);
       return null;
     }
   }
   const endTime = new Date().getTime();
-    
-  const local_dhash_cache = getLocalDatabaseCache(name);
-
-  log.debug(chalk.green('[cacheload] Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', local_dhash_cache.length, 'entries for ', name);
   
-  return new MagicDatabase(name, connection, local_dhash_cache);
+  log.debug(chalk.green('[cacheload] Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', dhash_cache.length, 'entries for ', name);
+  
+  return new MagicDatabase(name, connection, dhash_cache);
 }
 
 
