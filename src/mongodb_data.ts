@@ -310,7 +310,7 @@ export async function initDatabase(name, legacyConnectionUrl, expiry?: number | 
         .toArray();
 
         const used = process.memoryUsage().heapUsed / 1024 / 1024;
-        if (used < 300) {
+        if (used < 270) {
           setLocalDatabaseCache(name, dhash_cache);
         } else {
           log.info(chalk.red('dhash_cache ignore for: '), name);
