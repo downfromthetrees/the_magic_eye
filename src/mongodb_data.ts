@@ -1,11 +1,24 @@
+import { getMasterProperty } from "./mongodb_master_data";
+
 require('dotenv').config();
 const chalk = require('chalk');
 const MongoClient = require('mongodb').MongoClient;
 const hammingDistance = require('hamming');
 const log = require('loglevel');
+const sizeof = require('object-sizeof')
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-let databaseConnectionList = {};
+
+interface LocalDatabase {
+  connection: any;
+  dhash_cache: string[] | null;
+}
+
+interface LocalDatabases {
+  [name:string]: LocalDatabase
+};
+
+const databaseConnectionList:LocalDatabases = {};
 
 class User {
   _id;
@@ -219,15 +232,48 @@ class MagicDatabase {
   }
 }
 
-export async function initDatabase(name, connectionUrl, expiry?: number | undefined) {
+function setLocalDatabaseConnection(name: string, connection: any) {
+  if (databaseConnectionList[name]) {
+    log.error(chalk.red('ERROR: Database connection already exists for: '), name);
+  }
+  
+  databaseConnectionList[name] = { connection: connection, dhash_cache: null };
+}
+
+function setLocalDatabaseCache(name: string, dhash_cache: any) {
+  if (databaseConnectionList[name]) {
+    databaseConnectionList[name].dhash_cache = dhash_cache;
+  } else {
+    log.error(chalk.red('ERROR: No database exists to set dhash cache for: '), name);
+  }
+}
+
+function getLocalDatabaseConnection(name: string): any {
+    return databaseConnectionList[name] ? databaseConnectionList[name].connection : undefined;
+}
+
+function getLocalDatabaseCache(name: string): string[] | undefined {
   if (!databaseConnectionList[name]) {
+    return undefined;
+  }
+
+  if (!databaseConnectionList[name].dhash_cache) {
+    return undefined;
+  }
+
+  return databaseConnectionList[name].dhash_cache;
+}
+
+export async function initDatabase(name, legacyConnectionUrl, expiry?: number | undefined) {
+  const connectionUrl = await getNewConnectionUrl(legacyConnectionUrl);
+  if (!getLocalDatabaseConnection(name)) {
     log.debug(chalk.blue('Connecting to database...', name, '-', connectionUrl));
     try {
-      const client = await MongoClient.connect(connectionUrl, { useNewUrlParser: true, connectTimeoutMS: 5000 });
-      databaseConnectionList[name] = await client.db();
+      const client = await MongoClient.connect(connectionUrl, { useNewUrlParser: true, connectTimeoutMS: 5000});
+      setLocalDatabaseConnection(name, await client.db());
       log.debug(chalk.red('Finished connecting to: '), name);
     } catch (err) {
-      log.info(chalk.red('Fatal MongoDb connection error for: '), name, err);
+      log.info(chalk.red('********* Fatal MongoDb connection error for ********* : '), name, err.name, connectionUrl);
       return null;
     }
   }
@@ -236,25 +282,65 @@ export async function initDatabase(name, connectionUrl, expiry?: number | undefi
   const finalExpirySeconds = 60 * 60 * 24 * expiryDays;
   log.debug(chalk.blue('EXPIRYDAYS '), expiryDays);
 
-  const connection = databaseConnectionList[name];
+  const connection = getLocalDatabaseConnection(name);
   log.debug(chalk.blue('Loading database cache for '), name);
   const startTime = new Date().getTime();
 
-  const submissionCollection = await connection.collection(getCollectionName('submissions', name));
-  submissionCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: finalExpirySeconds });
+  if (!getLocalDatabaseConnection(name)) {
+    log.error(chalk.red('ERROR: Could not access connection for: '), name);
+    return null;    
+  }
 
-  const userCollection = await connection.collection(getCollectionName('users', name));
-  userCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: finalExpirySeconds });
+  let dhash_cache = getLocalDatabaseCache(name);
 
-  const dhash_cache = await submissionCollection
-    .find()
-    .project({ _id: 1 })
-    .map(x => x._id)
-    .toArray();
+  if (!dhash_cache) {
+    log.debug(chalk.blue('Connecting to database to get dhashes...', name, '-', connectionUrl));
+    try {
+      const submissionCollection = await connection.collection(getCollectionName('submissions', name));
+      submissionCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: finalExpirySeconds });
+      submissionCollection.ensureIndex({"reddit_id" : 1}, {"background": true});    
+    
+      // const userCollection = await connection.collection(getCollectionName('users', name));
+      // userCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: finalExpirySeconds });
+    
+      dhash_cache = await submissionCollection
+        .find()
+        .project({ _id: 1 })
+        .map(x => x._id)
+        .toArray();
+
+        const used = process.memoryUsage().heapUsed / 1024 / 1024;
+        if (used < 300) {
+          setLocalDatabaseCache(name, dhash_cache);
+        } else {
+          log.info(chalk.red('dhash_cache ignore for: '), name);
+        }
+    } catch (err) {
+      log.info(chalk.red('Fatal MongoDb error access hashes for: '), name, err);
+      return null;
+    }
+  }
   const endTime = new Date().getTime();
-  log.debug(chalk.green('Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', dhash_cache.length, 'entries for ', name);
-
+  
+  log.debug(chalk.green('[cacheload] Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', dhash_cache.length, 'entries for ', name);
+  
   return new MagicDatabase(name, connection, dhash_cache);
+}
+
+
+  // TODO: Remove and permanently add these to master settings by cycling through them
+async function getNewConnectionUrl(oldConnectionUrl) {
+    const newDatabaseList = await getMasterProperty('new-databases');
+    if (!newDatabaseList) {
+      log.info('No newDatabaseList found');
+      return oldConnectionUrl;
+    }
+    const updateInfo = newDatabaseList.find(databaseInfo => databaseInfo.url === oldConnectionUrl);
+    if (updateInfo && updateInfo.swap) {
+        return updateInfo.newUrl;
+    }
+
+    return oldConnectionUrl;
 }
 
 

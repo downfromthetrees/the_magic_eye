@@ -91,9 +91,10 @@ async function main() {
         const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
         timeoutTimeSeconds = Math.max(timeoutTimeSeconds - cycleTimeTaken, 0);
 
+        const used = process.memoryUsage().heapUsed / 1024 / 1024;
         log.info(chalk.blue('========= Cycle finished, time was ', cycleTimeTaken, 'seconds', cycleTimeTaken > 60 ? 'TIME WARNING' : ''));
         logProcessCycle(cycleTimeTaken);
-        log.info('========= databaseConnectionListSize:', databaseConnectionListSize());
+        log.info('========= databaseConnectionListSize:', databaseConnectionListSize(), `, memory usage is: ${Math.round(used * 100) / 100} MB`);
     } catch (err) {
         log.error(chalk.red("Main loop error: ", err));
     }

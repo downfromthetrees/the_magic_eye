@@ -43,6 +43,7 @@
     "mongodb": "^3.3.3",
     "node-fetch": "^2.2.0",
     "node-instagram": "^4.2.0",
+    "object-sizeof": "^1.5.2",
     "outdent": "^0.5.0",
     "pg": "^7.4.1",
     "phash-imagemagick": "^1.0.1",

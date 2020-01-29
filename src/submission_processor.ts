@@ -158,11 +158,16 @@ async function processExistingSubmission(submission, existingMagicSubmission, ma
         removeReposts,
     ];
 
+    let tookAction = false;
     for (const processor of imageProcessors) {
         const shouldContinue = await processor(reddit, modComment, submission, lastSubmission, existingMagicSubmission, masterSettings.settings, subredditName, submissionType);
         if (!shouldContinue) {
+            tookAction = true;
             break;
         }
+    }
+    if (!tookAction) {
+        log.info(`[${subredditName}]`, 'Found repost of removed submission (http://redd.it/' + existingMagicSubmission.reddit_id, '), but no processor was configured to action repost. Ignoring submission: ', await printSubmission(submission, submissionType));
     }
 }
 
