@@ -78,6 +78,7 @@ export async function firstTimeInit(reddit, subredditName, database, masterSetti
         text: `First time init complete for: r/${subreddit.display_name}\n\n Took ${totalTimeMinutes} minutes.`
       });
 
+    database.closeDatabase();
     log.info(`[${subredditName}]`, 'First time init finalised successfully.');
 }
 

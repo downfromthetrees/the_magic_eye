@@ -1,4 +1,5 @@
 import { getMasterProperty } from "./mongodb_master_data";
+const fs = require('fs');
 
 require('dotenv').config();
 const chalk = require('chalk');
@@ -12,6 +13,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 interface LocalDatabase {
   connection: any;
   dhash_cache: string[] | null;
+  dhash_cache_exists: boolean;
 }
 
 interface LocalDatabases {
@@ -92,6 +94,7 @@ class MagicDatabase {
   subredditName;
   connection;
   dhash_cache;
+  dhash_cache_updated = false;
 
   constructor(subredditName, connection, dhash_cache) {
     this.subredditName = subredditName;
@@ -145,6 +148,16 @@ class MagicDatabase {
       }
     } catch (err) {
       log.error(chalk.red('MongoDb error:'), err);
+    }
+  }
+
+  async closeDatabase() {
+    // flushes new items to disk
+    if (this.dhash_cache_updated) {
+      fs.writeFile(getCacheName(this.subredditName), JSON.stringify(this.dhash_cache), (err) => {
+        if (err) throw err;
+          log.error(chalk.red('Failed to write to cache disk for:'), this.subredditName, " error: ", err);
+      });
     }
   }
 
@@ -237,12 +250,19 @@ function setLocalDatabaseConnection(name: string, connection: any) {
     log.error(chalk.red('ERROR: Database connection already exists for: '), name);
   }
   
-  databaseConnectionList[name] = { connection: connection, dhash_cache: null };
+  databaseConnectionList[name] = { connection: connection, dhash_cache: null, dhash_cache_exists: false };
 }
 
 function setLocalDatabaseCache(name: string, dhash_cache: any) {
   if (databaseConnectionList[name]) {
-    databaseConnectionList[name].dhash_cache = dhash_cache;
+    // TODO: Keep memory cache?
+    // databaseConnectionList[name].dhash_cache = dhash_cache;
+    fs.writeFile(getCacheName(name), JSON.stringify(dhash_cache), (err) => {
+      if (err) {
+        log.error(chalk.red('Failed to write to cache disk for:'), name, " error: ", err);
+      }
+    });    
+    databaseConnectionList[name].dhash_cache_exists = true;
   } else {
     log.error(chalk.red('ERROR: No database exists to set dhash cache for: '), name);
   }
@@ -257,12 +277,37 @@ function getLocalDatabaseCache(name: string): string[] | undefined {
     return undefined;
   }
 
-  if (!databaseConnectionList[name].dhash_cache) {
+  if (!databaseConnectionList[name].dhash_cache_exists) {
     return undefined;
   }
 
-  return databaseConnectionList[name].dhash_cache;
+  log.info(chalk.red('Local database cache exists: '), databaseConnectionList[name].dhash_cache_exists);
+
+  try {
+    const startTime = new Date().getTime();
+    const dhash_cache = JSON.parse(fs.readFileSync(getCacheName(name)));
+    const endTime = new Date().getTime();
+    log.info(chalk.green('[FILE_LOAD] Database cache loaded from disk, took: '), (endTime - startTime) / 1000, 's to load ', dhash_cache.length, 'entries for ', name);
+    
+    return dhash_cache;
+  } catch (err) {
+    log.error(chalk.red('ERROR: Could not get local database cache for: '), name, ', error: ', err);
+    return undefined;
+  }
+
+  // if (!databaseConnectionList[name].dhash_cache) {
+  //   return undefined;
+  // }
+
+  // TODO: In memory cache
+  //return databaseConnectionList[name].dhash_cache;
 }
+
+
+function getCacheName(subredditName) {
+  return `./tmp/${subredditName}-hash_cache.json`;
+}
+
 
 export async function initDatabase(name, legacyConnectionUrl, expiry?: number | undefined) {
   const connectionUrl = await getNewConnectionUrl(legacyConnectionUrl);
@@ -309,12 +354,12 @@ export async function initDatabase(name, legacyConnectionUrl, expiry?: number | 
         .map(x => x._id)
         .toArray();
 
-        const used = process.memoryUsage().heapUsed / 1024 / 1024;
-        if (used < 300) {
+        //const used = process.memoryUsage().heapUsed / 1024 / 1024;
+        //if (used < 270) {
           setLocalDatabaseCache(name, dhash_cache);
-        } else {
-          log.info(chalk.red('dhash_cache ignore for: '), name);
-        }
+        //} else {
+        //  log.info(chalk.red('dhash_cache ignore for: '), name);
+        //}
     } catch (err) {
       log.info(chalk.red('Fatal MongoDb error access hashes for: '), name, err);
       return null;

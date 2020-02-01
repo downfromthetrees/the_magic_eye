@@ -182,6 +182,7 @@ async function doInboxProcessing() {
                 }
             }
             await processInboxMessage(message, reddit, database, messageSubreddit, masterSettings);
+            await database.closeDatabase();
         }
         const endInboxTime = new Date().getTime();
         const getTimeTaken = (endInboxTime - startInboxTime) / 1000;
@@ -250,6 +251,7 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
                 const timeTaken = (endTime - startTime) / 1000;
                 logProcessPost(subredditName, timeTaken);                
             };
+            database.closeDatabase();
         } else {
             log.error(`[${subredditName}]`, chalk.red(`Failed to init database, ignoring ${unprocessedSubmissions.length} posts for subreddit.`));
         }
