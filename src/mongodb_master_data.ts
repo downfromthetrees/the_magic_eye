@@ -211,7 +211,7 @@ export async function initMasterDatabase() {
     return true;
 }
 
-export async function refreshDatabaseList() {
+export async function refreshAvailableDatabases() {
     try {
         const masterDatabaseUrls = process.env.EXTERNAL_DATABASES.split(',');
         let databaseList = await getMasterProperty('databases');
