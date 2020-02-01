@@ -145,6 +145,7 @@ class MagicDatabase {
       await collection.save(submission);
       if (addToCache) {
         this.dhash_cache.push(submission._id);
+        this.dhash_cache_updated = true;
       }
     } catch (err) {
       log.error(chalk.red('MongoDb error:'), err);
@@ -154,10 +155,13 @@ class MagicDatabase {
   async closeDatabase() {
     // flushes new items to disk
     if (this.dhash_cache_updated) {
-      fs.writeFile(getCacheName(this.subredditName), JSON.stringify(this.dhash_cache), (err) => {
+      const startTime = new Date().getTime();           
+      fs.writeFileSync(getCacheName(this.subredditName), JSON.stringify(this.dhash_cache), (err) => {
         if (err) throw err;
           log.error(chalk.red('Failed to write to cache disk for:'), this.subredditName, " error: ", err);
       });
+      const endTime = new Date().getTime();
+      log.info(chalk.green('[FILE_WRITE] Database cache wrote from disk, took: '), (endTime - startTime) / 1000, 's to load ', this.dhash_cache.length, 'entries for ', this.subredditName);
     }
   }
 
@@ -215,6 +219,7 @@ class MagicDatabase {
       const index = this.dhash_cache.indexOf(submission._id);
       if (index > -1) {
         this.dhash_cache.splice(index, 1);
+        this.dhash_cache_updated = true;
       }
     } catch (err) {
       log.error(chalk.red('MongoDb error:'), err);
@@ -257,11 +262,11 @@ function setLocalDatabaseCache(name: string, dhash_cache: any) {
   if (databaseConnectionList[name]) {
     // TODO: Keep memory cache?
     // databaseConnectionList[name].dhash_cache = dhash_cache;
-    fs.writeFile(getCacheName(name), JSON.stringify(dhash_cache), (err) => {
+    fs.writeFileSync(getCacheName(name), JSON.stringify(dhash_cache), (err) => {
       if (err) {
         log.error(chalk.red('Failed to write to cache disk for:'), name, " error: ", err);
       }
-    });    
+    });
     databaseConnectionList[name].dhash_cache_exists = true;
   } else {
     log.error(chalk.red('ERROR: No database exists to set dhash cache for: '), name);
