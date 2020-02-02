@@ -38,6 +38,7 @@ import { mainEdHolding } from './holding_tasks/ed_tasks';
 import { mainSocial } from './holding_tasks/social';
 import { enableFilterMode } from './hmmm/automod_updater';
 import { printStats } from './master_stats';
+import { reddit } from './reddit';
 
 // magic eye imports
 import { initMasterDatabase, refreshAvailableDatabases } from './master_database_manager';
