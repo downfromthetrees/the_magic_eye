@@ -190,12 +190,7 @@ export async function initDatabase(name, legacyConnectionUrl, expiry?: number | 
         .map(x => x._id)
         .toArray();
 
-        //const used = process.memoryUsage().heapUsed / 1024 / 1024;
-        //if (used < 270) {
-          setLocalDatabaseCache(name, dhash_cache);
-        //} else {
-        //  log.info(chalk.red('dhash_cache ignore for: '), name);
-        //}
+      setLocalDatabaseCache(name, dhash_cache);
     } catch (err) {
       log.info(chalk.red('Fatal MongoDb error access hashes for: '), name, err);
       return null;
