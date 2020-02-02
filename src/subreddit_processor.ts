@@ -11,7 +11,6 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 // magic eye modules
 import { initDatabase } from './database_manager';
 import { processSubmission } from './submission_processor';
-import { processInboxMessage } from './inbox_message_processor';
 import { processUnmoderated } from './unmoderated_processor';
 import { firstTimeInit, isAnythingInitialising } from './first_time_init';
 import { SubredditSettings, getSubredditSettings, setSubredditSettings,
