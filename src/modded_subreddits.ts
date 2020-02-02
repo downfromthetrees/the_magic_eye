@@ -1,3 +1,5 @@
+import { reddit } from "./reddit";
+
 // standard server modules
 const chalk = require('chalk');
 require('dotenv').config();
@@ -7,7 +9,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 let moddedSubsCache = null;
 
 // returns concat string for multi, "meow_irl+hmmm+aww"
-export async function getModdedSubredditsMulti(reddit) {
+export async function getModdedSubredditsMulti() {
     if (moddedSubsCache) {
         return moddedSubsCache;
     }

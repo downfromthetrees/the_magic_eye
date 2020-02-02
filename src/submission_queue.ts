@@ -23,7 +23,7 @@ export async function mainQueue() {
         log.debug(chalk.blue("[QUEUE] Starting queue cycle"));
         const startCycleTime = new Date().getTime();
 
-        const moddedSubs = await getModdedSubredditsMulti(reddit);
+        const moddedSubs = await getModdedSubredditsMulti();
         if (moddedSubs.length == 0) {
             log.warn('[QUEUE] No subreddits found. Sleeping.');
             setTimeout(mainQueue, 30 * 1000); // run again in 30 seconds

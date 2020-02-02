@@ -7,9 +7,11 @@ require('dotenv').config();
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
+// hmmm modules
+import { processModlog } from './hmmm/modlog_processor';
 
 // magic eye modules
-import { initDatabase } from './database_manager';
+import { initDatabase, databaseConnectionListSize } from './database_manager';
 import { processSubmission } from './submission_processor';
 import { processUnmoderated } from './unmoderated_processor';
 import { firstTimeInit, isAnythingInitialising } from './first_time_init';
@@ -19,32 +21,46 @@ import { createDefaultSettings, writeSettings } from './wiki_utils';
 import { logProcessPost } from './master_stats';
 import { reddit } from './reddit';
 import { consumeQueue } from './submission_queue';
-import { processModlog } from './hmmm/modlog_processor';
+import { getModdedSubredditsMulti } from './modded_subreddits';
 
-export async function doSubredditProcessing(moddedSubs: string[]) {
-
-    let currentSubreddit = '';
+export async function mainProcessor() {
+    const minimumTimeoutTimeSeconds = 5;
+    let timeoutTimeSeconds = minimumTimeoutTimeSeconds;
     try {
+        log.debug(chalk.blue("Starting submission processing cycle"));
+        const startCycleTime = new Date().getTime();
+        
+        const moddedSubs = await getModdedSubredditsMulti();
+        if (!moddedSubs || moddedSubs.length == 0) {
+            log.warn('No subreddits found. Sleeping.');
+            setTimeout(mainProcessor, 30 * 1000); // run again in 30 seconds
+        }
+
         const unprocessedSubmissions = await consumeQueue();
-        const startTime = new Date().getTime();
         for (const subredditName of moddedSubs) {
             const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
             try {
-                currentSubreddit = subredditName;
                 await processSubreddit(subredditName, unprocessedForSub, reddit);
             } catch (e) {
                 const possibleErrorIds = unprocessedForSub.map(item => item.id);
                 log.error('Error processing subreddit: ', subredditName, ',', e, ', possible error threads:', possibleErrorIds);
             }
         }
-        const endTime = new Date().getTime();
-        const getSubmissionsTimeTaken = (endTime - startTime) / 1000;
+
+        // end cycle
+        const endCycleTime = new Date().getTime();
+        const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
+        timeoutTimeSeconds = Math.max(minimumTimeoutTimeSeconds - cycleTimeTaken, 0);
+
+        const used = process.memoryUsage().heapUsed / 1024 / 1024;
         if (unprocessedSubmissions.length > 0) {
-            log.info(chalk.blue('========= Processed', unprocessedSubmissions.length, ' new submissions, took: ', getSubmissionsTimeTaken));
+            log.info(chalk.blue(`========= Processed ${unprocessedSubmissions.length} new submissions, took ${cycleTimeTaken} seconds. databaseConnectionListSize: ${databaseConnectionListSize()}, memory usage is: ${Math.round(used * 100) / 100} MB`));
         }
-    } catch (e) {
-        log.error('Error processing subreddits, failed on: ', currentSubreddit, ', ', e);
+    } catch (err) {
+        log.error(chalk.red("Main loop error: ", err));
     }
+    
+    setTimeout(mainProcessor, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
 }
 
 async function processSubreddit(subredditName: string, unprocessedSubmissions, reddit) {
@@ -83,7 +99,7 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
 
     // unmoderated
     if (masterSettings.settings.reportUnmoderated) {
-        if (masterSettings.config.reportUnmoderatedTime > 40) {
+        if (masterSettings.config.reportUnmoderatedTime > 80) {
             const subForUnmoderated = await reddit.getSubreddit(subredditName);
             const topSubmissionsDay = await subForUnmoderated.getTop({time: 'day'}).fetchAll({amount: 100});
             masterSettings.config.reportUnmoderatedTime = 0;
@@ -100,8 +116,12 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
         const database = await initDatabase(subredditName, masterSettings.config.databaseUrl, masterSettings.config.expiryDays);
         if (database) {
             for (let submission of unprocessedSubmissions) {
-                const startTime = new Date().getTime();                
-                await processSubmission(submission, masterSettings, database, reddit, true);
+                const startTime = new Date().getTime();
+                try {
+                    await processSubmission(submission, masterSettings, database, reddit, true);
+                } catch (err) {
+                    log.error(`[${subredditName}]`, chalk.red(`Failed to process submission: ${submission.id}.`), " error: ", err);
+                }
                 const endTime = new Date().getTime();
                 const timeTaken = (endTime - startTime) / 1000;
                 logProcessPost(subredditName, timeTaken);                

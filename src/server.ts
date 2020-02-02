@@ -41,45 +41,13 @@ import { printStats } from './master_stats';
 
 // magic eye imports
 import { initMasterDatabase, refreshAvailableDatabases } from './master_database_manager';
-import { getModdedSubredditsMulti } from './modded_subreddits';
-import { doSubredditProcessing } from './subreddit_processor';
-import { updateSettings } from './wiki_utils';
-import { databaseConnectionListSize } from './database_manager';
-import { reddit } from './reddit';
 import { mainQueue } from './submission_queue';
 import { mainInboxProcessor } from './inbox_processor';
+import { mainProcessor } from './subreddit_processor';
+import { mainSettingsProcessor } from './settings_processor';
+import { getModdedSubredditsMulti } from './modded_subreddits';
 
-
-export async function mainProcessor() {
-    const minimumTimeoutTimeSeconds = 5;
-    let timeoutTimeSeconds = minimumTimeoutTimeSeconds;
-    try {
-        log.debug(chalk.blue("Starting Magic processing cycle"));
-        const startCycleTime = new Date().getTime();
-        
-        const moddedSubs = await getModdedSubredditsMulti(reddit);
-        if (moddedSubs.length == 0) {
-            log.warn('No subreddits found. Sleeping.');
-            setTimeout(mainProcessor, 30 * 1000); // run again in 30 seconds
-        }
-
-        await doSubredditProcessing(moddedSubs);
-        await updateSettings(moddedSubs, reddit);
-
-        // end cycle
-        const endCycleTime = new Date().getTime();
-        const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
-        timeoutTimeSeconds = Math.max(minimumTimeoutTimeSeconds - cycleTimeTaken, 0);
-
-        const used = process.memoryUsage().heapUsed / 1024 / 1024;
-        log.info(chalk.blue('========= Cycle finished, time was ', cycleTimeTaken, 'seconds', cycleTimeTaken > 60 ? 'TIME WARNING' : 'databaseConnectionListSize:', databaseConnectionListSize(), `, memory usage is: ${Math.round(used * 100) / 100} MB`));
-    } catch (err) {
-        log.error(chalk.red("Main loop error: ", err));
-    }
-    
-    setTimeout(mainProcessor, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
-}
-
+const garbageCollectSeconds = 60 * 10;
 async function manualGarbageCollect() {   
     if (!global.gc) {
         log.warn(chalk.red('WARN: Garbage collection is not exposed'));
@@ -87,11 +55,12 @@ async function manualGarbageCollect() {
       }
     global.gc();
     log.info('[GARBAGE] Ran GC');
-    setTimeout(manualGarbageCollect, 300 * 1000); // run again in timeoutTimeSeconds
+    setTimeout(manualGarbageCollect, garbageCollectSeconds * 1000); // run again in timeoutTimeSeconds
 }
 
 async function startServer() {   
     try {
+        log.info('The magic eye is booting...');
         app.listen(process.env.PORT || 3000, () => log.info(chalk.bgGreenBright('Magic Eye listening on port 3000')));
 
         const tempDir = './tmp';
@@ -101,7 +70,8 @@ async function startServer() {
 
         await initMasterDatabase();
         await refreshAvailableDatabases();
-        setTimeout(manualGarbageCollect, 5 * 1000);
+        await getModdedSubredditsMulti();
+        setTimeout(manualGarbageCollect, garbageCollectSeconds * 1000);
 
         log.info('The magic eye is ONLINE.');
 
@@ -117,10 +87,12 @@ async function startServer() {
         mainQueue(); // start queue to get submissions
         mainProcessor(); // start main loop
         mainInboxProcessor(); // start checking inbox
+        setTimeout(mainSettingsProcessor, 300 * 1000); // check for wiki updates
     } catch (e) {
         log.error(chalk.red(e));
     }
 }
+
 
 startServer();
 
