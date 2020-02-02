@@ -112,5 +112,5 @@ app.get('/keepalive', async function(req, res) {
 });
 
 process.on('unhandledRejection', (reason: any, p: any) => {
-    log.warn('ERROR: Unhandled promise Rejection at: Promise', p, 'reason:', reason);
+    log.warn('ERROR: Unhandled promise Rejection at: Promise', p.message, 'reason:', reason.message);
   });
