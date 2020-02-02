@@ -161,7 +161,7 @@ class MagicDatabase {
           log.error(chalk.red('Failed to write to cache disk for:'), this.subredditName, " error: ", err);
       });
       const endTime = new Date().getTime();
-      log.info(chalk.green('[FILE_WRITE] Database cache wrote from disk, took: '), (endTime - startTime) / 1000, 's to load ', this.dhash_cache.length, 'entries for ', this.subredditName);
+      log.debug(chalk.green('[FILE_WRITE] Database cache wrote from disk, took: '), (endTime - startTime) / 1000, 's to load ', this.dhash_cache.length, 'entries for ', this.subredditName);
     }
   }
 
@@ -292,7 +292,7 @@ function getLocalDatabaseCache(name: string): string[] | undefined {
     const startTime = new Date().getTime();
     const dhash_cache = JSON.parse(fs.readFileSync(getCacheName(name)));
     const endTime = new Date().getTime();
-    log.info(chalk.green('[FILE_LOAD] Database cache loaded from disk, took: '), (endTime - startTime) / 1000, 's to load ', dhash_cache.length, 'entries for ', name);
+    log.debug(chalk.green('[FILE_LOAD] Database cache loaded from disk, took: '), (endTime - startTime) / 1000, 's to load ', dhash_cache.length, 'entries for ', name);
     
     return dhash_cache;
   } catch (err) {
