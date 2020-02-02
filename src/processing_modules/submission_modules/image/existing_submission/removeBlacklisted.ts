@@ -8,7 +8,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 // magic eye modules
 import { isRepostRemoval, removePost, printSubmission } from '../../../../reddit_utils';
 import { logActionBlacklisted } from '../../../../master_stats';
-import { updateMagicSubmission } from '../../../../mongodb_data';
+import { updateMagicSubmission } from '../../../../database_manager';
 
 //=====================================
 

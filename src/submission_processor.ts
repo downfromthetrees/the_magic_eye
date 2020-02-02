@@ -7,7 +7,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 // magic eye general
 import { getImageDetails, getImageUrl } from './image_utils';
-import { MagicSubmission, updateMagicSubmission } from './mongodb_data';
+import { MagicSubmission, updateMagicSubmission } from './database_manager';
 import { getModComment, isMagicIgnore, isAnyTagRemoval, removePost, printSubmission } from './reddit_utils';
 import { logRemoveBroken } from './master_stats';
 

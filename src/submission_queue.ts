@@ -9,7 +9,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 import { getModdedSubredditsMulti } from './modded_subreddits';
 
 // magic eye modules
-import { getMasterProperty, setMasterProperty } from './mongodb_master_data';
+import { getMasterProperty, setMasterProperty } from './master_database_manager';
 import { reddit } from './reddit';
 
 let submissionQueue = [];

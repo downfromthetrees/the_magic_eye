@@ -32,11 +32,11 @@ if (!process.env.ACCOUNT_USERNAME ||
 }
 
 // magic eye imports
-import { initMasterDatabase, refreshAvailableDatabases } from './mongodb_master_data';
+import { initMasterDatabase, refreshAvailableDatabases } from './master_database_manager';
 import { getModdedSubredditsMulti } from './modded_subreddits';
 import { doSubredditProcessing, doInboxProcessing } from './main_processor';
 import { updateSettings } from './wiki_utils';
-import { databaseConnectionListSize } from './mongodb_data';
+import { databaseConnectionListSize } from './database_manager';
 import { reddit } from './reddit';
 import { mainQueue } from './submission_queue';
 

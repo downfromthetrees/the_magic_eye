@@ -4,7 +4,7 @@ const outdent = require('outdent');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 import { processSubmission } from './submission_processor';
-import { setSubredditSettings, getMasterProperty, setMasterProperty } from './mongodb_master_data';
+import { setSubredditSettings, getMasterProperty, setMasterProperty } from './master_database_manager';
 import { printSubmission } from './reddit_utils';
 
 let inProgress = Array<string>();
@@ -78,7 +78,7 @@ export async function firstTimeInit(reddit, subredditName, database, masterSetti
         text: `First time init complete for: r/${subreddit.display_name}\n\n Took ${totalTimeMinutes} minutes.`
       });
 
-    database.closeDatabase();
+    await database.closeDatabase();
     log.info(`[${subredditName}]`, 'First time init finalised successfully.');
 }
 

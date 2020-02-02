@@ -9,13 +9,13 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 
 // magic eye modules
-import { initDatabase } from './mongodb_data';
+import { initDatabase } from './database_manager';
 import { processSubmission } from './submission_processor';
 import { processInboxMessage } from './inbox_processor';
 import { processUnmoderated } from './unmoderated_processor';
 import { firstTimeInit, isAnythingInitialising } from './first_time_init';
 import { SubredditSettings, getSubredditSettings, setSubredditSettings,
-    getMasterProperty, setMasterProperty, upgradeMasterSettings, needsUpgrade } from './mongodb_master_data';
+    getMasterProperty, setMasterProperty, upgradeMasterSettings, needsUpgrade } from './master_database_manager';
 import { createDefaultSettings, writeSettings } from './wiki_utils';
 import { logProcessPost } from './master_stats';
 import { reddit } from './reddit';
@@ -143,7 +143,9 @@ export async function doInboxProcessing() {
         }
         const endInboxTime = new Date().getTime();
         const getTimeTaken = (endInboxTime - startInboxTime) / 1000;
-        log.info(chalk.blue('========= Processed', unreadMessages.length, ' new inbox messages, took: ', getTimeTaken));
+        if (unreadMessages.length > 0) {
+            log.info(chalk.blue('========= Processed', unreadMessages.length, ' new inbox messages, took: ', getTimeTaken));
+        }
     } catch (err) {
         log.error(chalk.red("Failed to process inbox: ", err));
     }
