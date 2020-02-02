@@ -69,7 +69,7 @@ async function startServer() {
         mainQueue(); // start queue to get submissions
         mainProcessor(); // start main loop
         mainInboxProcessor(); // start checking inbox
-        setTimeout(mainSettingsProcessor, 60 * 1000); // check for wiki updates
+        setTimeout(mainSettingsProcessor, 300 * 1000); // check for wiki updates
     } catch (e) {
         log.error(chalk.red(e));
     }

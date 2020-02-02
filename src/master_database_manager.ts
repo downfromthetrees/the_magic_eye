@@ -6,6 +6,12 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 let masterConnection = null;
 
+let subredditSettingsCache: CachedSubredditSettings = {};
+
+type CachedSubredditSettings = {
+    [name:string]: string
+}
+
 export class MasterProperty {
     _id;
     value;
@@ -155,6 +161,7 @@ export async function setSubredditSettings(subredditName, settings) {
     try {
         const collection = await getSubredditSettingsCollection();
         await collection.save(settings);
+        subredditSettingsCache[subredditName] = settings;
     } catch (err) {
         log.error(chalk.red('MongoDb error:'), err);
         return null;
@@ -163,9 +170,13 @@ export async function setSubredditSettings(subredditName, settings) {
 
 export async function getSubredditSettings(subredditName) {
     try {
+        if (subredditSettingsCache[subredditName]) {
+            return subredditSettingsCache[subredditName];
+        }
         const collection = await getSubredditSettingsCollection();
         const property = (await collection.findOne({'_id': subredditName}));
         if (property != null) {
+            subredditSettingsCache[subredditName] = property;
             return property;
         }
     } catch (err) {
