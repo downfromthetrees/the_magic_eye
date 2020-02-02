@@ -99,8 +99,12 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
         const database = await initDatabase(subredditName, masterSettings.config.databaseUrl, masterSettings.config.expiryDays);
         if (database) {
             for (let submission of unprocessedSubmissions) {
-                const startTime = new Date().getTime();                
-                await processSubmission(submission, masterSettings, database, reddit, true);
+                const startTime = new Date().getTime();
+                try {
+                    await processSubmission(submission, masterSettings, database, reddit, true);
+                } catch (err) {
+                    log.error(`[${subredditName}]`, chalk.red(`Failed to process submission: ${submission.id}.`), " error: ", err);
+                }
                 const endTime = new Date().getTime();
                 const timeTaken = (endTime - startTime) / 1000;
                 logProcessPost(subredditName, timeTaken);                

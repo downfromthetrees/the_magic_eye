@@ -9,7 +9,7 @@ import { printSubmission } from './reddit_utils';
 
 let inProgress = Array<string>();
 
-export async function firstTimeInit(reddit, subredditName, database, masterSettings) {
+export async function firstTimeInit(reddit, subredditName, database, masterSettings, suppressFirstTimeInitModmail = false) {
     const subreddit = await reddit.getSubreddit(subredditName);   
 
     log.info(chalk.blue(`[${subredditName}]`, 'Beginning first time initialisation for', subredditName, '. Retrieving top posts...'));
@@ -47,8 +47,8 @@ export async function firstTimeInit(reddit, subredditName, database, masterSetti
 
     masterSettings.config.firstTimeInit = true;
     await setSubredditSettings(subredditName, masterSettings);
-    log.info(`[${subredditName}]`, chalk.blue('Master settings for ', subredditName, 'created. Init is complete at this point.'));
-    if (!masterSettings.config.suppressFirstTimeInitModmail) {
+    log.info(`[${subredditName}]`, chalk.blue('Master settings for ', subredditName, ' set. Init is complete at this point.'));
+    if (!masterSettings.config.suppressFirstTimeInitModmail || !suppressFirstTimeInitModmail) {
         log.info(`[${subredditName}]`, 'Sending initialisation complete modmail message...');
         await reddit.composeMessage({
             to: await `/r/${subredditName}`,
