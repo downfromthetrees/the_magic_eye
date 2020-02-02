@@ -6,7 +6,7 @@ const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 import { downloadImage, deleteImage } from '../image_utils';
-import { getMasterProperty, setMasterProperty } from '../mongodb_master_data';
+import { getMasterProperty, setMasterProperty } from '../master_database_manager';
 
 // facebook
 const facebook = require('fb');

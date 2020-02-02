@@ -7,7 +7,7 @@ require('dotenv').config();
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-import { getMasterProperty, setMasterProperty } from '../mongodb_master_data';
+import { getMasterProperty, setMasterProperty } from '../master_database_manager';
 
 const snoowrap = require('snoowrap');
 const reddit = new snoowrap({
@@ -77,7 +77,6 @@ async function crossPostFromTargetSubreddit(unprocessedSubmissions, reddit) {
     
                 const title = submission.subject.startsWith('Request: ') ? submission.subject : 'Request: ' + submission.subject;
                 const fixedTitle = title.startsWith('r') ? 'R' + title.slice(1) : title;
-                console.log();
                 newSubmission.reply('title:' + fixedTitle);
                 newSubmission.reply('modmail_id:' + submission.id);
                 newSubmission.reply('link_to_modmail: https://www.reddit.com/message/messages/' + submission.id);
