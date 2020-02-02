@@ -286,7 +286,7 @@ function getLocalDatabaseCache(name: string): string[] | undefined {
     return undefined;
   }
 
-  log.info(chalk.red('Local database cache exists: '), databaseConnectionList[name].dhash_cache_exists);
+  log.debug(chalk.red('Local database cache exists: '), databaseConnectionList[name].dhash_cache_exists);
 
   try {
     const startTime = new Date().getTime();

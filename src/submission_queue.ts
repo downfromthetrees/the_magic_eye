@@ -14,16 +14,18 @@ import { reddit } from './reddit';
 
 let submissionQueue = [];
 
-let submissionRequests = 1000;
+let submissionRequests = 1000; // request max on restart
 
 export async function mainQueue() {
-    let timeoutTimeSeconds = 30;
+    const minimumTimeoutSeconds = 30; // default time between ingest requests
+    let timeoutTimeSeconds = minimumTimeoutSeconds;
     try {
-        log.debug(chalk.blue("Starting queue cycle"));
+        log.debug(chalk.blue("[QUEUE] Starting queue cycle"));
+        const startCycleTime = new Date().getTime();
 
         const moddedSubs = await getModdedSubredditsMulti(reddit);
         if (moddedSubs.length == 0) {
-            log.warn('No subreddits found. Sleeping.');
+            log.warn('[QUEUE] No subreddits found. Sleeping.');
             setTimeout(mainQueue, 30 * 1000); // run again in 30 seconds
         }
 
@@ -36,21 +38,30 @@ export async function mainQueue() {
         const submissions = newSubmissions.concat(modqueueSubmissions);
     
         if (!submissions) {
-            log.error(chalk.red('Cannot get new submissions to process - api is probably down for maintenance.'));
+            log.error(chalk.red('[QUEUE] Cannot get new submissions to process - api is probably down for maintenance.'));
             setTimeout(mainQueue, 60 * 1000); // run again in 60 seconds
             return;
         }
 
         const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions);
-
-        if (unprocessedSubmissions.length >= 990) {
-            log.warn('HEAVY LOAD: unprocessedSubmissions length was ', unprocessedSubmissions.length, ', submissions may be missed');
-        }
-
+        
         submissionQueue = submissionQueue.concat(unprocessedSubmissions);
 
+        // end cycle
+        const endCycleTime = new Date().getTime();
+        const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
+        timeoutTimeSeconds = Math.max(minimumTimeoutSeconds - cycleTimeTaken, 0);
+        
+        if (unprocessedSubmissions.length > submissionRequests) {
+            log.warn('[QUEUE] HEAVY LOAD: unprocessedSubmissions length was ', unprocessedSubmissions.length, ', submissions may have been missed');
+            submissionRequests = 1000;
+        } else {
+            submissionRequests = unprocessedSubmissions.length < 50 ? 100 : unprocessedSubmissions.length + 100;
+        }
+
+        log.info(chalk.red(`[QUEUE] Ingested ${unprocessedSubmissions.length} new submissions, next request: ${submissionRequests} in ${timeoutTimeSeconds} seconds`));
     } catch (err) {
-        log.error(chalk.red("Queue loop error: ", err));
+        log.error(chalk.red("[QUEUE] Queue loop error: ", err));
     }
     
     setTimeout(mainQueue, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
@@ -66,9 +77,9 @@ export async function consumeQueue() {
 async function consumeUnprocessedSubmissions(latestItems) {
     latestItems.sort((a, b) => { return a.created_utc - b.created_utc}); // oldest first
 
-    const maxCheck = 1000;
+    const maxCheck = 1500;
     if (latestItems.length > maxCheck) {
-        log.info('Passed more than maxCheck items:', latestItems.length);
+        log.info('[QUEUE] Passed more than maxCheck items:', latestItems.length);
         latestItems = latestItems.slice(latestItems.length - maxCheck, latestItems.length);
     }
 
@@ -78,7 +89,7 @@ async function consumeUnprocessedSubmissions(latestItems) {
 
     const processedIds = await getMasterProperty('new_processed_ids');
     if (!processedIds) {
-        log.warn(chalk.magenta('Could not find the last processed id list when retrieving unprocessed submissions. Regenerating...'));
+        log.warn(chalk.magenta('[QUEUE] Could not find the last processed id list when retrieving unprocessed submissions. Regenerating...'));
         const intialProcessedIds = latestItems.map(submission => submission.id);
         await setMasterProperty('new_processed_ids', intialProcessedIds);
         return [];
