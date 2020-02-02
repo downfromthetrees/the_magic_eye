@@ -31,6 +31,7 @@ if (!process.env.ACCOUNT_USERNAME ||
         throw "Missing essential config. Fatal error."
 }
 
+// magic eye imports
 import { initMasterDatabase, refreshAvailableDatabases } from './mongodb_master_data';
 import { getModdedSubredditsMulti } from './modded_subreddits';
 import { doSubredditProcessing, doInboxProcessing } from './main_processor';
@@ -39,8 +40,10 @@ import { databaseConnectionListSize } from './mongodb_data';
 import { reddit } from './reddit';
 import { mainQueue } from './submission_queue';
 
+
 export async function mainProcessor() {
-    let timeoutTimeSeconds = 5;
+    const minimumTimeoutTimeSeconds = 5;
+    let timeoutTimeSeconds = minimumTimeoutTimeSeconds;
     try {
         log.debug(chalk.blue("Starting Magic processing cycle"));
         const startCycleTime = new Date().getTime();
@@ -58,12 +61,10 @@ export async function mainProcessor() {
         // end cycle
         const endCycleTime = new Date().getTime();
         const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
-        timeoutTimeSeconds = Math.max(timeoutTimeSeconds - cycleTimeTaken, 0);
+        timeoutTimeSeconds = Math.max(minimumTimeoutTimeSeconds - cycleTimeTaken, 0);
 
         const used = process.memoryUsage().heapUsed / 1024 / 1024;
-        log.info(chalk.blue('========= Cycle finished, time was ', cycleTimeTaken, 'seconds', cycleTimeTaken > 60 ? 'TIME WARNING' : ''));
-        // logProcessCycle(cycleTimeTaken);
-        log.info('========= databaseConnectionListSize:', databaseConnectionListSize(), `, memory usage is: ${Math.round(used * 100) / 100} MB`);
+        log.info(chalk.blue('========= Cycle finished, time was ', cycleTimeTaken, 'seconds', cycleTimeTaken > 60 ? 'TIME WARNING' : 'databaseConnectionListSize:', databaseConnectionListSize(), `, memory usage is: ${Math.round(used * 100) / 100} MB`));
     } catch (err) {
         log.error(chalk.red("Main loop error: ", err));
     }

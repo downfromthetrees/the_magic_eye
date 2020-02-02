@@ -14,12 +14,14 @@ import { reddit } from './reddit';
 
 let submissionQueue = [];
 
-let submissionRequests = 1000;
+let submissionRequests = 1000; // request max on restart
 
 export async function mainQueue() {
-    let timeoutTimeSeconds = 30;
+    const minimumTimeoutSeconds = 30; // default time between ingest requests
+    let timeoutTimeSeconds = minimumTimeoutSeconds;
     try {
         log.debug(chalk.blue("Starting queue cycle"));
+        const startCycleTime = new Date().getTime();
 
         const moddedSubs = await getModdedSubredditsMulti(reddit);
         if (moddedSubs.length == 0) {
@@ -43,9 +45,16 @@ export async function mainQueue() {
         if (unprocessedSubmissions.length >= 990) {
             log.warn('HEAVY LOAD: unprocessedSubmissions length was ', unprocessedSubmissions.length, ', submissions may be missed');
         }
-
+        
         submissionQueue = submissionQueue.concat(unprocessedSubmissions);
 
+        // end cycle
+        const endCycleTime = new Date().getTime();
+        const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
+        timeoutTimeSeconds = Math.max(minimumTimeoutSeconds - cycleTimeTaken, 0);
+        
+        submissionRequests = unprocessedSubmissions.length < 50 ? 100 : unprocessedSubmissions.length + 100;
+        log.info(chalk.red(`[QUEUE] Ingested ${unprocessedSubmissions.length} new submissions, next request: ${submissionRequests} in ${timeoutTimeSeconds} seconds`));
     } catch (err) {
         log.error(chalk.red("Queue loop error: ", err));
     }
