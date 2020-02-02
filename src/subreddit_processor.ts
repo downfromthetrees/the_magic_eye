@@ -11,7 +11,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 // magic eye modules
 import { initDatabase } from './database_manager';
 import { processSubmission } from './submission_processor';
-import { processInboxMessage } from './inbox_processor';
+import { processInboxMessage } from './inbox_message_processor';
 import { processUnmoderated } from './unmoderated_processor';
 import { firstTimeInit, isAnythingInitialising } from './first_time_init';
 import { SubredditSettings, getSubredditSettings, setSubredditSettings,
@@ -110,44 +110,6 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
         } else {
             log.error(`[${subredditName}]`, chalk.red(`Failed to init database, ignoring ${unprocessedSubmissions.length} posts for subreddit.`));
         }
-    }
-}
-
-export async function doInboxProcessing() {
-    // inbox
-    const startInboxTime = new Date().getTime();
-    try {
-        const unreadMessages = await reddit.getUnreadMessages();
-        if (!unreadMessages) {
-            log.error(chalk.red('Cannot get new inbox items to process - api is probably down for maintenance.'));
-            return;
-        }
-        if (unreadMessages.length > 0) {
-            await reddit.markMessagesAsRead(unreadMessages);
-        }
-        for (let message of unreadMessages) {
-            const messageSubreddit = await message.subreddit;
-            let database = null;
-            let masterSettings = null;
-            if (messageSubreddit) {
-                const messageSubredditName = await messageSubreddit.display_name;
-                masterSettings = await getSubredditSettings(messageSubredditName);                 
-                if (masterSettings) {
-                    database = await initDatabase(messageSubredditName, masterSettings.config.databaseUrl, masterSettings.config.expiryDays);
-                }
-            }
-            await processInboxMessage(message, reddit, database, messageSubreddit, masterSettings);
-            if (database) {
-                await database.closeDatabase();
-            }
-        }
-        const endInboxTime = new Date().getTime();
-        const getTimeTaken = (endInboxTime - startInboxTime) / 1000;
-        if (unreadMessages.length > 0) {
-            log.info(chalk.blue('========= Processed', unreadMessages.length, ' new inbox messages, took: ', getTimeTaken));
-        }
-    } catch (err) {
-        log.error(chalk.red("Failed to process inbox: ", err));
     }
 }
 

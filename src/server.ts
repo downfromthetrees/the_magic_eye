@@ -34,11 +34,12 @@ if (!process.env.ACCOUNT_USERNAME ||
 // magic eye imports
 import { initMasterDatabase, refreshAvailableDatabases } from './master_database_manager';
 import { getModdedSubredditsMulti } from './modded_subreddits';
-import { doSubredditProcessing, doInboxProcessing } from './main_processor';
+import { doSubredditProcessing } from './subreddit_processor';
 import { updateSettings } from './wiki_utils';
 import { databaseConnectionListSize } from './database_manager';
 import { reddit } from './reddit';
 import { mainQueue } from './submission_queue';
+import { mainInboxProcessor } from './inbox_processor';
 
 
 export async function mainProcessor() {
@@ -55,7 +56,6 @@ export async function mainProcessor() {
         }
 
         await doSubredditProcessing(moddedSubs);
-        await doInboxProcessing();
         await updateSettings(moddedSubs, reddit);
 
         // end cycle
@@ -96,8 +96,9 @@ async function startServer() {
         setTimeout(manualGarbageCollect, 5 * 1000);
 
         log.info('The magic eye is ONLINE.');
-        mainProcessor(); // start main loop
         mainQueue(); // start queue to get submissions
+        mainProcessor(); // start main loop
+        mainInboxProcessor(); // start checking inbox
     } catch (e) {
         log.error(chalk.red(e));
     }
