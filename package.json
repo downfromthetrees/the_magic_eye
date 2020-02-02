@@ -3,7 +3,7 @@
   "version": "1.1.0",
   "description": "Magic eye is a bot for detecting image reposts in subreddits, as well as managing moderator tasks around reposted images.",
   "scripts": {
-    "start": "node ./build/server.js",
+    "start": "node --expose-gc ./build/server.js",
     "dev": "ts-node ./src/server.ts",
     "clean": "shx rm -rf build",
     "build": "npm run clean && tsc",

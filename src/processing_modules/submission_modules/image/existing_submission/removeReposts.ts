@@ -14,7 +14,7 @@ const timeAgo = new TimeAgo('en');
 // magic eye modules
 import { isRepostRemoval, removePost, printSubmission } from '../../../../reddit_utils';
 import { logActionRepost } from '../../../../master_stats';
-import { updateMagicSubmission } from '../../../../mongodb_data';
+import { updateMagicSubmission } from '../../../../database_manager';
 
 //=====================================
 

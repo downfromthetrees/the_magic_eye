@@ -6,7 +6,7 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 // magic eye modules
 import { printSubmission, isRepostOnlyByUserRemoval } from '../../../../reddit_utils';
-import { MagicSubmission, updateMagicSubmission } from '../../../../mongodb_data';
+import { MagicSubmission, updateMagicSubmission } from '../../../../database_manager';
 
 //=====================================
 

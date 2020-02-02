@@ -4,7 +4,7 @@ const outdent = require('outdent');
 const moment = require('moment');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-import { Stats, addSubredditStat, getSubredditStat } from './mongodb_master_data';
+import { Stats, addSubredditStat, getSubredditStat } from './master_database_manager';
 
 export async function logActionRepost(subredditName, timeTaken) {
     if (!process.env.LOG_STATS)
