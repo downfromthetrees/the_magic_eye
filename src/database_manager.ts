@@ -100,8 +100,6 @@ function setLocalDatabaseConnection(name: string, connection: any) {
 
 function setLocalDatabaseCache(name: string, dhash_cache: any) {
   if (databaseConnectionList[name]) {
-    // TODO: Keep memory cache?
-    // databaseConnectionList[name].dhash_cache = dhash_cache;
     fs.writeFileSync(getCacheName(name), JSON.stringify(dhash_cache), (err) => {
       if (err) {
         log.error(chalk.red('Failed to write to cache disk for:'), name, " error: ", err);
@@ -139,13 +137,6 @@ function getLocalDatabaseCache(name: string): string[] | undefined {
     log.error(chalk.red('ERROR: Could not get local database cache for: '), name, ', error: ', err);
     return undefined;
   }
-
-  // if (!databaseConnectionList[name].dhash_cache) {
-  //   return undefined;
-  // }
-
-  // TODO: In memory cache
-  //return databaseConnectionList[name].dhash_cache;
 }
 
 
@@ -217,8 +208,7 @@ export async function initDatabase(name, legacyConnectionUrl, expiry?: number | 
   return new MagicDatabase(name, connection, dhash_cache);
 }
 
-
-  // TODO: Remove and permanently add these to master settings by cycling through them
+// TODO: Remove and permanently add these to master settings by cycling through them
 async function getNewConnectionUrl(oldConnectionUrl) {
     const newDatabaseList = await getMasterProperty('new-databases');
     if (!newDatabaseList) {
