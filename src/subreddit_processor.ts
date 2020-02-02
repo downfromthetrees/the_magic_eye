@@ -131,9 +131,6 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
             log.error(`[${subredditName}]`, chalk.red(`Failed to init database, ignoring ${unprocessedSubmissions.length} posts for subreddit.`));
         }
     }
-
-    // [HMMM] hmmm only block - hmmm modlog
-    processModlog(subredditName, reddit);
 }
 
 export async function initialiseNewSubreddit(subredditName: string) {
