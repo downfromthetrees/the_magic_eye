@@ -39,7 +39,9 @@ export async function doSubredditProcessing(moddedSubs: string[]) {
         }
         const endTime = new Date().getTime();
         const getSubmissionsTimeTaken = (endTime - startTime) / 1000;
-        log.info(chalk.blue('========= Processed', unprocessedSubmissions.length, ' new submissions, took: ', getSubmissionsTimeTaken));
+        if (unprocessedSubmissions.length > 0) {
+            log.info(chalk.blue('========= Processed', unprocessedSubmissions.length, ' new submissions, took: ', getSubmissionsTimeTaken));
+        }
     } catch (e) {
         log.error('Error processing subreddits, failed on: ', currentSubreddit, ', ', e);
     }

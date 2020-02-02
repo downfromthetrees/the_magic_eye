@@ -72,6 +72,16 @@ export async function mainProcessor() {
     setTimeout(mainProcessor, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
 }
 
+async function manualGarbageCollect() {   
+    if (!global.gc) {
+        log.warn(chalk.red('WARN: Garbage collection is not exposed'));
+        return;
+      }
+    global.gc();
+    log.info('[GARBAGE] Ran GC');
+    setTimeout(manualGarbageCollect, 300 * 1000); // run again in timeoutTimeSeconds
+}
+
 async function startServer() {   
     try {
         app.listen(process.env.PORT || 3000, () => log.info(chalk.bgGreenBright('Magic Eye listening on port 3000')));
@@ -83,6 +93,7 @@ async function startServer() {
 
         await initMasterDatabase();
         await refreshAvailableDatabases();
+        setTimeout(manualGarbageCollect, 5 * 1000);
 
         log.info('The magic eye is ONLINE.');
         mainProcessor(); // start main loop
