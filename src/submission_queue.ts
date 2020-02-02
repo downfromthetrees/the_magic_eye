@@ -30,7 +30,10 @@ export async function mainQueue() {
         const moddedSubredditsMultiString = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
         const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
     
-        const submissions = await subredditMulti.getNew({'limit': submissionRequests});
+        // [HMMM] hmmm only block - get the modqueue as well
+        const modqueueSubmissions = await subredditMulti.getModqueue({'limit': 100, 'only': 'links'});
+        const newSubmissions = await subredditMulti.getNew({'limit': 100});
+        const submissions = newSubmissions.concat(modqueueSubmissions);
     
         if (!submissions) {
             log.error(chalk.red('Cannot get new submissions to process - api is probably down for maintenance.'));

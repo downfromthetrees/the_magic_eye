@@ -20,6 +20,7 @@ import { createDefaultSettings, writeSettings } from './wiki_utils';
 import { logProcessPost } from './master_stats';
 import { reddit } from './reddit';
 import { consumeQueue } from './submission_queue';
+import { processModlog } from './hmmm/modlog_processor';
 
 export async function doSubredditProcessing(moddedSubs: string[]) {
 
@@ -109,6 +110,9 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
             log.error(`[${subredditName}]`, chalk.red(`Failed to init database, ignoring ${unprocessedSubmissions.length} posts for subreddit.`));
         }
     }
+
+    // [HMMM] hmmm only block - hmmm modlog
+    processModlog(subredditName, reddit);
 }
 
 export async function doInboxProcessing() {
