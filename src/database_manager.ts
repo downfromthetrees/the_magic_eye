@@ -2,9 +2,7 @@ const fs = require('fs');
 require('dotenv').config();
 const chalk = require('chalk');
 const MongoClient = require('mongodb').MongoClient;
-const hammingDistance = require('hamming');
 const log = require('loglevel');
-const sizeof = require('object-sizeof')
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 import { getMasterProperty } from "./master_database_manager";
@@ -173,7 +171,7 @@ export async function initDatabase(name, legacyConnectionUrl, expiry?: number | 
 }
 
 // TODO: Remove and permanently add these to master settings by cycling through them
-async function getNewConnectionUrl(oldConnectionUrl) {
+export async function getNewConnectionUrl(oldConnectionUrl) {
     const newDatabaseList = await getMasterProperty('new-databases');
     if (!newDatabaseList) {
       log.info('No newDatabaseList found');

@@ -113,5 +113,6 @@ async function consumeUnprocessedSubmissions(latestItems) {
 }
 
 process.on('SIGTERM', function onSigterm () {
+    log.info("SIGTERM recieved - halting queue ingest");
     haltProcessing = true;
 });

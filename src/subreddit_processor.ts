@@ -9,12 +9,12 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 
 // magic eye modules
-import { initDatabase, databaseConnectionListSize } from './database_manager';
+import { initDatabase, databaseConnectionListSize, getNewConnectionUrl } from './database_manager';
 import { processSubmission } from './submission_processor';
 import { processUnmoderated } from './unmoderated_processor';
 import { firstTimeInit, isAnythingInitialising } from './first_time_init';
 import { SubredditSettings, getSubredditSettings, setSubredditSettings,
-    getMasterProperty, setMasterProperty, upgradeMasterSettings, needsUpgrade } from './master_database_manager';
+    getMasterProperty, setMasterProperty, needsUpgrade } from './master_database_manager';
 import { createDefaultSettings, writeSettings } from './wiki_utils';
 import { logProcessPost } from './master_stats';
 import { reddit } from './reddit';
@@ -76,9 +76,12 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
         return;
     }
 
-    if (needsUpgrade(masterSettings)) {
-        masterSettings = upgradeMasterSettings(masterSettings);
-        await writeSettings(subredditName, masterSettings, reddit);
+    if (needsUpgrade(masterSettings) && subredditName === "the_iron_eye") {
+        masterSettings.version = "2";
+        //await writeSettings(subredditName, masterSettings, reddit);
+        masterSettings.config.backupDatabaseUrl = masterSettings.config.databaseUrl;
+        masterSettings.config.databaseUrl = await getNewConnectionUrl(masterSettings.config.databaseUrl);
+        log.info(`[UPGRADE]`, 'UPGRADING', subredditName, ' - newURL:', masterSettings.config.databaseUrl);
         await setSubredditSettings(subredditName, masterSettings);
     }
     
