@@ -10,31 +10,21 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 import { getMasterProperty } from "./master_database_manager";
 import { MagicDatabase } from "./database";
 
-interface LocalDatabase {
-  connection: any;
-  dhash_cache: string[] | null;
+interface LocalCacheInfo {
   dhash_cache_exists: boolean;
 }
 
-interface LocalDatabases {
-  [name:string]: LocalDatabase
+interface LocalCacheInfoList {
+  [name:string]: LocalCacheInfo
 };
 
-const databaseConnectionList:LocalDatabases = {};
+const localCacheInfoList:LocalCacheInfoList = {};
 
-export class User {
-  _id;
-  createdAt; // automatic expiry indicator
-  count; // successful post
-  posts;
+interface ConnectionCache {
+  [url:string]: any
+};
 
-  constructor(name) {
-    this._id = name;
-    this.createdAt = new Date();
-    this.count = 0;
-    this.posts = [];
-  }
-}
+const connectionList:ConnectionCache = {};
 
 export class MagicProperty {
   _id;
@@ -78,10 +68,6 @@ export function getCollectionName(collection, subredditName) {
   return collectionPrefix + collection;
 }
 
-export async function getUserCollection(database) {
-  return database.connection.collection(getCollectionName('users', database.subredditName));
-}
-
 export async function getSubmissionCollection(database) {
   return database.connection.collection(getCollectionName('submissions', database.subredditName));
 }
@@ -90,41 +76,26 @@ export async function getPropertyCollection(database) {
   return database.connection.collection(getCollectionName('properties', database.subredditName));
 }
 
-function setLocalDatabaseConnection(name: string, connection: any) {
-  if (databaseConnectionList[name]) {
-    log.error(chalk.red('ERROR: Database connection already exists for: '), name);
-  }
-  
-  databaseConnectionList[name] = { connection: connection, dhash_cache: null, dhash_cache_exists: false };
-}
-
 function setLocalDatabaseCache(name: string, dhash_cache: any) {
-  if (databaseConnectionList[name]) {
-    fs.writeFileSync(getCacheName(name), JSON.stringify(dhash_cache), (err) => {
-      if (err) {
-        log.error(chalk.red('Failed to write to cache disk for:'), name, " error: ", err);
-      }
-    });
-    databaseConnectionList[name].dhash_cache_exists = true;
-  } else {
-    log.error(chalk.red('ERROR: No database exists to set dhash cache for: '), name);
-  }
-}
-
-function getLocalDatabaseConnection(name: string): any {
-    return databaseConnectionList[name] ? databaseConnectionList[name].connection : undefined;
+  localCacheInfoList[name] = {dhash_cache_exists: true};
+  fs.writeFileSync(getCacheName(name), JSON.stringify(dhash_cache), (err) => {
+    if (err) {
+      log.error(chalk.red('Failed to write to cache disk for:'), name, " error: ", err);
+      localCacheInfoList[name].dhash_cache_exists = false;
+    }
+  });
 }
 
 function getLocalDatabaseCache(name: string): string[] | undefined {
-  if (!databaseConnectionList[name]) {
+  if (!localCacheInfoList[name]) {
     return undefined;
   }
 
-  if (!databaseConnectionList[name].dhash_cache_exists) {
+  if (!localCacheInfoList[name].dhash_cache_exists) {
     return undefined;
   }
 
-  log.debug(chalk.red('Local database cache exists: '), databaseConnectionList[name].dhash_cache_exists);
+  log.debug(chalk.red('Local database cache exists'));
 
   try {
     const startTime = new Date().getTime();
@@ -147,11 +118,17 @@ export function getCacheName(subredditName) {
 
 export async function initDatabase(name, legacyConnectionUrl, expiry?: number | undefined) {
   const connectionUrl = await getNewConnectionUrl(legacyConnectionUrl);
-  if (!getLocalDatabaseConnection(name)) {
+  if (!connectionList[connectionUrl]) {
     log.debug(chalk.blue('Connecting to database...', name, '-', connectionUrl));
     try {
       const client = await MongoClient.connect(connectionUrl, { useNewUrlParser: true, connectTimeoutMS: 5000});
-      setLocalDatabaseConnection(name, await client.db());
+      connectionList[connectionUrl] = await client.db();
+      
+      if (!connectionList[connectionUrl]) {
+        log.error(chalk.red('ERROR: Could not access connection for: '), name);
+        return null;    
+      }
+
       log.debug(chalk.red('Finished connecting to: '), name);
     } catch (err) {
       log.info(chalk.red('********* Fatal MongoDb connection error for ********* : '), name, err.name, connectionUrl);
@@ -163,14 +140,9 @@ export async function initDatabase(name, legacyConnectionUrl, expiry?: number | 
   const finalExpirySeconds = 60 * 60 * 24 * expiryDays;
   log.debug(chalk.blue('EXPIRYDAYS '), expiryDays);
 
-  const connection = getLocalDatabaseConnection(name);
+  const connection = connectionList[connectionUrl];
   log.debug(chalk.blue('Loading database cache for '), name);
   const startTime = new Date().getTime();
-
-  if (!getLocalDatabaseConnection(name)) {
-    log.error(chalk.red('ERROR: Could not access connection for: '), name);
-    return null;    
-  }
 
   let dhash_cache = getLocalDatabaseCache(name);
 
@@ -180,10 +152,7 @@ export async function initDatabase(name, legacyConnectionUrl, expiry?: number | 
       const submissionCollection = await connection.collection(getCollectionName('submissions', name));
       submissionCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: finalExpirySeconds });
       submissionCollection.ensureIndex({"reddit_id" : 1}, {"background": true});    
-    
-      // const userCollection = await connection.collection(getCollectionName('users', name));
-      // userCollection.ensureIndex({ createdAt: 1 }, { expireAfterSeconds: finalExpirySeconds });
-    
+        
       dhash_cache = await submissionCollection
         .find()
         .project({ _id: 1 })
@@ -220,5 +189,5 @@ async function getNewConnectionUrl(oldConnectionUrl) {
 
 
 export function databaseConnectionListSize() {
-  return Object.keys(databaseConnectionList).length;
+  return Object.keys(connectionList).length;
 }

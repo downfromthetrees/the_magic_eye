@@ -7,7 +7,7 @@ const log = require('loglevel');
 const sizeof = require('object-sizeof')
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-import { getUserCollection, getSubmissionCollection, getCacheName, MagicProperty, getPropertyCollection, User } from "./database_manager";
+import { getSubmissionCollection, getCacheName } from "./database_manager";
 
 export class MagicDatabase {
     subredditName;
@@ -19,38 +19,6 @@ export class MagicDatabase {
       this.subredditName = subredditName;
       this.connection = connection;
       this.dhash_cache = dhash_cache;
-    }
-  
-    async addUser(name) {
-      try {
-        const collection = await getUserCollection(this);
-        await collection.save(new User(name));
-      } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
-      }
-    }
-  
-    async setUser(user, database) {
-      try {
-        const collection = await getUserCollection(this);
-        await collection.save(user);
-      } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
-      }
-    }
-  
-    async getUser(name) {
-      if (name == null) {
-        return null;
-      }
-  
-      try {
-        const collection = await getUserCollection(this);
-        return await collection.findOne({ _id: name });
-      } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
-      }
-      return null;
     }
   
     async saveMagicSubmission(submission, addToCache) {
@@ -81,6 +49,7 @@ export class MagicDatabase {
         });
         const endTime = new Date().getTime();
         log.debug(chalk.green('[FILE_WRITE] Database cache wrote from disk, took: '), (endTime - startTime) / 1000, 's to load ', this.dhash_cache.length, 'entries for ', this.subredditName);
+        this.dhash_cache = null;
       }
     }
   
@@ -144,28 +113,6 @@ export class MagicDatabase {
         log.error(chalk.red('MongoDb error:'), err);
       }
     }
-  
-    async setMagicProperty(key, value) {
-      try {
-        const collection = await getPropertyCollection(this);
-        await collection.save(new MagicProperty(key, value));
-      } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
-        return null;
-      }
-    }
-  
-    async getMagicProperty(key) {
-      try {
-        const collection = await getPropertyCollection(this);
-        const property = await collection.findOne({ _id: key });
-        if (property != null) {
-          return property.value;
-        }
-      } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
-      }
-      return null;
-    }
+
   }
   
