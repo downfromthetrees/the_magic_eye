@@ -214,6 +214,7 @@ export async function refreshAvailableDatabases() {
 }
 
 export async function upgradeUrls() {
+    log.info(`[UPGRADE]`, 'START UPGRADING');
     const subredditSettings = await getSubredditSettingsCollection();
     for (const masterSettings of subredditSettings) {
         if (needsUpgrade(masterSettings) && masterSettings._id === "the_iron_eye") {
