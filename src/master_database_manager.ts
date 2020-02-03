@@ -1,3 +1,5 @@
+import { getNewConnectionUrl } from "./database_manager";
+
 require('dotenv').config();
 const chalk = require('chalk');
 const MongoClient = require('mongodb').MongoClient;
@@ -208,5 +210,18 @@ export async function refreshAvailableDatabases() {
     } catch (err) {
         log.error(chalk.red('Error: could not refresh database list'), err);
         return null;
+    }
+}
+
+export async function upgradeUrls() {
+    const subredditSettings = await getSubredditSettingsCollection();
+    for (const masterSettings of subredditSettings) {
+        if (needsUpgrade(masterSettings) && masterSettings._id === "the_iron_eye") {
+            masterSettings.version = "2";
+            masterSettings.config.backupDatabaseUrl = masterSettings.config.databaseUrl;
+            masterSettings.config.databaseUrl = await getNewConnectionUrl(masterSettings.config.databaseUrl);
+            log.info(`[UPGRADE]`, 'UPGRADING', masterSettings._id, ' - newURL:', masterSettings.config.databaseUrl);
+            await setSubredditSettings(masterSettings._id, masterSettings);
+        }
     }
 }

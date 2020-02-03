@@ -75,15 +75,6 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
         log.warn(`[${subredditName}]`, chalk.yellow('Missing settings for '), subredditName, ' - ignoring subreddit');
         return;
     }
-
-    if (needsUpgrade(masterSettings) && subredditName === "the_iron_eye") {
-        masterSettings.version = "2";
-        //await writeSettings(subredditName, masterSettings, reddit);
-        masterSettings.config.backupDatabaseUrl = masterSettings.config.databaseUrl;
-        masterSettings.config.databaseUrl = await getNewConnectionUrl(masterSettings.config.databaseUrl);
-        log.info(`[UPGRADE]`, 'UPGRADING', subredditName, ' - newURL:', masterSettings.config.databaseUrl);
-        await setSubredditSettings(subredditName, masterSettings);
-    }
     
     // first time init
     if (!masterSettings.config.firstTimeInit) {
