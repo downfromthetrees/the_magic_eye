@@ -113,5 +113,6 @@ async function consumeUnprocessedSubmissions(latestItems) {
 }
 
 export function haltQueue() {
+    log.info('[SHUTDOWN] Halting queue ingest');
     haltProcessing = true;
 }
