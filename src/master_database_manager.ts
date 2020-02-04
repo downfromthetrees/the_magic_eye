@@ -215,13 +215,14 @@ export async function refreshAvailableDatabases() {
 
 export async function upgradeUrls() {
     log.info(`[UPGRADE]`, 'START UPGRADING');
-    const subredditSettings = await getSubredditSettingsCollection();
+    const collection = await getSubredditSettingsCollection();
+    const subredditSettings = collection.find({});
     for (const masterSettings of subredditSettings) {
         if (needsUpgrade(masterSettings) && masterSettings._id === "the_iron_eye") {
+            log.info(`[UPGRADE]`, 'UPGRADING', masterSettings._id, ' - newURL:', masterSettings.config.databaseUrl);
             masterSettings.version = "2";
             masterSettings.config.backupDatabaseUrl = masterSettings.config.databaseUrl;
             masterSettings.config.databaseUrl = await getNewConnectionUrl(masterSettings.config.databaseUrl);
-            log.info(`[UPGRADE]`, 'UPGRADING', masterSettings._id, ' - newURL:', masterSettings.config.databaseUrl);
             await setSubredditSettings(masterSettings._id, masterSettings);
         }
     }
