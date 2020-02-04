@@ -218,7 +218,7 @@ export async function upgradeUrls() {
         log.info(`[UPGRADE]`, 'START UPGRADING');
         const collection = await getSubredditSettingsCollection();
         const subredditSettings = await collection.find({});
-        const failedUpgrade = true;
+        let failedUpgrade = true;
         for (const masterSettings of subredditSettings) {
             if (needsUpgrade(masterSettings) && masterSettings._id === "the_iron_eye") {
                 log.info(`[UPGRADE]`, 'UPGRADING', masterSettings._id, ' - newURL:', masterSettings.config.databaseUrl);
@@ -226,7 +226,7 @@ export async function upgradeUrls() {
                 masterSettings.config.backupDatabaseUrl = masterSettings.config.databaseUrl;
                 masterSettings.config.databaseUrl = await getNewConnectionUrl(masterSettings.config.databaseUrl);
                 await setSubredditSettings(masterSettings._id, masterSettings);
-                const failedUpgrade = false;
+                failedUpgrade = false;
             }
         }
 
