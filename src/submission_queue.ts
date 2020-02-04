@@ -112,11 +112,6 @@ async function consumeUnprocessedSubmissions(latestItems) {
     return newItems;
 }
 
-process.on('SIGTERM', function onSigterm () {
-    log.info("SIGTERM recieved - halting queue ingest");
+export function haltQueue() {
     haltProcessing = true;
-    setTimeout(() => {
-        log.info("Shutting down Magic Eye...");
-        process.exit();
-    }, 20 * 1000);
-});
+}

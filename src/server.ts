@@ -33,7 +33,7 @@ if (!process.env.ACCOUNT_USERNAME ||
 
 // magic eye imports
 import { initMasterDatabase, refreshAvailableDatabases, upgradeUrls } from './master_database_manager';
-import { mainQueue } from './submission_queue';
+import { mainQueue, haltQueue } from './submission_queue';
 import { mainInboxProcessor } from './inbox_processor';
 import { mainProcessor } from './subreddit_processor';
 import { mainSettingsProcessor } from './settings_processor';
@@ -81,6 +81,17 @@ startServer();
 app.get('/keepalive', async function(req, res) {
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify({ status: 'ok' }));
+});
+
+app.get('/shutdown', async function(req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    let password = req.query.password;
+    if (password === process.env.SHUTDOWN_PASSWORD) {
+        haltQueue();
+        res.send(JSON.stringify({ status: 'ok' }));
+    } else {
+        res.send(JSON.stringify({ status: 'failed' }));
+    }
 });
 
 process.on('unhandledRejection', (reason: any, p: any) => {
