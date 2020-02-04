@@ -217,9 +217,8 @@ export async function upgradeUrls() {
     try {
         log.info(`[UPGRADE]`, 'START UPGRADING');
         const collection = await getSubredditSettingsCollection();
-        const subredditSettings = await collection.find({});
+        const subredditSettings = await collection.find().toArray();
         let failedUpgrade = true;
-        log.info(`[UPGRADE] First entry`, subredditSettings[0]);
         for (const masterSettings of subredditSettings) {
             if (needsUpgrade(masterSettings) && masterSettings._id === "the_iron_eye") {
                 log.info(`[UPGRADE]`, 'UPGRADING', masterSettings._id, ' - newURL:', masterSettings.config.databaseUrl);
