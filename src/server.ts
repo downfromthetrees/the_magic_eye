@@ -85,7 +85,7 @@ app.get('/keepalive', async function(req, res) {
 
 app.get('/shutdown', async function(req, res) {
     res.setHeader('Content-Type', 'application/json');
-    let password = req.query.password;
+    let password = req.query ? req.query.password : null; 
     if (password === process.env.SHUTDOWN_PASSWORD) {
         haltQueue();
         res.send(JSON.stringify({ status: 'ok' }));
