@@ -114,8 +114,7 @@ export function getCacheName(subredditName) {
 }
 
 
-export async function initDatabase(name, legacyConnectionUrl, expiry?: number | undefined) {
-  const connectionUrl = await getNewConnectionUrl(legacyConnectionUrl);
+export async function initDatabase(name, connectionUrl, expiry?: number | undefined) {
   if (!connectionList[connectionUrl]) {
     log.debug(chalk.blue('Connecting to database...', name, '-', connectionUrl));
     try {
@@ -168,21 +167,6 @@ export async function initDatabase(name, legacyConnectionUrl, expiry?: number | 
   log.debug(chalk.green('[cacheload] Database cache loaded, took: '), (endTime - startTime) / 1000, 's to load ', dhash_cache.length, 'entries for ', name);
   
   return new MagicDatabase(name, connection, dhash_cache);
-}
-
-// TODO: Remove and permanently add these to master settings by cycling through them
-export async function getNewConnectionUrl(oldConnectionUrl) {
-    const newDatabaseList = await getMasterProperty('new-databases');
-    if (!newDatabaseList) {
-      log.info('No newDatabaseList found');
-      return oldConnectionUrl;
-    }
-    const updateInfo = newDatabaseList.find(databaseInfo => databaseInfo.url === oldConnectionUrl);
-    if (updateInfo && updateInfo.swap) {
-        return updateInfo.newUrl;
-    }
-
-    return oldConnectionUrl;
 }
 
 

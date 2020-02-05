@@ -32,7 +32,7 @@ if (!process.env.ACCOUNT_USERNAME ||
 }
 
 // magic eye imports
-import { initMasterDatabase, refreshAvailableDatabases, upgradeUrls } from './master_database_manager';
+import { initMasterDatabase, refreshAvailableDatabases } from './master_database_manager';
 import { mainQueue, haltQueue } from './submission_queue';
 import { mainInboxProcessor } from './inbox_processor';
 import { mainProcessor } from './subreddit_processor';
@@ -70,7 +70,6 @@ async function startServer() {
         mainProcessor(); // start main loop
         mainInboxProcessor(); // start checking inbox
         setTimeout(mainSettingsProcessor, 300 * 1000); // check for wiki updates
-        upgradeUrls();
     } catch (e) {
         log.error(chalk.red(e));
     }

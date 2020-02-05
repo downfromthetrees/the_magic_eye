@@ -1,5 +1,3 @@
-import { getNewConnectionUrl } from "./database_manager";
-
 require('dotenv').config();
 const chalk = require('chalk');
 const MongoClient = require('mongodb').MongoClient;
@@ -213,31 +211,26 @@ export async function refreshAvailableDatabases() {
     }
 }
 
-export async function upgradeUrls() {
+export async function upgradeMasterDatabase() {
     try {
-        log.info(`[UPGRADE]`, 'START UPGRADING');
+        log.info(`[UPGRADE]`, 'START UPGRADING MASTER DATABASE');
         const collection = await getSubredditSettingsCollection();
         const subredditSettings = await collection.find().toArray();
         for (const masterSettings of subredditSettings) {
             if (needsUpgrade(masterSettings)) {
-                const secondsRun = Math.floor(Math.random() * Math.floor(300));
+                const secondsRun = Math.floor(Math.random() * Math.floor(500));
                 const doForSub = async () => {
-                    masterSettings.version = "2";
-                    masterSettings.config.backupDatabaseUrl = masterSettings.config.databaseUrl;
-                    masterSettings.config.databaseUrl = await getNewConnectionUrl(masterSettings.config.databaseUrl);
-                    if (masterSettings.config.backupDatabaseUrl === masterSettings.config.databaseUrl) {
-                        log.info(`[UPGRADE]`, 'WARNING: Same database found', masterSettings._id, ' - updated databaseUrl:', masterSettings.config.databaseUrl);
-                    }
-
-                    log.info(`[UPGRADE]`, 'Upgrading', masterSettings._id, ' - updated databaseUrl:', masterSettings.config.databaseUrl);
+                    masterSettings.version = currentVersion; // bump the version
+                    // do upgrade here
+                    log.info(`[UPGRADE]`, 'Upgrading', masterSettings._id, ' - updated:');
                     await setSubredditSettings(masterSettings._id, masterSettings);
                 }
                 setTimeout(doForSub, secondsRun * 1000);
             } else {
-                log.info(`[UPGRADE]`, 'NO UPGRADE REQUIRED', masterSettings._id, ' - databaseUrl:', masterSettings.config.databaseUrl);                    
+                log.info(`[UPGRADE]`, 'NO UPGRADE REQUIRED', masterSettings._id, ' - :');
             }
         }
     } catch (err) {
-        log.info(`[ERROR: UPGRADE]: `, err);
+        log.info(`[UPGRADE]: ERROR: `, err);
     }
 }
