@@ -220,7 +220,7 @@ export async function upgradeUrls() {
         const subredditSettings = await collection.find().toArray();
         for (const masterSettings of subredditSettings) {
             if (needsUpgrade(masterSettings)) {
-                const secondsRun = Math.floor(Math.random() * Math.floor(60));
+                const secondsRun = Math.floor(Math.random() * Math.floor(120));
                 const doForSub = async () => {
                     masterSettings.version = "2";
                     masterSettings.config.backupDatabaseUrl = masterSettings.config.databaseUrl;
