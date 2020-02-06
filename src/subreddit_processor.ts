@@ -112,7 +112,7 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
                 try {
                     await processSubmission(submission, masterSettings, database, reddit, true);
                 } catch (err) {
-                    log.error(`[${subredditName}]`, chalk.red(`Failed to process submission: ${submission.id}.`), " error: ", err);
+                    log.error(`[${subredditName}]`, chalk.red(`Failed to process submission: ${submission.id}.`), " error message: ", err.message);
                 }
                 const endTime = new Date().getTime();
                 const timeTaken = (endTime - startTime) / 1000;
