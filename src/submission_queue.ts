@@ -115,4 +115,5 @@ async function consumeUnprocessedSubmissions(latestItems) {
 export function haltQueue() {
     log.info('[SHUTDOWN] Halting queue ingest');
     haltProcessing = true;
+    setTimeout(() => { haltProcessing = false}, 120 * 1000); // recover if not shutdown
 }
