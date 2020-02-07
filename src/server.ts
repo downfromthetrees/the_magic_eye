@@ -7,6 +7,8 @@ require('dotenv').config();
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
+var heapdump = require('heapdump');
+
 if (!process.env.ACCOUNT_USERNAME ||
     !process.env.PASSWORD ||
     !process.env.CLIENT_ID ||
@@ -91,6 +93,20 @@ app.get('/shutdown', async function(req, res) {
     } else {
         res.send(JSON.stringify({ status: 'failed' }));
     }
+});
+
+
+app.get('/heapdump', async function(req, res) {
+    res.setHeader('Content-Type', 'application/json');
+        const fileName = `/${Date.now()}.heapsnapshot`;
+        await heapdump.writeSnapshot(fileName, function(err, filename) {
+            if (err) 
+                console.log('dump err: ', err);
+            else
+                console.log('dump written to', filename);
+          });
+        //res.send(JSON.stringify({ status: 'ok' }));
+        return JSON.parse(fs.readFileSync(fileName));
 });
 
 process.on('unhandledRejection', (reason: any, p: any) => {
