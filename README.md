@@ -21,8 +21,9 @@ Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support
 
 <!-- /TOC -->
 
-
 ## Setup
+
+There are 2 steps to adding Magic Eye to your subreddit:
 
 ---
 

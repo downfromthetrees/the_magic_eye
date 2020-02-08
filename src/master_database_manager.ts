@@ -37,7 +37,7 @@ export class Stats {
 }
 
 
-const currentVersion = "1";
+const currentVersion = "2";
 
 // default mod editable settings
 export class SubredditSettings {
@@ -83,41 +83,6 @@ export class SubredditSettings {
 export function needsUpgrade(masterSettings) {
     return masterSettings.version != currentVersion;
 }
-
-
-export function upgradeMasterSettings(masterSettings) {
-    let newMasterSettings = masterSettings;
-
-    // upgrade version
-    newMasterSettings.version = currentVersion; 
-
-    // // upgrade reposts
-    // if (newMasterSettings.settings.removeReposts) {
-    //     newMasterSettings.settings.reposts = newMasterSettings.settings.removeReposts;
-    //     delete newMasterSettings.settings.removeReposts;
-        
-    //     newMasterSettings.settings.reposts.action = "remove";     
-
-    //     if (newMasterSettings.settings.reposts.removeRepostsIfDeleted !== undefined) {
-    //         newMasterSettings.settings.reposts.actionRepostsIfDeleted = newMasterSettings.settings.reposts.removeRepostsIfDeleted;
-    //         delete newMasterSettings.settings.reposts.removeRepostsIfDeleted;
-    //     }
-    //     if (newMasterSettings.settings.reposts.approveIfOverRepostDays === undefined) {
-    //         newMasterSettings.settings.reposts.approveIfOverRepostDays = true;
-    //     }
-    //     if (masterSettings.settings.reposts.reflairApprovedReposts === undefined) {
-    //         newMasterSettings.settings.reposts.reflairApprovedReposts = false;
-    //     }
-    // }
-
-    // // new stuff
-    // newMasterSettings.settings.processImages = true;
-    // newMasterSettings.settings.processAnimatedMedia = false;
-
-    return newMasterSettings;
-}
-
-
 
 export function getCollectionName(collection) {
     const collectionPrefix = (process.env.NODE_ENV == 'production' ? '' : process.env.NODE_ENV + ':');
@@ -243,5 +208,29 @@ export async function refreshAvailableDatabases() {
     } catch (err) {
         log.error(chalk.red('Error: could not refresh database list'), err);
         return null;
+    }
+}
+
+export async function upgradeMasterDatabase() {
+    try {
+        log.info(`[UPGRADE]`, 'START UPGRADING MASTER DATABASE');
+        const collection = await getSubredditSettingsCollection();
+        const subredditSettings = await collection.find().toArray();
+        for (const masterSettings of subredditSettings) {
+            if (needsUpgrade(masterSettings)) {
+                const secondsRun = Math.floor(Math.random() * Math.floor(500));
+                const doForSub = async () => {
+                    masterSettings.version = currentVersion; // bump the version
+                    // do upgrade here
+                    log.info(`[UPGRADE]`, 'Upgrading', masterSettings._id, ' - updated:');
+                    await setSubredditSettings(masterSettings._id, masterSettings);
+                }
+                setTimeout(doForSub, secondsRun * 1000);
+            } else {
+                log.info(`[UPGRADE]`, 'NO UPGRADE REQUIRED', masterSettings._id, ' - :');
+            }
+        }
+    } catch (err) {
+        log.info(`[UPGRADE]: ERROR: `, err);
     }
 }

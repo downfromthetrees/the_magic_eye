@@ -16,9 +16,17 @@ let submissionQueue = [];
 
 let submissionRequests = 1000; // request max on restart
 
+let haltProcessing = false;
+
 export async function mainQueue() {
     const minimumTimeoutSeconds = 30; // default time between ingest requests
     let timeoutTimeSeconds = minimumTimeoutSeconds;
+
+    if (haltProcessing) {
+        setTimeout(mainQueue, 300 * 1000); // recover if sigterm doesn't kill process
+        return;
+    }
+
     try {
         log.debug(chalk.blue("[QUEUE] Starting queue cycle"));
         const startCycleTime = new Date().getTime();
@@ -105,4 +113,10 @@ async function consumeUnprocessedSubmissions(latestItems) {
     await setMasterProperty('new_processed_ids', updatedProcessedIds);
     
     return newItems;
+}
+
+export function haltQueue() {
+    log.info('[SHUTDOWN] Halting queue ingest');
+    haltProcessing = true;
+    setTimeout(() => { haltProcessing = false}, 120 * 1000); // recover if not shutdown
 }

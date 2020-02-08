@@ -7,6 +7,8 @@ require('dotenv').config();
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
+var heapdump = require('heapdump');
+
 if (!process.env.ACCOUNT_USERNAME ||
     !process.env.PASSWORD ||
     !process.env.CLIENT_ID ||
@@ -42,7 +44,7 @@ import { reddit } from './reddit';
 
 // magic eye imports
 import { initMasterDatabase, refreshAvailableDatabases } from './master_database_manager';
-import { mainQueue } from './submission_queue';
+import { mainQueue, haltQueue } from './submission_queue';
 import { mainInboxProcessor } from './inbox_processor';
 import { mainProcessor } from './subreddit_processor';
 import { mainSettingsProcessor } from './settings_processor';
@@ -96,7 +98,6 @@ async function startServer() {
     }
 }
 
-
 startServer();
 
 app.get('/keepalive', async function(req, res) {
@@ -147,6 +148,28 @@ app.get('/stats/print', async function(req, res) {
 });
 
 
+app.get('/shutdown', async function(req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    let password = req.query ? req.query.password : null; 
+    if (password === process.env.SHUTDOWN_PASSWORD) {
+        haltQueue();
+        res.send(JSON.stringify({ status: 'ok' }));
+    } else {
+        res.send(JSON.stringify({ status: 'failed' }));
+    }
+});
+
+
+app.get('/heapdump', async function(req, res) {
+    const fileName = `./tmp/${Date.now()}.heapsnapshot`;
+    await heapdump.writeSnapshot(fileName, function(err, filename) {
+        if (err) 
+            console.log('dump err: ', err);
+        else
+            console.log('dump written to', filename);
+        });
+    res.download(fileName);
+});
 
 process.on('unhandledRejection', (reason: any, p: any) => {
     log.warn('ERROR: Unhandled promise Rejection at: Promise', p.message, 'reason:', reason.message);

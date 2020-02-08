@@ -16,7 +16,7 @@ import { processSubmission } from './submission_processor';
 import { processUnmoderated } from './unmoderated_processor';
 import { firstTimeInit, isAnythingInitialising } from './first_time_init';
 import { SubredditSettings, getSubredditSettings, setSubredditSettings,
-    getMasterProperty, setMasterProperty, upgradeMasterSettings, needsUpgrade } from './master_database_manager';
+    getMasterProperty, setMasterProperty, needsUpgrade } from './master_database_manager';
 import { createDefaultSettings, writeSettings } from './wiki_utils';
 import { logProcessPost } from './master_stats';
 import { reddit } from './reddit';
@@ -77,12 +77,6 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
         log.warn(`[${subredditName}]`, chalk.yellow('Missing settings for '), subredditName, ' - ignoring subreddit');
         return;
     }
-
-    if (needsUpgrade(masterSettings)) {
-        masterSettings = upgradeMasterSettings(masterSettings);
-        await writeSettings(subredditName, masterSettings, reddit);
-        await setSubredditSettings(subredditName, masterSettings);
-    }
     
     // first time init
     if (!masterSettings.config.firstTimeInit) {
@@ -120,7 +114,7 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
                 try {
                     await processSubmission(submission, masterSettings, database, reddit, true);
                 } catch (err) {
-                    log.error(`[${subredditName}]`, chalk.red(`Failed to process submission: ${submission.id}.`), " error: ", err);
+                    log.error(`[${subredditName}]`, chalk.red(`Failed to process submission: ${submission.id}.`), " error message: ", err.message);
                 }
                 const endTime = new Date().getTime();
                 const timeTaken = (endTime - startTime) / 1000;
