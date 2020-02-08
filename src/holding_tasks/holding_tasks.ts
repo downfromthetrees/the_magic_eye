@@ -22,11 +22,12 @@ reddit.config({ requestDelay: 1000, continueAfterRatelimitError: true });
 
 export async function nukeHolding() {
   const holdingSubreddit = await reddit.getSubreddit(process.env.HOLDING_SUBREDDIT);
-  const submissions = await holdingSubreddit.getNew({ limit: 500 });
+  const submissions = await holdingSubreddit.getNew({ limit: 1000 });
 
   for (let submission of submissions) {
     try {
-      submission.delete();
+      const secondsRun = Math.floor(Math.random() * Math.floor(1000));
+      setTimeout(() => {submission.delete()}, secondsRun * 1000);
     } catch (e) {
       log.error('[HOLDING] Error nuking submission:' + submission.id, e);
     }
@@ -61,7 +62,7 @@ export async function mainHolding() {
     const unprocessedHoldingItems = await consumeUnprocessedModlog(approvedLinks);
     await processApprovedPosts(unprocessedHoldingItems, reddit);
 
-    const removedLinks = await holdingSubreddit.getModerationLog({ type: 'removelink' }).fetchMore({ amount: 200 });
+    const removedLinks = await holdingSubreddit.getModerationLog({ type: 'removelink' }).fetchMore({ amount: 1000 });
     const unprocessedRemovedHoldingItems = await consumeUnprocessedModlog(removedLinks, 'removed');
     await processRemovedPosts(unprocessedRemovedHoldingItems, reddit);
   } catch (err) {
