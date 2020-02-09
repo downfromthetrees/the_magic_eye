@@ -29,6 +29,7 @@ export async function doInboxProcessing() {
 
         for (let message of unreadMessages) {
             const messageSubreddit = await message.subreddit;
+            console.log("MESSAGE: ", message);
             if (messageSubreddit) {
                 const messageSubredditName = await messageSubreddit.display_name;
                 if (messageSubredditName === process.env.HOLDING_SUBREDDIT) {
