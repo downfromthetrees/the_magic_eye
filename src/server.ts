@@ -51,6 +51,7 @@ import { mainProcessor } from './subreddit_processor';
 import { mainSettingsProcessor } from './settings_processor';
 import { getModdedSubredditsMulti } from './modded_subreddits';
 import { mainUnmoderated } from './unmoderated_processor';
+import { mainHoldingInboxProcessor } from './holding_tasks/holding_inbox_processor';
 
 const garbageCollectSeconds = 60 * 10;
 async function manualGarbageCollect() {   
@@ -87,7 +88,8 @@ async function startServer() {
         garbageCollectionHolding(true);
         mainSocial(reddit, true);
         scheduleFiltering();
-        processModlog();        
+        processModlog();     
+        mainHoldingInboxProcessor();
 
         // start loops
         mainQueue(); // start queue to get submissions
