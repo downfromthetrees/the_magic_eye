@@ -53,7 +53,7 @@ export async function mainHolding() {
     const unprocessedHoldingItems = await consumeUnprocessedModlog(approvedLinks);
     await processApprovedPosts(unprocessedHoldingItems, holding_reddit);
 
-    const removedLinks = await holdingSubreddit.getModerationLog({ type: 'removelink' }).fetchMore({ amount: 1000 });
+    const removedLinks = await holdingSubreddit.getModerationLog({ type: 'removelink' }).fetchMore({ amount: 500 });
     const unprocessedRemovedHoldingItems = await consumeUnprocessedModlog(removedLinks, 'removed');
     await processRemovedPosts(unprocessedRemovedHoldingItems, holding_reddit);
   } catch (err) {
@@ -163,7 +163,7 @@ export async function consumeUnprocessedModlog(latestItems, suffix?) {
     propertyId = propertyId + suffix;
   }
 
-  const maxCheck = 500;
+  const maxCheck = 1000;
   if (latestItems.length > maxCheck) {
     log.info('[HOLDING] Passed more than maxCheck items:', latestItems.length);
     latestItems = latestItems.slice(latestItems.length - maxCheck, latestItems.length);
