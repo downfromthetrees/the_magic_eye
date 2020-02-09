@@ -89,20 +89,6 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
         return;
     }
 
-    // unmoderated
-    if (masterSettings.settings.reportUnmoderated) {
-        if (masterSettings.config.reportUnmoderatedTime > 80) {
-            const subForUnmoderated = await reddit.getSubreddit(subredditName);
-            const topSubmissionsDay = await subForUnmoderated.getTop({time: 'day'}).fetchAll({amount: 100});
-            masterSettings.config.reportUnmoderatedTime = 0;
-            await setSubredditSettings(subredditName, masterSettings); // set now in case of api error
-            await processUnmoderated(topSubmissionsDay, masterSettings.settings, subredditName);
-        } else {
-            masterSettings.config.reportUnmoderatedTime++;
-            await setSubredditSettings(subredditName, masterSettings);
-        }
-    }
-
     // submissions
     if (unprocessedSubmissions.length > 0) {
         const database = await initDatabase(subredditName, masterSettings.config.databaseUrl, masterSettings.config.expiryDays);

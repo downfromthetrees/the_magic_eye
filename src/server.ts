@@ -40,6 +40,7 @@ import { mainInboxProcessor } from './inbox_processor';
 import { mainProcessor } from './subreddit_processor';
 import { mainSettingsProcessor } from './settings_processor';
 import { getModdedSubredditsMulti } from './modded_subreddits';
+import { mainUnmoderated } from './unmoderated_processor';
 
 const garbageCollectSeconds = 60 * 10;
 async function manualGarbageCollect() {   
@@ -64,7 +65,7 @@ async function startServer() {
 
         await initMasterDatabase();
         await refreshAvailableDatabases();
-        await getModdedSubredditsMulti();
+        await getModdedSubredditsMulti(); // init cache
         setTimeout(manualGarbageCollect, garbageCollectSeconds * 1000);
 
         log.info('The magic eye is ONLINE.');
@@ -72,6 +73,7 @@ async function startServer() {
         mainProcessor(); // start main loop
         mainInboxProcessor(); // start checking inbox
         setTimeout(mainSettingsProcessor, 300 * 1000); // check for wiki updates
+        mainUnmoderated();
     } catch (e) {
         log.error(chalk.red(e));
     }
