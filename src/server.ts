@@ -41,6 +41,7 @@ import { mainSocial } from './holding_tasks/social';
 import { enableFilterMode } from './hmmm/automod_updater';
 import { printStats } from './master_stats';
 import { reddit } from './reddit';
+import { processModlog } from './hmmm/modlog_processor';
 
 // magic eye imports
 import { initMasterDatabase, refreshAvailableDatabases } from './master_database_manager';
@@ -49,7 +50,7 @@ import { mainInboxProcessor } from './inbox_processor';
 import { mainProcessor } from './subreddit_processor';
 import { mainSettingsProcessor } from './settings_processor';
 import { getModdedSubredditsMulti } from './modded_subreddits';
-import { processModlog } from './hmmm/modlog_processor';
+import { mainUnmoderated } from './unmoderated_processor';
 
 const garbageCollectSeconds = 60 * 10;
 async function manualGarbageCollect() {   
@@ -74,7 +75,7 @@ async function startServer() {
 
         await initMasterDatabase();
         await refreshAvailableDatabases();
-        await getModdedSubredditsMulti();
+        await getModdedSubredditsMulti(); // init cache
         setTimeout(manualGarbageCollect, garbageCollectSeconds * 1000);
 
         log.info('The magic eye is ONLINE.');
@@ -93,6 +94,7 @@ async function startServer() {
         mainProcessor(); // start main loop
         mainInboxProcessor(); // start checking inbox
         setTimeout(mainSettingsProcessor, 300 * 1000); // check for wiki updates
+        mainUnmoderated();
     } catch (e) {
         log.error(chalk.red(e));
     }
@@ -161,13 +163,19 @@ app.get('/shutdown', async function(req, res) {
 
 
 app.get('/heapdump', async function(req, res) {
-    const fileName = `./tmp/${Date.now()}.heapsnapshot`;
-    await heapdump.writeSnapshot(fileName, function(err, filename) {
+    let name = req.query ? req.query.name : null; 
+    const fileName = `./tmp/${name}.heapsnapshot`;
+    heapdump.writeSnapshot(fileName, function(err, filename) {
         if (err) 
             console.log('dump err: ', err);
         else
             console.log('dump written to', filename);
         });
+});
+
+app.get('/get-heapdump', async function(req, res) {
+    let name = req.query ? req.query.name : null; 
+    const fileName = `./tmp/${name}.heapsnapshot`;
     res.download(fileName);
 });
 
