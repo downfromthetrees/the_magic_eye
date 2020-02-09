@@ -32,6 +32,7 @@ export async function doInboxProcessing() {
             console.log("MESSAGE: ", message);
             if (messageSubreddit) {
                 const messageSubredditName = await messageSubreddit.display_name;
+                console.log("MESSAGE: ", messageSubredditName, "action?:", " holding: ", process.env.HOLDING_SUBREDDIT, messageSubredditName === process.env.HOLDING_SUBREDDIT);
                 if (messageSubredditName === process.env.HOLDING_SUBREDDIT) {
                     await holding_reddit.markMessagesAsRead(message);
                 }
