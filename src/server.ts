@@ -97,13 +97,19 @@ app.get('/shutdown', async function(req, res) {
 
 
 app.get('/heapdump', async function(req, res) {
-    const fileName = `./tmp/${Date.now()}.heapsnapshot`;
-    await heapdump.writeSnapshot(fileName, function(err, filename) {
+    let name = req.query ? req.query.name : null; 
+    const fileName = `./tmp/${name}.heapsnapshot`;
+    heapdump.writeSnapshot(fileName, function(err, filename) {
         if (err) 
             console.log('dump err: ', err);
         else
             console.log('dump written to', filename);
         });
+});
+
+app.get('/get-heapdump', async function(req, res) {
+    let name = req.query ? req.query.name : null; 
+    const fileName = `./tmp/${name}.heapsnapshot`;
     res.download(fileName);
 });
 
