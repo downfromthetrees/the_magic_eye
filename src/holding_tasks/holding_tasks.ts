@@ -2,6 +2,7 @@ const chalk = require('chalk');
 const fs = require('fs');
 const fetch = require('node-fetch');
 const http = require('https');
+import { holding_reddit } from './holding_reddit';
 
 require('dotenv').config();
 const log = require('loglevel');
@@ -10,18 +11,8 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 import { getMasterProperty, setMasterProperty } from '../master_database_manager';
 import { downloadImage, deleteImage } from '../image_utils';
 
-const snoowrap = require('snoowrap');
-const reddit = new snoowrap({
-  userAgent: process.env.HOLDING_ACCOUNT_USERNAME + ':v0.0.1',
-  clientId: process.env.HOLDING_CLIENT_ID,
-  clientSecret: process.env.HOLDING_CLIENT_SECRET,
-  username: process.env.HOLDING_ACCOUNT_USERNAME,
-  password: process.env.HOLDING_PASSWORD
-});
-reddit.config({ requestDelay: 1000, continueAfterRatelimitError: true });
-
 export async function nukeHolding() {
-  const holdingSubreddit = await reddit.getSubreddit(process.env.HOLDING_SUBREDDIT);
+  const holdingSubreddit = await holding_reddit.getSubreddit(process.env.HOLDING_SUBREDDIT);
   const submissions = await holdingSubreddit.getNew({ limit: 1000 });
 
   for (let submission of submissions) {
@@ -41,7 +32,7 @@ export async function mainHolding() {
     }
 
     log.debug(chalk.blue('[HOLDING] Starting holding processing cycle'));
-    const targetSubreddit = await reddit.getSubreddit(process.env.HOLDING_TARGET_SUBREDDITS);
+    const targetSubreddit = await holding_reddit.getSubreddit(process.env.HOLDING_TARGET_SUBREDDITS);
 
     // get new target submissions
     const submissions = await targetSubreddit.getNew({ limit: 25 });
@@ -54,17 +45,17 @@ export async function mainHolding() {
     const unprocessedTargetSubmissions = await consumeTargetSubmissions(submissions);
 
     // crosspost
-    await crossPostFromTargetSubreddit(unprocessedTargetSubmissions, reddit);
+    await crossPostFromTargetSubreddit(unprocessedTargetSubmissions, holding_reddit);
 
     // check for approved posts
-    const holdingSubreddit = await reddit.getSubreddit(process.env.HOLDING_SUBREDDIT);
+    const holdingSubreddit = await holding_reddit.getSubreddit(process.env.HOLDING_SUBREDDIT);
     const approvedLinks = await holdingSubreddit.getModerationLog({ type: 'approvelink' });
     const unprocessedHoldingItems = await consumeUnprocessedModlog(approvedLinks);
-    await processApprovedPosts(unprocessedHoldingItems, reddit);
+    await processApprovedPosts(unprocessedHoldingItems, holding_reddit);
 
     const removedLinks = await holdingSubreddit.getModerationLog({ type: 'removelink' }).fetchMore({ amount: 1000 });
     const unprocessedRemovedHoldingItems = await consumeUnprocessedModlog(removedLinks, 'removed');
-    await processRemovedPosts(unprocessedRemovedHoldingItems, reddit);
+    await processRemovedPosts(unprocessedRemovedHoldingItems, holding_reddit);
   } catch (err) {
     log.error(chalk.red('[HOLDING] Main holding loop error: ', err));
   }
@@ -80,7 +71,7 @@ async function crossPostFromTargetSubreddit(unprocessedSubmissions, reddit) {
       const submissionUrl = await submission.url;
       const isImage = (submissionUrl.includes('imgur') || submissionUrl.includes('i.red')) && !submissionUrl.includes('.gif');
       if (isImage) {
-        await reddit.submitCrosspost({
+        await holding_reddit.submitCrosspost({
           title: submission.id,
           originalPost: submission,
           subredditName: process.env.HOLDING_SUBREDDIT
@@ -98,13 +89,13 @@ async function processApprovedPosts(unprocessedItems, reddit) {
     return;
   }
 
-  const destinationSubreddit = await reddit.getSubreddit(process.env.HOLDING_DESTINATION_SUBREDDIT);
-  const backupDestinationSubreddit = await reddit.getSubreddit('internet_funeral');
+  const destinationSubreddit = await holding_reddit.getSubreddit(process.env.HOLDING_DESTINATION_SUBREDDIT);
+  const backupDestinationSubreddit = await holding_reddit.getSubreddit('internet_funeral');
 
   for (let item of unprocessedItems) {
     try {
       const submissionId = item.target_permalink.split('/')[4]; // "/r/hmmm/comments/a0uwkf/hmmm/eakgqi3/"
-      const submission = await reddit.getSubmission(submissionId);
+      const submission = await holding_reddit.getSubmission(submissionId);
       const imagePath = await downloadImage(await submission.url);
       if (!imagePath) {
         log.error('[HOLDING] Error downloading approved post (probably deleted):', item.target_permalink);
@@ -137,7 +128,7 @@ async function processRemovedPosts(unprocessedItems, reddit) {
   for (let item of unprocessedItems) {
     try {
       const submissionId = item.target_permalink.split('/')[4]; // "/r/hmmm/comments/a0uwkf/hmmm/eakgqi3/"
-      const submission = await reddit.getSubmission(submissionId);
+      const submission = await holding_reddit.getSubmission(submissionId);
       submission.delete();
     } catch (e) {
       log.error('[HOLDING] Error processing approved posts:', item.target_permalink, e);
@@ -251,7 +242,7 @@ export async function garbageCollectionHolding(firstTimeDelay) {
   try {
     log.debug(chalk.blue('[HOLDING] Starting garbage collection processing cycle'));
 
-    const holdingSubreddit = await reddit.getSubreddit(process.env.HOLDING_SUBREDDIT);
+    const holdingSubreddit = await holding_reddit.getSubreddit(process.env.HOLDING_SUBREDDIT);
 
     // get new target submissions
     const submissions = await holdingSubreddit.getNew({ limit: 100 });
@@ -287,6 +278,6 @@ export async function garbageCollectionHolding(firstTimeDelay) {
 
 export async function deleteHoldingPost(submissionId) {
   log.info('[HOLDING] Deleting ', `http://redd.it/${submissionId}`, 'as holding repost');
-  const submission = await reddit.getSubmission(submissionId);
+  const submission = await holding_reddit.getSubmission(submissionId);
   await submission.delete();
 }
