@@ -226,10 +226,14 @@ async function removeAsRepost(submission, lastSubmission, noOriginalSubmission, 
         return;
     }
 
+    const author = await submission.author.name;
+
     // get removal text
     let removalReason = '';
-    if (subSettings.reposts.fullRemovalMessage) {
-        removalReason = await createFullCustomRemovalMessage(subSettings, lastSubmission, lastAuthor, submission);
+    if (subSettings.reposts.sameAuthorRemovalMessage && author === lastAuthor) {
+        removalReason = await createFullCustomRemovalMessage(subSettings, lastSubmission, lastAuthor, submission, subSettings.reposts.sameAuthorRemovalMessage);
+    } else if (subSettings.reposts.fullRemovalMessage) {
+        removalReason = await createFullCustomRemovalMessage(subSettings, lastSubmission, lastAuthor, submission, subSettings.reposts.fullRemovalMessage);
     } else {
         removalReason = await createRemovalMessage(lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, allTimeTopRemoval);
     }
@@ -237,9 +241,9 @@ async function removeAsRepost(submission, lastSubmission, noOriginalSubmission, 
     await removePost(submission, removalReason, subSettings, reddit);
 }
 
-async function createFullCustomRemovalMessage(subSettings, lastSubmission, lastAuthor, submission) {
+async function createFullCustomRemovalMessage(subSettings, lastSubmission, lastAuthor, submission, inputRemovalText) {
     const permalink = 'https://www.reddit.com' + (await lastSubmission.permalink);
-    let removalText = subSettings.reposts.fullRemovalMessage;
+    let removalText = inputRemovalText;
     removalText = removalText.split("{{last_submission_link}}").join(permalink);
     removalText = removalText.split("{{last_submission_url}}").join(await lastSubmission.url);
     removalText = removalText.split("{{time_ago}}").join(await getTimeAgoString(lastSubmission));
