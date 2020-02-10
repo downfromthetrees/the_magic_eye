@@ -14,8 +14,22 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 
 ---
 
-<!-- TOC -->autoauto- [Magic Eye Configuration](#magic-eye-configuration)auto    - [Media types](#media-types)auto    - [Set the tolerance](#set-the-tolerance)auto    - [On user reply](#on-user-reply)auto    - [Remove reposts](#remove-reposts)auto    - [Remove blacklisted images](#remove-blacklisted-images)auto    - [Remove broken image links](#remove-broken-image-links)auto    - [Remove small images](#remove-small-images)auto    - [Remove uncropped images](#remove-uncropped-images)auto    - [Custom footer](#custom-footer)auto    - [Report unmoderated posts](#report-unmoderated-posts)auto    - [Removal message type](#removal-message-type)autoauto<!-- /TOC -->
+<!-- TOC -->
 
+- [Magic Eye Configuration](#magic-eye-configuration)
+    - [Media types](#media-types)
+    - [Set the tolerance](#set-the-tolerance)
+    - [On user reply](#on-user-reply)
+    - [Remove reposts](#remove-reposts)
+    - [Remove blacklisted images](#remove-blacklisted-images)
+    - [Remove broken image links](#remove-broken-image-links)
+    - [Remove small images](#remove-small-images)
+    - [Remove uncropped images](#remove-uncropped-images)
+    - [Custom footer](#custom-footer)
+    - [Report unmoderated posts](#report-unmoderated-posts)
+    - [Removal message type](#removal-message-type)
+
+<!-- /TOC -->
 
 ## Media types
 
