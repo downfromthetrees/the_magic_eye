@@ -14,22 +14,7 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 
 ---
 
-<!-- TOC -->
-
-- [Magic Eye Configuration](#magic-eye-configuration)
-    - [Media types](#media-types)
-    - [Set the tolerance](#set-the-tolerance)
-    - [On user reply](#on-user-reply)
-    - [Remove reposts](#remove-reposts)
-    - [Remove blacklisted images](#remove-blacklisted-images)
-    - [Remove broken image links](#remove-broken-image-links)
-    - [Remove small images](#remove-small-images)
-    - [Remove uncropped images](#remove-uncropped-images)
-    - [Custom footer](#custom-footer)
-    - [Report unmoderated posts](#report-unmoderated-posts)
-    - [Removal message type](#removal-message-type)
-
-<!-- /TOC -->
+<!-- TOC -->autoauto- [Magic Eye Configuration](#magic-eye-configuration)auto    - [Media types](#media-types)auto    - [Set the tolerance](#set-the-tolerance)auto    - [On user reply](#on-user-reply)auto    - [Remove reposts](#remove-reposts)auto    - [Remove blacklisted images](#remove-blacklisted-images)auto    - [Remove broken image links](#remove-broken-image-links)auto    - [Remove small images](#remove-small-images)auto    - [Remove uncropped images](#remove-uncropped-images)auto    - [Custom footer](#custom-footer)auto    - [Report unmoderated posts](#report-unmoderated-posts)auto    - [Removal message type](#removal-message-type)autoauto<!-- /TOC -->
 
 
 ## Media types
@@ -85,6 +70,7 @@ Optional fields:
         "removalMessage": "Bad luck buckaroo, this image is a repost!",
         "allTimeTopRemovalMessage": "Bad luck buckaroo, this image is an all time classic!",
         "fullRemovalMessage": "Hey {{author}}, I control this message. Here's my link: {{last_submission_link}}.\n\nAnd [here's the url]({{last_submission_url}}) posted {{time_ago}} by {{last_author}}",
+        "sameAuthorRemovalMessage": "Hey {{author}}, Didn't you already post this? Sure you did, right here: {{last_submission_link}}.",
         "actionAll": false
     },
 
@@ -95,7 +81,7 @@ Notes:
   - `"warn"`: reports the post and posts a removed comment in the thread with links
   - `"warnByModmail"`: sends a modmail with info about the repost
   - `"silent"`: remove the thread without a comment or report
-- You can override the first sentence with `removalMessage`/`allTimeTopRemovalMessage`, or the whole message with `fullRemovalMessage` and use the variables in the example as you like. `\n` for line break.
+- You can override the first sentence with `removalMessage`/`allTimeTopRemovalMessage`, or the whole message with `fullRemovalMessage` and use the variables in the example as you like. `\n` for line break. Additionally you can use `sameAuthorRemovalMessage` to post a removal message custom for the situation when the same user has reposted the same image. 
 - `actionRepostsIfDeleted`: Performs `action` on reposts even if the previous post was deleted.
 - `approveIfOverRepostDays`: Auto-approves a repost over the time limit to save you doing it
 - Score thresholds: Magic Eye keeps track of the last successful post of an image and uses the score it got + how long ago it was posted to determine what to do. There are a few thresholds so that it can make smarter decisions for reposts of popular vs less popular reposts. For example in the default settings: if the last matching submission got over `mediumScore` points (in this case 400), it'll be removed if it's less than `mediumScoreRepostDays` days old (in this case 25 days).
