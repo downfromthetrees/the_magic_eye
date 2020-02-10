@@ -11,18 +11,22 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 import { getMasterProperty, setMasterProperty } from '../master_database_manager';
 import { downloadImage, deleteImage } from '../image_utils';
 
-export async function nukeHolding() {
+export async function nukeHolding(runAgain = false) {
   const holdingSubreddit = await holding_reddit.getSubreddit(process.env.HOLDING_SUBREDDIT);
   const submissions = await holdingSubreddit.getNew({ limit: 1000 });
 
   for (let submission of submissions) {
     try {
-      const secondsRun = Math.floor(Math.random() * Math.floor(1000));
+      const secondsRun = Math.floor(Math.random() * Math.floor(30));
       setTimeout(() => {submission.delete()}, secondsRun * 1000);
     } catch (e) {
       log.error('[HOLDING] Error nuking submission:' + submission.id, e);
     }
   }
+
+  // if (runAgain) {
+  //   setTimeout(() => {nukeHolding(false)}, 60 * 1000);
+  // }
 }
 
 export async function mainHolding() {
