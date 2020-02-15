@@ -7,9 +7,6 @@ require('dotenv').config();
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-// hmmm modules
-import { processModlog } from './hmmm/modlog_processor';
-
 // magic eye modules
 import { initDatabase, databaseConnectionListSize } from './database_manager';
 import { processSubmission } from './submission_processor';

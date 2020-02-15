@@ -46,7 +46,7 @@ export async function removeReposts(reddit, modComment, submission, lastSubmissi
             submission.approve();
         }
 
-        // hmmm custom
+        // [HMMM] hmmm only block
         const author = await submission.author;
         let username = author ? author.name : null;
         if (username == process.env.HOLDING_ACCOUNT_USERNAME || username == 'CosmicKeys') {
@@ -106,7 +106,7 @@ export async function removeReposts(reddit, modComment, submission, lastSubmissi
             submission.assignFlair({ text: await lastSubmission.link_flair_text }); // reflair with same flair
         }
 
-        // hmmm custom
+        // [HMMM] hmmm only block
         const author = await submission.author;
         let username = author ? author.name : null;
         if (username == process.env.HOLDING_ACCOUNT_USERNAME || username == 'CosmicKeys') {

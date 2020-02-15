@@ -1,13 +1,15 @@
 // standard modules
 require('dotenv').config();
-const outdent = require('outdent');
 const chalk = require('chalk');
 const log = require('loglevel');
-const indentString = require('indent-string');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 export async function enableFilterMode(reddit, enable) {
-    const subredditName = 'hmmm';
+    await doEnableFilterMode(reddit, enable, 'hmmm');
+    await doEnableFilterMode(reddit, enable, 'hmmmgifs');
+}
+
+export async function doEnableFilterMode(reddit, enable, subredditName) {
     log.info(`[${subredditName}]`, 'Setting filter mode:', enable);
 
     try {
@@ -36,33 +38,11 @@ export async function enableFilterMode(reddit, enable) {
     }
 }
 
-
-// const nonFilterConfig = 
-// `
-// ---
-// # Magic Eye auto-filtering config
-// type: submission
-// message: |
-//     Thanks for your hmmm!
-
-//     r/hmmm now only accepts a limited amount of posts per day. Your post has now been entered for selection and will be reviewed shortly.
-    
-//     But if you're bored you can [read everything about how this process works](https://www.reddit.com/r/hmmm/wiki/submission_process).
-// `;
-
-
 const filterConfig =
 `---
 # Magic Eye auto-filtering config
 type: submission
 action: filter`;
-
-// message: |
-//     Thanks for your hmmm!
-    
-//     Your post is not yet visible to users, but a moderator will review it shortly.
-    
-//     If you're bored you can [read everything about how our subreddit works](https://www.reddit.com/r/hmmm/wiki/submission_process).
 
 
 function modifyFilteringConfig(currentConfig, enable) {
@@ -82,18 +62,3 @@ function modifyFilteringConfig(currentConfig, enable) {
         return currentConfig.replace(filterConfig, '');
     }
 }
-
-
-// function modifyFilteringConfig(currentConfig, enable) {
-//     const configAddition = enable ? filterConfig : nonFilterConfig;
-//     const configRemoval = enable ? nonFilterConfig : filterConfig;
-
-//     const baseConfig = currentConfig.replace(configRemoval, '');
-
-//     if (currentConfig.includes(configAddition)) {
-//         log.warn('Filtering already enabled for subreddit. Ignoring.');
-//         return currentConfig;
-//     }
-
-//     return baseConfig + configAddition;
-// }
