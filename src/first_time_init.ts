@@ -58,7 +58,7 @@ export async function firstTimeInit(reddit, subredditName, database, masterSetti
                 
                 These are the current settings for your subreddit:
     
-                * Remove recent image/gif reposts
+                * Remove recent image/animated media reposts
                 * Remove [images you choose to blacklist](https://github.com/downfromthetrees/the_magic_eye/blob/master/README.md#remove-blacklisted-images)
                 * Remove broken image links
     
