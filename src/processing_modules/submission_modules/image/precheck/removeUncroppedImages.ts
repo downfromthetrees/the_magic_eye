@@ -39,6 +39,7 @@ export async function removeUncroppedImages(reddit, submission, imageDetails, su
 Well cropped images look better, and get more upvotes.
 `;
         removePost(submission, removalReason, subSettings, reddit);
+        return false;
     }
 
     return true;
