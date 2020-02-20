@@ -50,6 +50,7 @@ export class MagicDatabase {
         const endTime = new Date().getTime();
         log.debug(chalk.green('[FILE_WRITE] Database cache wrote from disk, took: '), (endTime - startTime) / 1000, 's to load ', this.dhash_cache.length, 'entries for ', this.subredditName);
         this.dhash_cache = null;
+        this.connection = null;
       }
     }
   
