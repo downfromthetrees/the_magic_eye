@@ -18,11 +18,15 @@ import { logProcessPost } from './master_stats';
 import { reddit } from './reddit';
 import { consumeQueue } from './submission_queue';
 import { getModdedSubredditsMulti } from './modded_subreddits';
+import moment = require('moment');
+
+let threadMonitor = new Date();
 
 export async function mainProcessor() {
     const minimumTimeoutTimeSeconds = 15;
 
     let timeoutTimeSeconds = minimumTimeoutTimeSeconds;
+    threadMonitor = new Date();
     try {
         log.debug(chalk.blue('Starting submission processing cycle'));
         const startCycleTime = new Date().getTime();
@@ -40,6 +44,7 @@ export async function mainProcessor() {
             const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
             try {
                 await processSubreddit(subredditName, unprocessedForSub, reddit);
+                threadMonitor = new Date();
             } catch (e) {
                 const possibleErrorIds = unprocessedForSub.map(item => item.id);
                 log.error('Error processing subreddit: ', subredditName, ',', e, ', possible error threads:', possibleErrorIds);
@@ -52,6 +57,7 @@ export async function mainProcessor() {
         const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
         timeoutTimeSeconds = Math.max(minimumTimeoutTimeSeconds - cycleTimeTaken, 0);
 
+        threadMonitor = new Date();
         const used = process.memoryUsage().heapUsed / 1024 / 1024;
         if (unprocessedSubmissions.length > 0) {
             log.info(
@@ -67,8 +73,19 @@ export async function mainProcessor() {
         log.error(chalk.red('Main loop error: ', err));
     }
 
+    threadMonitor = new Date();
     setTimeout(mainProcessor, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
 }
+
+setInterval(() => {
+    const restart = moment().isAfter(moment(threadMonitor).add('minutes', 10));
+    if (restart) {
+        console.log('RESTARTING MAIN PROCESSOR');
+        mainProcessor();
+    } else {
+        console.log('NOT RESTARTING MAIN PROCESSOR');
+    }
+}, 10000);
 
 async function processSubreddit(subredditName: string, unprocessedSubmissions, reddit) {
     if (subredditName.startsWith('u_')) {
