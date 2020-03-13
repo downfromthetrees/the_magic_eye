@@ -20,7 +20,8 @@ import { consumeQueue } from './submission_queue';
 import { getModdedSubredditsMulti } from './modded_subreddits';
 
 export async function mainProcessor() {
-    const minimumTimeoutTimeSeconds = 5;
+    const minimumTimeoutTimeSeconds = 15;
+
     let timeoutTimeSeconds = minimumTimeoutTimeSeconds;
     try {
         log.debug(chalk.blue('Starting submission processing cycle'));

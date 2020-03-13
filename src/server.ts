@@ -9,7 +9,8 @@ log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
 var heapdump = require('heapdump');
 
-if (!process.env.ACCOUNT_USERNAME ||
+if (
+    !process.env.ACCOUNT_USERNAME ||
     !process.env.PASSWORD ||
     !process.env.CLIENT_ID ||
     !process.env.CLIENT_SECRET ||
@@ -18,19 +19,19 @@ if (!process.env.ACCOUNT_USERNAME ||
     !process.env.NODE_ENV ||
     !process.env.DAYS_EXPIRY ||
     !process.env.EXTERNAL_DATABASES
-    ) {
-        log.error(
-            process.env.ACCOUNT_USERNAME,
-            process.env.PASSWORD,
-            process.env.CLIENT_ID,
-            process.env.CLIENT_SECRET,
-            process.env.NODE_ENV,
-            process.env.MONGODB_URI,
-            process.env.NODE_ENV,
-            process.env.DAYS_EXPIRY,
-            process.env.EXTERNAL_DATABASES
-        );
-        throw "Missing essential config. Fatal error."
+) {
+    log.error(
+        process.env.ACCOUNT_USERNAME,
+        process.env.PASSWORD,
+        process.env.CLIENT_ID,
+        process.env.CLIENT_SECRET,
+        process.env.NODE_ENV,
+        process.env.MONGODB_URI,
+        process.env.NODE_ENV,
+        process.env.DAYS_EXPIRY,
+        process.env.EXTERNAL_DATABASES
+    );
+    throw 'Missing essential config. Fatal error.';
 }
 
 // magic eye imports
@@ -43,17 +44,17 @@ import { getModdedSubredditsMulti } from './modded_subreddits';
 import { mainUnmoderated } from './unmoderated_processor';
 
 const garbageCollectSeconds = 60 * 10;
-async function manualGarbageCollect() {   
+async function manualGarbageCollect() {
     if (!global.gc) {
         log.warn(chalk.red('WARN: Garbage collection is not exposed'));
         return;
-      }
+    }
     global.gc();
     log.info('[GARBAGE] Ran GC');
     setTimeout(manualGarbageCollect, garbageCollectSeconds * 1000); // run again in timeoutTimeSeconds
 }
 
-async function startServer() {   
+async function startServer() {
     try {
         log.info('The magic eye is booting...');
         app.listen(process.env.PORT || 3000, () => log.info(chalk.bgGreenBright('Magic Eye listening on port 3000')));
@@ -88,7 +89,7 @@ app.get('/keepalive', async function(req, res) {
 
 app.get('/shutdown', async function(req, res) {
     res.setHeader('Content-Type', 'application/json');
-    let password = req.query ? req.query.password : null; 
+    let password = req.query ? req.query.password : null;
     if (password === process.env.SHUTDOWN_PASSWORD) {
         haltQueue();
         res.send(JSON.stringify({ status: 'ok' }));
@@ -97,24 +98,25 @@ app.get('/shutdown', async function(req, res) {
     }
 });
 
-
 app.get('/heapdump', async function(req, res) {
-    let name = req.query ? req.query.name : null; 
+    let name = req.query ? req.query.name : null;
     const fileName = `./tmp/${name}.heapsnapshot`;
     heapdump.writeSnapshot(fileName, function(err, filename) {
-        if (err) 
-            console.log('dump err: ', err);
-        else
-            console.log('dump written to', filename);
-        });
+        if (err) console.log('dump err: ', err);
+        else console.log('dump written to', filename);
+    });
 });
 
 app.get('/get-heapdump', async function(req, res) {
-    let name = req.query ? req.query.name : null; 
+    let name = req.query ? req.query.name : null;
     const fileName = `./tmp/${name}.heapsnapshot`;
     res.download(fileName);
 });
 
 process.on('unhandledRejection', (reason: any, p: any) => {
     log.warn('ERROR: Unhandled promise Rejection at: Promise', p.message, 'reason:', reason.message);
-  });
+});
+
+process.on('uncaughtException', function(err) {
+    log.warn('UNCAUGHT EXCEPTION - keeping process alive:', err);
+});
