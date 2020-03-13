@@ -21,25 +21,34 @@ import { getModdedSubredditsMulti } from './modded_subreddits';
 import moment = require('moment');
 
 let threadMonitor = new Date();
+let currentThread = 0;
 
-export async function mainProcessor() {
+export async function mainProcessor(threadCount: number) {
+    // guard against thread dying
+    if (threadCount > currentThread) {
+        currentThread = threadCount;
+    } else {
+        console.log('***** Finishing thread: ', threadCount);
+        return;
+    }
+
     const minimumTimeoutTimeSeconds = 15;
 
     let timeoutTimeSeconds = minimumTimeoutTimeSeconds;
     threadMonitor = new Date();
+    log.info(chalk.blue('Starting submission processing cycle for thread: ', threadCount));
     try {
-        log.debug(chalk.blue('Starting submission processing cycle'));
         const startCycleTime = new Date().getTime();
 
         const moddedSubs = await getModdedSubredditsMulti();
         if (!moddedSubs || moddedSubs.length == 0) {
             log.warn('No subreddits found. Sleeping.');
-            setTimeout(mainProcessor, 30 * 1000); // run again in 30 seconds
+            setTimeout(() => {
+                mainProcessor(threadCount);
+            }, 30 * 1000); // run again in timeoutTimeSeconds
         }
 
-        log.info('[*PROCESSOR*] Starting consume');
         const unprocessedSubmissions = await consumeQueue();
-        log.info('[*PROCESSOR*] Finished consume');
         for (const subredditName of moddedSubs) {
             const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
             try {
@@ -50,7 +59,6 @@ export async function mainProcessor() {
                 log.error('Error processing subreddit: ', subredditName, ',', e, ', possible error threads:', possibleErrorIds);
             }
         }
-        log.info('[*PROCESSOR*] Finished processing subreddits');
 
         // end cycle
         const endCycleTime = new Date().getTime();
@@ -74,14 +82,16 @@ export async function mainProcessor() {
     }
 
     threadMonitor = new Date();
-    setTimeout(mainProcessor, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
+    setTimeout(() => {
+        mainProcessor(threadCount);
+    }, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
 }
 
 setInterval(() => {
-    const restart = moment().isAfter(moment(threadMonitor).add('minutes', 10));
+    const restart = moment().isAfter(moment(threadMonitor).add('minutes', 5));
     if (restart) {
         console.log('RESTARTING MAIN PROCESSOR');
-        mainProcessor();
+        mainProcessor(currentThread + 1);
     }
 }, 10000);
 

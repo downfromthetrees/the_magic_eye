@@ -71,7 +71,7 @@ async function startServer() {
 
         log.info('The magic eye is ONLINE.');
         mainQueue(); // start queue to get submissions
-        mainProcessor(); // start main loop
+        mainProcessor(1); // start main loop
         mainInboxProcessor(); // start checking inbox
         setTimeout(mainSettingsProcessor, 300 * 1000); // check for wiki updates
         mainUnmoderated();
