@@ -27,7 +27,7 @@ export async function mainProcessor(threadCount: number) {
     // guard against thread dying
     if (threadCount > currentThread) {
         currentThread = threadCount;
-    } else {
+    } else if (threadCount < currentThread) {
         console.log('***** Finishing thread: ', threadCount);
         return;
     }
