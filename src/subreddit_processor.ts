@@ -82,8 +82,6 @@ setInterval(() => {
     if (restart) {
         console.log('RESTARTING MAIN PROCESSOR');
         mainProcessor();
-    } else {
-        console.log('NOT RESTARTING MAIN PROCESSOR');
     }
 }, 10000);
 
