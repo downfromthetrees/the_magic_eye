@@ -7,14 +7,12 @@ require('dotenv').config();
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-
 // magic eye modules
 import { initDatabase, databaseConnectionListSize } from './database_manager';
 import { processSubmission } from './submission_processor';
 import { processUnmoderated } from './unmoderated_processor';
 import { firstTimeInit, isAnythingInitialising } from './first_time_init';
-import { SubredditSettings, getSubredditSettings, setSubredditSettings,
-    getMasterProperty, setMasterProperty, needsUpgrade } from './master_database_manager';
+import { SubredditSettings, getSubredditSettings, setSubredditSettings, getMasterProperty, setMasterProperty } from './master_database_manager';
 import { createDefaultSettings, writeSettings } from './wiki_utils';
 import { logProcessPost } from './master_stats';
 import { reddit } from './reddit';
@@ -25,16 +23,18 @@ export async function mainProcessor() {
     const minimumTimeoutTimeSeconds = 5;
     let timeoutTimeSeconds = minimumTimeoutTimeSeconds;
     try {
-        log.debug(chalk.blue("Starting submission processing cycle"));
+        log.debug(chalk.blue('Starting submission processing cycle'));
         const startCycleTime = new Date().getTime();
-        
+
         const moddedSubs = await getModdedSubredditsMulti();
         if (!moddedSubs || moddedSubs.length == 0) {
             log.warn('No subreddits found. Sleeping.');
             setTimeout(mainProcessor, 30 * 1000); // run again in 30 seconds
         }
 
+        log.info('[*PROCESSOR*] Starting consume');
         const unprocessedSubmissions = await consumeQueue();
+        log.info('[*PROCESSOR*] Finished consume');
         for (const subredditName of moddedSubs) {
             const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
             try {
@@ -44,6 +44,7 @@ export async function mainProcessor() {
                 log.error('Error processing subreddit: ', subredditName, ',', e, ', possible error threads:', possibleErrorIds);
             }
         }
+        log.info('[*PROCESSOR*] Finished processing subreddits');
 
         // end cycle
         const endCycleTime = new Date().getTime();
@@ -52,12 +53,19 @@ export async function mainProcessor() {
 
         const used = process.memoryUsage().heapUsed / 1024 / 1024;
         if (unprocessedSubmissions.length > 0) {
-            log.info(chalk.blue(`========= Processed ${unprocessedSubmissions.length} new submissions, took ${cycleTimeTaken} seconds. databaseConnectionListSize: ${databaseConnectionListSize()}, memory usage is: ${Math.round(used * 100) / 100} MB`));
+            log.info(
+                chalk.blue(
+                    `========= Processed ${
+                        unprocessedSubmissions.length
+                    } new submissions, took ${cycleTimeTaken} seconds. databaseConnectionListSize: ${databaseConnectionListSize()}, memory usage is: ${Math.round(used * 100) /
+                        100} MB`
+                )
+            );
         }
     } catch (err) {
-        log.error(chalk.red("Main loop error: ", err));
+        log.error(chalk.red('Main loop error: ', err));
     }
-    
+
     setTimeout(mainProcessor, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
 }
 
@@ -75,16 +83,19 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
         log.warn(`[${subredditName}]`, chalk.yellow('Missing settings for '), subredditName, ' - ignoring subreddit');
         return;
     }
-    
+
     // first time init
     if (!masterSettings.config.firstTimeInit) {
         if (!isAnythingInitialising()) {
             const database = await initDatabase(subredditName, masterSettings.config.databaseUrl, masterSettings.config.expiryDays);
-            firstTimeInit(reddit, subredditName, database, masterSettings).then(() => {
-                log.info(`[${subredditName}]`, chalk.green('Initialisation processing exited for ', subredditName));
-              }, (e) => {
-                log.error(`[${subredditName}]`, chalk.red('First time init failed for:', subredditName, e));
-              });
+            firstTimeInit(reddit, subredditName, database, masterSettings).then(
+                () => {
+                    log.info(`[${subredditName}]`, chalk.green('Initialisation processing exited for ', subredditName));
+                },
+                e => {
+                    log.error(`[${subredditName}]`, chalk.red('First time init failed for:', subredditName, e));
+                }
+            );
         }
         return;
     }
@@ -98,12 +109,12 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
                 try {
                     await processSubmission(submission, masterSettings, database, reddit, true);
                 } catch (err) {
-                    log.error(`[${subredditName}]`, chalk.red(`Failed to process submission: ${submission.id}.`), " error message: ", err.message);
+                    log.error(`[${subredditName}]`, chalk.red(`Failed to process submission: ${submission.id}.`), ' error message: ', err.message);
                 }
                 const endTime = new Date().getTime();
                 const timeTaken = (endTime - startTime) / 1000;
-                logProcessPost(subredditName, timeTaken);                
-            };
+                logProcessPost(subredditName, timeTaken);
+            }
             await database.closeDatabase();
         } else {
             log.error(`[${subredditName}]`, chalk.red(`Failed to init database, ignoring ${unprocessedSubmissions.length} posts for subreddit.`));
@@ -126,11 +137,11 @@ export async function initialiseNewSubreddit(subredditName: string) {
     }
     if (!selectedDatabase) {
         log.warn(`[${subredditName}]`, 'No databases available to house: ', subredditName);
-        return;            
+        return;
     }
     const masterSettings = new SubredditSettings(subredditName);
     await createDefaultSettings(subredditName, masterSettings, reddit);
-    
+
     masterSettings.config.databaseUrl = selectedDatabase.url;
     await setSubredditSettings(subredditName, masterSettings);
     selectedDatabase.count++;
