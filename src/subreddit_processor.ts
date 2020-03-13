@@ -12,25 +12,40 @@ import { initDatabase, databaseConnectionListSize } from './database_manager';
 import { processSubmission } from './submission_processor';
 import { processUnmoderated } from './unmoderated_processor';
 import { firstTimeInit, isAnythingInitialising } from './first_time_init';
-import { SubredditSettings, getSubredditSettings, setSubredditSettings,
-    getMasterProperty, setMasterProperty, needsUpgrade } from './master_database_manager';
+import { SubredditSettings, getSubredditSettings, setSubredditSettings, getMasterProperty, setMasterProperty } from './master_database_manager';
 import { createDefaultSettings, writeSettings } from './wiki_utils';
 import { logProcessPost } from './master_stats';
 import { reddit } from './reddit';
 import { consumeQueue } from './submission_queue';
 import { getModdedSubredditsMulti } from './modded_subreddits';
+import moment = require('moment');
 
-export async function mainProcessor() {
-    const minimumTimeoutTimeSeconds = 5;
+let threadMonitor = new Date();
+let currentThread = 0;
+
+export async function mainProcessor(threadCount: number) {
+    // guard against thread dying
+    if (threadCount > currentThread) {
+        currentThread = threadCount;
+    } else if (threadCount < currentThread) {
+        console.log('***** Finishing thread: ', threadCount);
+        return;
+    }
+
+    const minimumTimeoutTimeSeconds = 15;
+
     let timeoutTimeSeconds = minimumTimeoutTimeSeconds;
+    threadMonitor = new Date();
+    log.info(chalk.blue('Starting submission processing cycle for thread: ', threadCount));
     try {
-        log.debug(chalk.blue("Starting submission processing cycle"));
         const startCycleTime = new Date().getTime();
-        
+
         const moddedSubs = await getModdedSubredditsMulti();
         if (!moddedSubs || moddedSubs.length == 0) {
             log.warn('No subreddits found. Sleeping.');
-            setTimeout(mainProcessor, 30 * 1000); // run again in 30 seconds
+            setTimeout(() => {
+                mainProcessor(threadCount);
+            }, 30 * 1000); // run again in timeoutTimeSeconds
         }
 
         const unprocessedSubmissions = await consumeQueue();
@@ -38,6 +53,7 @@ export async function mainProcessor() {
             const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
             try {
                 await processSubreddit(subredditName, unprocessedForSub, reddit);
+                threadMonitor = new Date();
             } catch (e) {
                 const possibleErrorIds = unprocessedForSub.map(item => item.id);
                 log.error('Error processing subreddit: ', subredditName, ',', e, ', possible error threads:', possibleErrorIds);
@@ -49,16 +65,35 @@ export async function mainProcessor() {
         const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
         timeoutTimeSeconds = Math.max(minimumTimeoutTimeSeconds - cycleTimeTaken, 0);
 
+        threadMonitor = new Date();
         const used = process.memoryUsage().heapUsed / 1024 / 1024;
         if (unprocessedSubmissions.length > 0) {
-            log.info(chalk.blue(`========= Processed ${unprocessedSubmissions.length} new submissions, took ${cycleTimeTaken} seconds. databaseConnectionListSize: ${databaseConnectionListSize()}, memory usage is: ${Math.round(used * 100) / 100} MB`));
+            log.info(
+                chalk.blue(
+                    `========= Processed ${
+                        unprocessedSubmissions.length
+                    } new submissions, took ${cycleTimeTaken} seconds. databaseConnectionListSize: ${databaseConnectionListSize()}, memory usage is: ${Math.round(used * 100) /
+                        100} MB`
+                )
+            );
         }
     } catch (err) {
-        log.error(chalk.red("Main loop error: ", err));
+        log.error(chalk.red('Main loop error: ', err));
     }
-    
-    setTimeout(mainProcessor, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
+
+    threadMonitor = new Date();
+    setTimeout(() => {
+        mainProcessor(threadCount);
+    }, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
 }
+
+setInterval(() => {
+    const restart = moment().isAfter(moment(threadMonitor).add('minutes', 5));
+    if (restart) {
+        console.log('RESTARTING MAIN PROCESSOR');
+        mainProcessor(currentThread + 1);
+    }
+}, 10000);
 
 async function processSubreddit(subredditName: string, unprocessedSubmissions, reddit) {
     if (subredditName.startsWith('u_')) {
@@ -74,16 +109,19 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
         log.warn(`[${subredditName}]`, chalk.yellow('Missing settings for '), subredditName, ' - ignoring subreddit');
         return;
     }
-    
+
     // first time init
     if (!masterSettings.config.firstTimeInit) {
         if (!isAnythingInitialising()) {
             const database = await initDatabase(subredditName, masterSettings.config.databaseUrl, masterSettings.config.expiryDays);
-            firstTimeInit(reddit, subredditName, database, masterSettings).then(() => {
-                log.info(`[${subredditName}]`, chalk.green('Initialisation processing exited for ', subredditName));
-              }, (e) => {
-                log.error(`[${subredditName}]`, chalk.red('First time init failed for:', subredditName, e));
-              });
+            firstTimeInit(reddit, subredditName, database, masterSettings).then(
+                () => {
+                    log.info(`[${subredditName}]`, chalk.green('Initialisation processing exited for ', subredditName));
+                },
+                e => {
+                    log.error(`[${subredditName}]`, chalk.red('First time init failed for:', subredditName, e));
+                }
+            );
         }
         return;
     }
@@ -97,12 +135,12 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
                 try {
                     await processSubmission(submission, masterSettings, database, reddit, true);
                 } catch (err) {
-                    log.error(`[${subredditName}]`, chalk.red(`Failed to process submission: ${submission.id}.`), " error message: ", err.message);
+                    log.error(`[${subredditName}]`, chalk.red(`Failed to process submission: ${submission.id}.`), ' error message: ', err.message);
                 }
                 const endTime = new Date().getTime();
                 const timeTaken = (endTime - startTime) / 1000;
-                logProcessPost(subredditName, timeTaken);                
-            };
+                logProcessPost(subredditName, timeTaken);
+            }
             await database.closeDatabase();
         } else {
             log.error(`[${subredditName}]`, chalk.red(`Failed to init database, ignoring ${unprocessedSubmissions.length} posts for subreddit.`));
@@ -125,11 +163,11 @@ export async function initialiseNewSubreddit(subredditName: string) {
     }
     if (!selectedDatabase) {
         log.warn(`[${subredditName}]`, 'No databases available to house: ', subredditName);
-        return;            
+        return;
     }
     const masterSettings = new SubredditSettings(subredditName);
     await createDefaultSettings(subredditName, masterSettings, reddit);
-    
+
     masterSettings.config.databaseUrl = selectedDatabase.url;
     await setSubredditSettings(subredditName, masterSettings);
     selectedDatabase.count++;

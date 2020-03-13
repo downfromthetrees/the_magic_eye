@@ -1,4 +1,4 @@
-import { reddit } from "./reddit";
+import { reddit } from './reddit';
 
 // standard server modules
 const chalk = require('chalk');
@@ -16,26 +16,28 @@ export async function getModdedSubredditsMulti() {
 
     console.log('Refreshing modded subreddits');
     moddedSubsCache = await getModdedSubredditsRecursive(reddit, null);
+    console.log('Modded subreddits loaded successfully, subreddits:', moddedSubsCache.length);
     return moddedSubsCache;
 }
 
 async function getModdedSubredditsRecursive(reddit, after) {
     try {
-        const moddedSubsUrl = "/subreddits/mine/moderator.json" + (after ? `?after=${after}` : "");
-        const moddedSubsData = await reddit.oauthRequest({uri: moddedSubsUrl, method: 'get'});
-        
+        const moddedSubsUrl = '/subreddits/mine/moderator.json' + (after ? `?after=${after}` : '');
+        const moddedSubsData = await reddit.oauthRequest({ uri: moddedSubsUrl, method: 'get' });
+
         if (!moddedSubsData) {
             log.error(chalk.red('Could not request modded subreddits from reddit'));
             return [];
         }
-        
+
         if (moddedSubsData.length == 0) {
             return [];
         }
-        
+
         let moddedSubs = moddedSubsData.map(moddedSub => moddedSub.display_name);
-        if (moddedSubs.length == 25) { // pagination, get more
-            const newAfter = moddedSubsData[moddedSubsData.length-1].name;
+        if (moddedSubs.length == 25) {
+            // pagination, get more
+            const newAfter = moddedSubsData[moddedSubsData.length - 1].name;
             return moddedSubs.concat(await getModdedSubredditsRecursive(reddit, newAfter));
         } else {
             return moddedSubs;
