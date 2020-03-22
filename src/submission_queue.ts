@@ -37,7 +37,7 @@ export async function mainQueue() {
             setTimeout(mainQueue, 30 * 1000); // run again in 30 seconds
         }
 
-        const submissions = [];
+        let submissions = [];
         const count = 300;
         for (let i = 0; i <= moddedSubs.length / count; i++) {
             const moddedSubredditsMultiString = moddedSubs
@@ -47,7 +47,7 @@ export async function mainQueue() {
                 .slice(0, -1); // rarepuppers+pics+MEOW_IRL
             const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
             const newSubmissions = await subredditMulti.getNew({ limit: 100 });
-            submissions.concat(newSubmissions);
+            submissions = submissions.concat(newSubmissions);
         }
 
         if (!submissions) {
