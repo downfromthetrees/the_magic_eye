@@ -46,13 +46,9 @@ export async function mainQueue() {
                 .map(sub => sub + '+')
                 .join('')
                 .slice(0, -1); // rarepuppers+pics+MEOW_IRL
-            log.info('moddedSubredditsMultiString', moddedSubredditsMultiString);
             const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
-
-            // [HMMM] hmmm only block - get the modqueue as well
-            const modqueueSubmissions = await subredditMulti.getModqueue({ limit: 100, only: 'links' });
             const newSubmissions = await subredditMulti.getNew({ limit: 100 });
-            submissions.concat(newSubmissions.concat(modqueueSubmissions));
+            submissions.concat(newSubmissions.concat(newSubmissions));
         }
 
         if (!submissions) {
