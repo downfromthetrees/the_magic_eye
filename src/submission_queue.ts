@@ -38,7 +38,6 @@ export async function mainQueue() {
         }
 
         const submissions = [];
-
         const count = 300;
         for (let i = 0; i <= moddedSubs.length / count; i++) {
             const moddedSubredditsMultiString = moddedSubs
@@ -48,7 +47,7 @@ export async function mainQueue() {
                 .slice(0, -1); // rarepuppers+pics+MEOW_IRL
             const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
             const newSubmissions = await subredditMulti.getNew({ limit: 100 });
-            submissions.concat(newSubmissions.concat(newSubmissions));
+            submissions.concat(newSubmissions);
         }
 
         if (!submissions) {
