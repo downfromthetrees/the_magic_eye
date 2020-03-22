@@ -46,6 +46,7 @@ export async function mainQueue() {
                 .map(sub => sub + '+')
                 .join('')
                 .slice(0, -1); // rarepuppers+pics+MEOW_IRL
+                log.info('moddedSubredditsMultiString': moddedSubredditsMultiString);
             const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
 
             // [HMMM] hmmm only block - get the modqueue as well
