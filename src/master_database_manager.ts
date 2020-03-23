@@ -193,10 +193,14 @@ export async function refreshAvailableDatabases() {
             databaseList = {};
         }
 
-        const databaseListKey = Object.keys(databaseList).filter(
-            item => !item.includes('mongodb+srv://apecrusher:JIbxW2CVbRrsn2PI@cluster0-nkadp.mongodb.net/apecrusher42?retryWrites=true&w=majority')
+        const databaseListKey = Object.keys(databaseList).filter(item =>
+            item.includes('mongodb+srv://apecrusher:JIbxW2CVbRrsn2PI@cluster0-nkadp.mongodb.net/apecrusher42?retryWrites=true&w=majority')
         );
         delete databaseList[databaseListKey[0]];
+        const databaseListKey2 = Object.keys(databaseList).filter(item =>
+            item.includes('mongodb+srv://apecrusher:JIbxW2CVbRrsn2PI@cluster0-kg89d.mongodb.net/apecrusher36?retryWrites=true&w=majority')
+        );
+        databaseList[databaseListKey2[0]].count = 10;
         await setMasterProperty('databases', databaseList);
 
         for (const masterDatabaseUrl of masterDatabaseUrls) {
