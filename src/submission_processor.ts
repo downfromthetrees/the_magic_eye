@@ -21,6 +21,7 @@ import { removeBlacklisted } from './processing_modules/submission_modules/image
 import { removeReposts } from './processing_modules/submission_modules/image/existing_submission/removeReposts';
 
 let brokenImageRemovalGuard = 0;
+let permanentGuard = false;
 
 export async function processSubmission(submission, masterSettings, database, reddit, activeMode) {
     const subredditName = masterSettings._id;
@@ -67,10 +68,11 @@ export async function processSubmission(submission, masterSettings, database, re
             const removalMessage = masterSettings.settings.removeBrokenImages.fullRemovalMessage
                 ? masterSettings.settings.removeBrokenImages.fullRemovalMessage
                 : 'This post has been automatically removed because the link is broken or deleted. You will need to fix it and resubmit.';
-            if (brokenImageRemovalGuard < 10) {
+            if (brokenImageRemovalGuard < 10 && !permanentGuard) {
                 await removePost(submission, removalMessage, masterSettings.settings, reddit);
                 log.info(`[${subredditName}]`, 'Could not download image - removing as broken: ', await printSubmission(submission));
             } else {
+                permanentGuard = true;
                 log.info(`[${subredditName}]`, 'Broken image guard triggered - not removing: ', await printSubmission(submission));
             }
 
