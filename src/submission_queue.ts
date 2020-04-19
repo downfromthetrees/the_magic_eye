@@ -28,7 +28,7 @@ export async function mainQueue() {
     }
 
     try {
-        log.debug(chalk.blue("[QUEUE] Starting queue cycle"));
+        log.debug(chalk.blue('[QUEUE] Starting queue cycle'));
         const startCycleTime = new Date().getTime();
 
         const moddedSubs = await getModdedSubredditsMulti();
@@ -37,14 +37,22 @@ export async function mainQueue() {
             setTimeout(mainQueue, 30 * 1000); // run again in 30 seconds
         }
 
-        const moddedSubredditsMultiString = moddedSubs.map(sub => sub + "+").join("").slice(0, -1); // rarepuppers+pics+MEOW_IRL
-        const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
-    
-        // [HMMM] hmmm only block - get the modqueue as well
-        const modqueueSubmissions = await subredditMulti.getModqueue({'limit': 100, 'only': 'links'});
-        const newSubmissions = await subredditMulti.getNew({'limit': 100});
-        const submissions = newSubmissions.concat(modqueueSubmissions);
-    
+        let submissions = [];
+        const count = 300;
+        for (let i = 0; i <= moddedSubs.length / count; i++) {
+            const moddedSubredditsMultiString = moddedSubs
+                .slice(i * count, (i + 1) * count)
+                .map((sub) => sub + '+')
+                .join('')
+                .slice(0, -1); // rarepuppers+pics+MEOW_IRL
+            const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
+
+            // [HMMM] hmmm only block - get the modqueue as well
+            const modqueueSubmissions = await subredditMulti.getModqueue({ limit: 100, only: 'links' });
+            const newSubmissions = await subredditMulti.getNew({ limit: 100 });
+            submissions = newSubmissions.concat(modqueueSubmissions);
+        }
+
         if (!submissions) {
             log.error(chalk.red('[QUEUE] Cannot get new submissions to process - api is probably down for maintenance.'));
             setTimeout(mainQueue, 60 * 1000); // run again in 60 seconds
@@ -52,14 +60,14 @@ export async function mainQueue() {
         }
 
         const unprocessedSubmissions = await consumeUnprocessedSubmissions(submissions);
-        
+
         submissionQueue = submissionQueue.concat(unprocessedSubmissions);
 
         // end cycle
         const endCycleTime = new Date().getTime();
         const cycleTimeTaken = (endCycleTime - startCycleTime) / 1000;
         timeoutTimeSeconds = Math.max(minimumTimeoutSeconds - cycleTimeTaken, 0);
-        
+
         if (unprocessedSubmissions.length > submissionRequests) {
             log.warn('[QUEUE] HEAVY LOAD: unprocessedSubmissions length was ', unprocessedSubmissions.length, ', submissions may have been missed');
             submissionRequests = 1000;
@@ -69,9 +77,9 @@ export async function mainQueue() {
 
         log.info(chalk.red(`[QUEUE] Ingested ${unprocessedSubmissions.length} new submissions, next request: ${submissionRequests} in ${timeoutTimeSeconds} seconds`));
     } catch (err) {
-        log.error(chalk.red("[QUEUE] Queue loop error: ", err));
+        log.error(chalk.red('[QUEUE] Queue loop error: ', err));
     }
-    
+
     setTimeout(mainQueue, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
 }
 
@@ -81,9 +89,10 @@ export async function consumeQueue() {
     return queue;
 }
 
-
 async function consumeUnprocessedSubmissions(latestItems) {
-    latestItems.sort((a, b) => { return a.created_utc - b.created_utc}); // oldest first
+    latestItems.sort((a, b) => {
+        return a.created_utc - b.created_utc;
+    }); // oldest first
 
     const maxCheck = 1500;
     if (latestItems.length > maxCheck) {
@@ -92,31 +101,33 @@ async function consumeUnprocessedSubmissions(latestItems) {
     }
 
     // don't process anything over 3 hours old for safeguard. created_utc is in seconds/getTime is in millis.
-    const threeHoursAgo = new Date().getTime() - 1000*60*60*3;
-    latestItems = latestItems.filter(item => (item.created_utc * 1000) > threeHoursAgo); 
+    const threeHoursAgo = new Date().getTime() - 1000 * 60 * 60 * 3;
+    latestItems = latestItems.filter((item) => item.created_utc * 1000 > threeHoursAgo);
 
     const processedIds = await getMasterProperty('new_processed_ids');
     if (!processedIds) {
         log.warn(chalk.magenta('[QUEUE] Could not find the last processed id list when retrieving unprocessed submissions. Regenerating...'));
-        const intialProcessedIds = latestItems.map(submission => submission.id);
+        const intialProcessedIds = latestItems.map((submission) => submission.id);
         await setMasterProperty('new_processed_ids', intialProcessedIds);
         return [];
-    }  
+    }
 
     // update the processed list before processing so we don't retry any submissions that cause exceptions
-    const newItems = latestItems.filter(item => !processedIds.includes(item.id));
-    let updatedProcessedIds = processedIds.concat(newItems.map(submission => submission.id)); // [3,2,1] + [new] = [3,2,1,new]
+    const newItems = latestItems.filter((item) => !processedIds.includes(item.id));
+    let updatedProcessedIds = processedIds.concat(newItems.map((submission) => submission.id)); // [3,2,1] + [new] = [3,2,1,new]
     const processedCacheSize = 2500; // larger size for any weird/future edge-cases where a mod removes a lot of submissions
-    if (updatedProcessedIds.length > processedCacheSize) { 
+    if (updatedProcessedIds.length > processedCacheSize) {
         updatedProcessedIds = updatedProcessedIds.slice(updatedProcessedIds.length - processedCacheSize); // [3,2,1,new] => [2,1,new]
     }
     await setMasterProperty('new_processed_ids', updatedProcessedIds);
-    
+
     return newItems;
 }
 
 export function haltQueue() {
     log.info('[SHUTDOWN] Halting queue ingest');
     haltProcessing = true;
-    setTimeout(() => { haltProcessing = false}, 120 * 1000); // recover if not shutdown
+    setTimeout(() => {
+        haltProcessing = false;
+    }, 120 * 1000); // recover if not shutdown
 }

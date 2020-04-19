@@ -9,8 +9,8 @@ let masterConnection = null;
 let subredditSettingsCache: CachedSubredditSettings = {};
 
 type CachedSubredditSettings = {
-    [name:string]: string
-}
+    [name: string]: string;
+};
 
 export class MasterProperty {
     _id;
@@ -36,8 +36,7 @@ export class Stats {
     }
 }
 
-
-const currentVersion = "2";
+const currentVersion = '2';
 
 // default mod editable settings
 export class SubredditSettings {
@@ -53,14 +52,14 @@ export class SubredditSettings {
         this.config = {
             firstTimeInit: false,
             databaseUrl: null,
-            reportUnmoderatedTime: 0,
-        }
-        
+            reportUnmoderatedTime: 0
+        };
+
         this.settings = {
             processImages: true,
             processAnimatedMedia: true,
             similarityTolerance: 5,
-            onUserReply: "reportBot",
+            onUserReply: 'reportBot',
             reposts: {
                 smallScore: 0,
                 smallScoreRepostDays: 15,
@@ -72,11 +71,11 @@ export class SubredditSettings {
                 approveIfOverRepostDays: true,
                 reflairApprovedReposts: false,
                 actionRepostsIfDeleted: false,
-                action: "remove"
+                action: 'remove'
             },
             removeBlacklisted: {},
             removeBrokenImages: {}
-        }
+        };
     }
 }
 
@@ -85,7 +84,7 @@ export function needsUpgrade(masterSettings) {
 }
 
 export function getCollectionName(collection) {
-    const collectionPrefix = (process.env.NODE_ENV == 'production' ? '' : process.env.NODE_ENV + ':');
+    const collectionPrefix = process.env.NODE_ENV == 'production' ? '' : process.env.NODE_ENV + ':';
     return collectionPrefix + collection;
 }
 
@@ -101,7 +100,7 @@ export async function getStatsCollection() {
     return masterConnection.collection(getCollectionName('stats'));
 }
 
-export async function addSubredditStat(statistic) {   
+export async function addSubredditStat(statistic) {
     try {
         const collection = await getStatsCollection();
         await collection.save(statistic);
@@ -111,18 +110,17 @@ export async function addSubredditStat(statistic) {
     }
 }
 
-export async function getSubredditStat(actionName) {   
+export async function getSubredditStat(actionName) {
     try {
         const collection = await getStatsCollection();
-        return await collection.find({'action': actionName}).toArray();
+        return await collection.find({ action: actionName }).toArray();
     } catch (err) {
         log.error(chalk.red('MongoDb error getting subreddit statistic:'), err);
         return null;
     }
 }
 
-
-export async function setSubredditSettings(subredditName, settings) {   
+export async function setSubredditSettings(subredditName, settings) {
     try {
         const collection = await getSubredditSettingsCollection();
         await collection.save(settings);
@@ -139,7 +137,7 @@ export async function getSubredditSettings(subredditName) {
             return subredditSettingsCache[subredditName];
         }
         const collection = await getSubredditSettingsCollection();
-        const property = (await collection.findOne({'_id': subredditName}));
+        const property = await collection.findOne({ _id: subredditName });
         if (property != null) {
             subredditSettingsCache[subredditName] = property;
             return property;
@@ -164,7 +162,7 @@ export async function setMasterProperty(key, value) {
 export async function getMasterProperty(key) {
     try {
         const collection = await getPropertyCollection();
-        const property = (await collection.findOne({'_id': key}));
+        const property = await collection.findOne({ _id: key });
         if (property != null) {
             return property.value;
         }
@@ -173,7 +171,6 @@ export async function getMasterProperty(key) {
     }
     return null;
 }
-
 
 export async function initMasterDatabase() {
     log.info(chalk.blue('Connecting to master database...'));
@@ -195,6 +192,7 @@ export async function refreshAvailableDatabases() {
             log.info('First time external database config...');
             databaseList = {};
         }
+
         for (const masterDatabaseUrl of masterDatabaseUrls) {
             if (!databaseList[masterDatabaseUrl]) {
                 log.info('Adding new database url: ', masterDatabaseUrl);
@@ -204,7 +202,7 @@ export async function refreshAvailableDatabases() {
                 };
                 await setMasterProperty('databases', databaseList);
             }
-        } 
+        }
     } catch (err) {
         log.error(chalk.red('Error: could not refresh database list'), err);
         return null;
@@ -224,7 +222,7 @@ export async function upgradeMasterDatabase() {
                     // do upgrade here
                     log.info(`[UPGRADE]`, 'Upgrading', masterSettings._id, ' - updated:');
                     await setSubredditSettings(masterSettings._id, masterSettings);
-                }
+                };
                 setTimeout(doForSub, secondsRun * 1000);
             } else {
                 log.info(`[UPGRADE]`, 'NO UPGRADE REQUIRED', masterSettings._id, ' - :');

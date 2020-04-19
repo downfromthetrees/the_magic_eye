@@ -18,31 +18,44 @@ export async function removeBlacklisted(reddit, modComment, submission, lastSubm
     }
 
     // We missed detecting a valid repost so a mod manually removed it. That submission is reposted but we don't know the approved submission.
-    const lastIsRemovedAsRepost = await isRepostRemoval(modComment); 
+    const lastIsRemovedAsRepost = await isRepostRemoval(modComment);
 
-    const imageIsBlacklisted = await lastSubmission.removed && !lastIsRemovedAsRepost;
+    const imageIsBlacklisted = ((await lastSubmission.removed) || (await lastSubmission.spam)) && !lastIsRemovedAsRepost;
     if (imageIsBlacklisted) {
         const removalReason = await getRemovalReason(modComment, subredditName);
         if (removalReason == null) {
-            // log.info(`[${subredditName}]`, chalk.red("Ignoring submission because couldn't read the last removal message. Submission: ", await printSubmission(submission, submissionType), ", removal message thread: http://redd.it/" + existingMagicSubmission.reddit_id));
-            //await updateMagicSubmission(existingMagicSubmission, submission);
+            // [HMMM] hmmm only block - not required
+            // log.info(
+            //     `[${subredditName}]`,
+            //     chalk.red(
+            //         "Ignoring submission because couldn't read the last removal message. Submission: ",
+            //         await printSubmission(submission, submissionType),
+            //         ', removal message thread: http://redd.it/' + existingMagicSubmission.reddit_id
+            //     )
+            // );
+            // await updateMagicSubmission(existingMagicSubmission, submission);
             // await logModcomment(reddit, await lastSubmission.id, subredditName);
-            return true;
         } else {
             removeAsBlacklisted(reddit, submission, lastSubmission, removalReason, subSettings, subredditName, submissionType);
         }
-    
+
         return false;
     }
-   
+
     return true;
 }
 
-async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklistReason, subSettings, subredditName, submissionType){
-    log.info(`[${subredditName}]`, 'Removing as blacklisted:', await printSubmission(submission, submissionType), '. Origin: ', await printSubmission(lastSubmission, submissionType));
+async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklistReason, subSettings, subredditName, submissionType) {
+    log.info(
+        `[${subredditName}]`,
+        'Removing as blacklisted:',
+        await printSubmission(submission, submissionType),
+        '. Origin: ',
+        await printSubmission(lastSubmission, submissionType)
+    );
 
     // get removal text
-    let removalReason = "";
+    let removalReason = '';
     if (subSettings.removeBlacklisted.fullRemovalMessage) {
         removalReason = await createFullCustomRemovalMessage(subSettings, lastSubmission, blacklistReason);
     } else {
@@ -55,18 +68,16 @@ async function removeAsBlacklisted(reddit, submission, lastSubmission, blacklist
     logActionBlacklisted(subredditName, null);
 }
 
-
 async function createRemovalMessage(lastSubmission, blacklistReason) {
-    const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
-    const removalReason = outdent
-        `This post has been automatically removed because it is a repost of [this image](${await lastSubmission.url}) posted [here](${permalink}), and that post was removed because:
+    const permalink = 'https://www.reddit.com' + (await lastSubmission.permalink);
+    const removalReason = outdent`This post has been automatically removed because it is a repost of [this image](${await lastSubmission.url}) posted [here](${permalink}), and that post was removed because:
 
         ${blacklistReason}`;
     return removalReason;
 }
 
 async function createFullCustomRemovalMessage(subSettings, lastSubmission, blacklistReason) {
-    const permalink = 'https://www.reddit.com' + await lastSubmission.permalink;
+    const permalink = 'https://www.reddit.com' + (await lastSubmission.permalink);
     let removalText = subSettings.removeBlacklisted.fullRemovalMessage;
     removalText = removalText.split('{{last_submission_link}}').join(permalink);
     removalText = removalText.split('{{last_submission_url}}').join(await lastSubmission.url);
@@ -74,17 +85,18 @@ async function createFullCustomRemovalMessage(subSettings, lastSubmission, black
     return removalText;
 }
 
-
 async function getRemovalReason(modComment, subredditName) {
+    // [HMMM] hmmm only block
     if (!modComment) {
         return null;
     }
+
     const body = await modComment.body;
     const startRemoval = '[](#start_removal)';
     const endRemoval = '[](#end_removal)';
 
-    if (!body.includes(startRemoval) || !body.includes(endRemoval) ) {
-        log.info(chalk.magenta("Moderator comment doesn't include correct bookend tags", `[${subredditName}]`, ));
+    if (!body.includes(startRemoval) || !body.includes(endRemoval)) {
+        log.info(chalk.magenta("Moderator comment doesn't include correct bookend tags", `[${subredditName}]`));
         return null;
     }
 
@@ -92,7 +104,7 @@ async function getRemovalReason(modComment, subredditName) {
 }
 
 async function logModcomment(reddit, submissionId, subredditName) {
-    log.info(`[${subredditName}]`, chalk.red("TEMP LOGGING TO DEBUG AUTOMOD AUTHOR: ", submissionId));
+    log.info(`[${subredditName}]`, chalk.red('TEMP LOGGING TO DEBUG AUTOMOD AUTHOR: ', submissionId));
     const submission = reddit.getSubmission(submissionId);
     const comments = await submission.comments;
     log.info(`[${subredditName}]`, JSON.stringify(comments));

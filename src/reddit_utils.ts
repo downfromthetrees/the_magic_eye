@@ -12,7 +12,9 @@ import { deleteHoldingPost } from './holding_tasks/holding_tasks';
 export async function getModComment(reddit, submissionId) {
     const submission = reddit.getSubmission(submissionId);
     const comments = await submission.comments;
-    return comments.find(comment => comment.distinguished === 'moderator' && comment.removed != true && comment.author.name !== 'AutoModerator');
+    return comments.find(comment => {
+        return comment.distinguished === 'moderator' && comment.removed != true && comment.author.name !== 'AutoModerator';
+    });
 }
 
 export async function isMagicIgnore(modComment) {
@@ -46,8 +48,8 @@ export function sliceSubmissionId(submissionId) {
     return submissionId.slice(3, submissionId.length); // id is prefixed with "id_"
 }
 
-export async function removePost(submission, removalReason, subSettings, reddit, silent=false) {
-    try { 
+export async function removePost(submission, removalReason, subSettings, reddit, silent = false) {
+    try {
         await submission.remove();
 
         if (silent || subSettings.removalMethod === 'silent') {
@@ -62,10 +64,9 @@ export async function removePost(submission, removalReason, subSettings, reddit,
     }
 }
 
-export async function removePostWithPrivateMessage(submission, removalReason, subSettings, reddit) {   
-    const footerText = subSettings.customFooter ? subSettings.customFooter : "";
-    const removalFooter = 
-    outdent`
+export async function removePostWithPrivateMessage(submission, removalReason, subSettings, reddit) {
+    const footerText = subSettings.customFooter ? subSettings.customFooter : '';
+    const removalFooter = outdent`
     
 
     -----------------------
@@ -76,22 +77,21 @@ export async function removePostWithPrivateMessage(submission, removalReason, su
 
     reddit.composeMessage({
         to: await submission.author.name,
-        subject: "Your post has been automatically removed",
+        subject: 'Your post has been automatically removed',
         text: removalReason + removalFooter,
         fromSubreddit: await submission.subreddit
-        });
+    });
 }
 
 export async function removePostWithReply(submission, removalReason, subSettings) {
     const footerText = subSettings.customFooter ? subSettings.customFooter : "*I'm a bot so if I was wrong, reply to me and a moderator will check it.*";
-    const removalFooter = 
-    outdent`
+    const removalFooter = outdent`
     
 
     -----------------------
 
     ${footerText}`;
-    
+
     const replyable = await submission.reply(removalReason + removalFooter);
     replyable.distinguish();
 
@@ -101,9 +101,8 @@ export async function removePostWithReply(submission, removalReason, subSettings
 }
 
 export async function printSubmission(submission, submissionType?: string) {
-    const username = (await submission.author) ? (await submission.author.name) : null;
+    const username = (await submission.author) ? await submission.author.name : null;
     const idForLog = await submission.id;
-    const type = submissionType ? ` [${submissionType}]` : ""; 
+    const type = submissionType ? ` [${submissionType}]` : '';
     return `http://redd.it/${idForLog} by ${username}${type}`;
 }
-

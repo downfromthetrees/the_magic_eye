@@ -30,7 +30,7 @@ export async function removeReposts(reddit, modComment, submission, lastSubmissi
 
     const lastAuthor = existingMagicSubmission.author ? existingMagicSubmission.author : await lastSubmission.author.name;
     const processorSettings = subSettings.reposts;
-    const lastSubmissionDeleted =  await lastSubmission.author.name === '[deleted]';
+    const lastSubmissionDeleted = (await lastSubmission.author.name) === '[deleted]';
 
     // ignore deleted
     if (lastSubmissionDeleted && !processorSettings.actionRepostsIfDeleted) {
@@ -97,7 +97,7 @@ export async function removeReposts(reddit, modComment, submission, lastSubmissi
     }
 
     // over the repost limit
-    const lastSubmissionRemoved = await lastSubmission.removed;
+    const lastSubmissionRemoved = (await lastSubmission.removed) || (await lastSubmission.spam);
     if (!lastSubmissionRemoved || lastIsRemovedAsRepost) {
         if (processorSettings.approveIfOverRepostDays === true) {
             submission.approve();
@@ -149,7 +149,18 @@ async function isRecentRepost(currentSubmission, lastSubmission, processorSettin
     return daysSincePosted < daysLimit;
 }
 
-async function actionAsRepost(submission, lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, subredditName, submissionType, allTimeTopRemoval, reddit, lastAuthor) {
+async function actionAsRepost(
+    submission,
+    lastSubmission,
+    noOriginalSubmission,
+    warnAboutDeletedReposts,
+    subSettings,
+    subredditName,
+    submissionType,
+    allTimeTopRemoval,
+    reddit,
+    lastAuthor
+) {
     log.info(
         `[${subredditName}]`,
         'Found matching hash for submission: ',
@@ -165,7 +176,18 @@ async function actionAsRepost(submission, lastSubmission, noOriginalSubmission, 
     }
 
     if (subSettings.reposts.action.includes('remove')) {
-        await removeAsRepost(submission, lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, subredditName, submissionType, allTimeTopRemoval, reddit, lastAuthor);
+        await removeAsRepost(
+            submission,
+            lastSubmission,
+            noOriginalSubmission,
+            warnAboutDeletedReposts,
+            subSettings,
+            subredditName,
+            submissionType,
+            allTimeTopRemoval,
+            reddit,
+            lastAuthor
+        );
     } else if (subSettings.reposts.action.includes('warnByModmail')) {
         await warnByModmailAsRepost(submission, lastSubmission, subredditName, reddit);
     } else if (subSettings.reposts.action.includes('warn')) {
@@ -220,7 +242,18 @@ async function warnByModmailAsRepost(submission, lastSubmission, subredditName: 
     }
 }
 
-async function removeAsRepost(submission, lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, subredditName, submissionType, allTimeTopRemoval, reddit, lastAuthor) {
+async function removeAsRepost(
+    submission,
+    lastSubmission,
+    noOriginalSubmission,
+    warnAboutDeletedReposts,
+    subSettings,
+    subredditName,
+    submissionType,
+    allTimeTopRemoval,
+    reddit,
+    lastAuthor
+) {
     if (submission.id == (await lastSubmission.id)) {
         log.error(`[${subredditName}]`, chalk.red('Duplicate detection error, ignoring but this indicates a real issue.', `[${submissionType}]`));
         return;
@@ -244,12 +277,12 @@ async function removeAsRepost(submission, lastSubmission, noOriginalSubmission, 
 async function createFullCustomRemovalMessage(subSettings, lastSubmission, lastAuthor, submission, inputRemovalText) {
     const permalink = 'https://www.reddit.com' + (await lastSubmission.permalink);
     let removalText = inputRemovalText;
-    removalText = removalText.split("{{last_submission_link}}").join(permalink);
-    removalText = removalText.split("{{last_submission_url}}").join(await lastSubmission.url);
-    removalText = removalText.split("{{time_ago}}").join(await getTimeAgoString(lastSubmission));
-    removalText = removalText.split("{{last_author}}").join(lastAuthor);
-    removalText = removalText.split("{{author}}").join(await submission.author.name);
-    
+    removalText = removalText.split('{{last_submission_link}}').join(permalink);
+    removalText = removalText.split('{{last_submission_url}}').join(await lastSubmission.url);
+    removalText = removalText.split('{{time_ago}}').join(await getTimeAgoString(lastSubmission));
+    removalText = removalText.split('{{last_author}}').join(lastAuthor);
+    removalText = removalText.split('{{author}}').join(await submission.author.name);
+
     return removalText;
 }
 
