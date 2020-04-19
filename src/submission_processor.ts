@@ -142,7 +142,7 @@ async function processExistingSubmission(submission, existingMagicSubmission, ma
     }
 
     const lastSubmission = await reddit.getSubmission(existingMagicSubmission.reddit_id);
-    const lastSubmissionRemoved = await lastSubmission.removed;
+    const lastSubmissionRemoved = (await lastSubmission.removed) || (await lastSubmission.spam);
 
     existingMagicSubmission.highest_score = Math.max(existingMagicSubmission.highest_score, await lastSubmission.score);
     existingMagicSubmission.duplicates.push(submission.id);
