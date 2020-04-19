@@ -125,6 +125,8 @@ export async function processSubmission(submission, masterSettings, database, re
 
 async function processExistingSubmission(submission, existingMagicSubmission, masterSettings, reddit, subredditName, submissionType) {
     const existingMagicSubmissionType = existingMagicSubmission.type ? existingMagicSubmission.type : 'image'; // legacy data
+    const originalExistingSubmissionRedditId = existingMagicSubmission.reddit_id;
+
     if (existingMagicSubmissionType !== submissionType) {
         log.warn(
             chalk.yellow(
@@ -194,8 +196,8 @@ async function processExistingSubmission(submission, existingMagicSubmission, ma
     if (!tookAction) {
         log.info(
             `[${subredditName}]`,
-            'Found repost of removed submission (http://redd.it/' + existingMagicSubmission.reddit_id,
-            '), but no processor was configured to action repost. Ignoring submission: ',
+            'Found repost of removed submission (http://redd.it/' + originalExistingSubmissionRedditId,
+            '), but no processor was configured to action repost, or post is allowed through. Ignoring submission: ',
             await printSubmission(submission, submissionType)
         );
     }
