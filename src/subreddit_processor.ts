@@ -28,7 +28,7 @@ export async function mainProcessor(threadCount: number) {
     if (threadCount > currentThread) {
         currentThread = threadCount;
     } else if (threadCount < currentThread) {
-        console.log('***** Finishing thread: ', threadCount);
+        log.info('***** Finishing thread: ', threadCount);
         return;
     }
 
@@ -90,7 +90,7 @@ export async function mainProcessor(threadCount: number) {
 setInterval(() => {
     const restart = moment().isAfter(moment(threadMonitor).add('minutes', 5));
     if (restart) {
-        console.log('RESTARTING MAIN PROCESSOR');
+        log.info('RESTARTING MAIN PROCESSOR');
         mainProcessor(currentThread + 1);
     }
 }, 10000);
