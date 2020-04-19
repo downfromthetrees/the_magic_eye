@@ -46,8 +46,8 @@ export async function removeUncroppedImages(reddit, submission, imageDetails, su
         return false;
     }
 
-    if (subSettings.removeUncroppedImages.removeVerticalImages && imageIsVertical(imageDetails)) {
-        const removalReason = `This image appears to be uncropped (i.e. a vertical cellphone pic). Images posted to this subreddit must be cropped, i.e.:
+    if (subSettings.removeUncroppedImages.removeAllVertical && imageIsVertical(imageDetails)) {
+        const removalReason = `This image appears to be uncropped because it's a long image (typically a vertical cellphone pic). Images posted to this subreddit should generally first be cropped to a square (rule 7), i.e.:
 
 * [Example of an uncropped image](https://i.imgur.com/XAjzOF0.png)
 * [Example image properly cropped](https://i.imgur.com/qND6Vb1.png)
