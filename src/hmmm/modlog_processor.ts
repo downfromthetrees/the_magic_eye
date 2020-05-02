@@ -1,6 +1,6 @@
 const chalk = require('chalk');
 const fs = require('fs');
-const fetch = require("node-fetch");
+const fetch = require('node-fetch');
 
 require('dotenv').config();
 const log = require('loglevel');
@@ -12,11 +12,11 @@ import { reddit } from '../reddit';
 export async function processModlog() {
     try {
         const modlogSubreddit = await reddit.getSubreddit('hmmm');
-        const removedSubmissions = await modlogSubreddit.getModerationLog({type: 'removelink', 'limit': 200});
+        const removedSubmissions = await modlogSubreddit.getModerationLog({ type: 'removelink', limit: 200 });
         const unprocessedRemovedSubmissions = await consumeRemovedSubmissions(removedSubmissions, 'removed');
         await processRemovedPosts(unprocessedRemovedSubmissions, reddit);
     } catch (err) {
-        log.error(chalk.red("[HMMM_MODLOG] modlog error: ", err));
+        log.error(chalk.red('[HMMM_MODLOG] modlog error: ', err));
     }
 
     setTimeout(processModlog, 4 * 60 * 1000);
@@ -33,8 +33,8 @@ async function processRemovedPosts(unprocessedItems, reddit) {
                 const submissionId = item.target_permalink.split('/')[4]; // "/r/hmmm/comments/a0uwkf/hmmm/eakgqi3/"
                 const submission = await reddit.getSubmission(submissionId);
                 const submissionRemoved = await submission.removed; // confirm it's still removed
-                if (submissionRemoved) {  
-                    await submission.assignFlair({text: 'Reviewed and removed - see wiki'});
+                if (submissionRemoved) {
+                    await submission.assignFlair({ text: 'Removed - see removal wiki in sidebar for info' });
                 }
             }
         } catch (e) {
@@ -43,10 +43,11 @@ async function processRemovedPosts(unprocessedItems, reddit) {
     }
 }
 
-
 // overkill, but well tested
 async function consumeRemovedSubmissions(latestItems, suffix) {
-    latestItems.sort((a, b) => { return a.created_utc - b.created_utc}); // oldest first
+    latestItems.sort((a, b) => {
+        return a.created_utc - b.created_utc;
+    }); // oldest first
 
     let propertyId = 'hmmm_processed_modlog';
     if (suffix) {
@@ -60,25 +61,25 @@ async function consumeRemovedSubmissions(latestItems, suffix) {
     }
 
     // don't process anything over 72 hours old for safeguard. created_utc is in seconds/getTime is in millis.
-    const threeHoursAgo = new Date().getTime() - 1000*60*60*72;
-    latestItems = latestItems.filter(item => (item.created_utc * 1000) > threeHoursAgo); 
+    const threeHoursAgo = new Date().getTime() - 1000 * 60 * 60 * 72;
+    latestItems = latestItems.filter((item) => item.created_utc * 1000 > threeHoursAgo);
 
     const processedIds = await getMasterProperty(propertyId);
     if (!processedIds) {
         log.warn(chalk.magenta('[HMMM] Could not find the last processed id list when retrieving unprocessed modlog changes. Regenerating...'));
-        const intialProcessedIds = latestItems.map(submission => submission.id);
+        const intialProcessedIds = latestItems.map((submission) => submission.id);
         await setMasterProperty(propertyId, intialProcessedIds);
         return [];
     }
 
     // update the processed list before processing so we don't retry any submissions that cause exceptions
-    const newItems = latestItems.filter(item => !processedIds.includes(item.id));
-    let updatedProcessedIds = processedIds.concat(newItems.map(submission => submission.id)); // [3,2,1] + [new] = [3,2,1,new]
-    const processedCacheSize = maxCheck*5; // larger size for any weird/future edge-cases where a mod removes a lot of submissions
-    if (updatedProcessedIds.length > processedCacheSize) { 
+    const newItems = latestItems.filter((item) => !processedIds.includes(item.id));
+    let updatedProcessedIds = processedIds.concat(newItems.map((submission) => submission.id)); // [3,2,1] + [new] = [3,2,1,new]
+    const processedCacheSize = maxCheck * 5; // larger size for any weird/future edge-cases where a mod removes a lot of submissions
+    if (updatedProcessedIds.length > processedCacheSize) {
         updatedProcessedIds = updatedProcessedIds.slice(updatedProcessedIds.length - processedCacheSize); // [3,2,1,new] => [2,1,new]
     }
     await setMasterProperty(propertyId, updatedProcessedIds);
-    
+
     return newItems;
 }
