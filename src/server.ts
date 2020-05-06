@@ -103,9 +103,10 @@ app.get('/demod', async function (req, res) {
     res.setHeader('Content-Type', 'application/json');
     let password = req.query ? req.query.password : null;
     if (password === process.env.SHUTDOWN_PASSWORD) {
-        let sub = req.query ? req.query.sub : null;
-        if (sub) {
-            reddit.getSubreddit(sub).leaveModerator();
+        let demodSub = req.query ? req.query.sub : null;
+        if (demodSub) {
+            log.info('Demodding from: ', demodSub);
+            await reddit.getSubreddit(demodSub).leaveModerator();
         }
     } else {
         res.send(JSON.stringify({ status: 'failed' }));
