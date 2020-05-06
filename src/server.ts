@@ -42,6 +42,7 @@ import { mainProcessor } from './subreddit_processor';
 import { mainSettingsProcessor } from './settings_processor';
 import { getModdedSubredditsMulti } from './modded_subreddits';
 import { mainUnmoderated } from './unmoderated_processor';
+import { reddit } from './reddit';
 
 const garbageCollectSeconds = 60 * 10;
 async function manualGarbageCollect() {
@@ -82,12 +83,12 @@ async function startServer() {
 
 startServer();
 
-app.get('/keepalive', async function(req, res) {
+app.get('/keepalive', async function (req, res) {
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify({ status: 'ok' }));
 });
 
-app.get('/shutdown', async function(req, res) {
+app.get('/shutdown', async function (req, res) {
     res.setHeader('Content-Type', 'application/json');
     let password = req.query ? req.query.password : null;
     if (password === process.env.SHUTDOWN_PASSWORD) {
@@ -98,16 +99,29 @@ app.get('/shutdown', async function(req, res) {
     }
 });
 
-app.get('/heapdump', async function(req, res) {
+app.get('/demod', async function (req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    let password = req.query ? req.query.password : null;
+    if (password === process.env.SHUTDOWN_PASSWORD) {
+        let sub = req.query ? req.query.sub : null;
+        if (sub) {
+            reddit.getSubreddit(sub).leaveModerator();
+        }
+    } else {
+        res.send(JSON.stringify({ status: 'failed' }));
+    }
+});
+
+app.get('/heapdump', async function (req, res) {
     let name = req.query ? req.query.name : null;
     const fileName = `./tmp/${name}.heapsnapshot`;
-    heapdump.writeSnapshot(fileName, function(err, filename) {
+    heapdump.writeSnapshot(fileName, function (err, filename) {
         if (err) console.log('dump err: ', err);
         else console.log('dump written to', filename);
     });
 });
 
-app.get('/get-heapdump', async function(req, res) {
+app.get('/get-heapdump', async function (req, res) {
     let name = req.query ? req.query.name : null;
     const fileName = `./tmp/${name}.heapsnapshot`;
     res.download(fileName);
@@ -117,6 +131,6 @@ process.on('unhandledRejection', (reason: any, p: any) => {
     log.warn('ERROR: Unhandled promise Rejection at: Promise', p.message, 'reason:', reason.message);
 });
 
-process.on('uncaughtException', function(err) {
+process.on('uncaughtException', function (err) {
     log.warn('UNCAUGHT EXCEPTION - keeping process alive:', err);
 });
