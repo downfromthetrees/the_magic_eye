@@ -52,7 +52,7 @@ export class SubredditSettings {
         this.config = {
             firstTimeInit: false,
             databaseUrl: null,
-            reportUnmoderatedTime: 0
+            reportUnmoderatedTime: 0,
         };
 
         this.settings = {
@@ -71,10 +71,10 @@ export class SubredditSettings {
                 approveIfOverRepostDays: true,
                 reflairApprovedReposts: false,
                 actionRepostsIfDeleted: false,
-                action: 'remove'
+                action: 'remove',
             },
             removeBlacklisted: {},
-            removeBrokenImages: {}
+            removeBrokenImages: {},
         };
     }
 }
@@ -126,7 +126,7 @@ export async function setSubredditSettings(subredditName, settings) {
         await collection.save(settings);
         subredditSettingsCache[subredditName] = settings;
     } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
+        log.error(chalk.red('MongoDb error setting sub settings:'), subredditName, err);
         return null;
     }
 }
@@ -143,7 +143,7 @@ export async function getSubredditSettings(subredditName) {
             return property;
         }
     } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
+        log.error(chalk.red('MongoDb error getting sub settings:'), subredditName, err);
     }
     return null;
 }
@@ -154,7 +154,7 @@ export async function setMasterProperty(key, value) {
         const newMasterProp = new MasterProperty(key, value);
         await collection.save(newMasterProp);
     } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
+        log.error(chalk.red('MongoDb error set property:'), key, err);
         return null;
     }
 }
@@ -167,7 +167,7 @@ export async function getMasterProperty(key) {
             return property.value;
         }
     } catch (err) {
-        log.error(chalk.red('MongoDb error:'), err);
+        log.error(chalk.red('MongoDb error getting master property:'), err);
     }
     return null;
 }
@@ -198,7 +198,7 @@ export async function refreshAvailableDatabases() {
                 log.info('Adding new database url: ', masterDatabaseUrl);
                 databaseList[masterDatabaseUrl] = {
                     url: masterDatabaseUrl,
-                    count: 0
+                    count: 0,
                 };
                 await setMasterProperty('databases', databaseList);
             }
