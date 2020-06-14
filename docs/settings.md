@@ -38,6 +38,8 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 
 Individually turn on/off processing of images or animated media (i.e. gifs/videos). Both are enabled by default.
 
+Note: NSFW animated media will only be processed in NSFW communities, as it relies on the un-censored thumbnail.
+
 ## Set the tolerance
 
     "similarityTolerance": 5,
