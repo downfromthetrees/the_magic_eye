@@ -71,7 +71,7 @@ Notes:
         "largeScore": 10000,
         "largeScoreRepostDays": 50,
         "topScore": 999999999,
-        "approveIfOverRepostDays": true,
+        "approveIfOverRepostDays": false,
         "reflairApprovedReposts": false,
         "actionRepostsIfDeleted": false,
         "action": "remove"
