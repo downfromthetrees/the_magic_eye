@@ -5,7 +5,7 @@ const imageDownloader = require('image-downloader');
 const imageMagick = require('imagemagick');
 const tesseract = require('tesseract.js');
 const stripchar = require('stripchar').StripChar;
-const fetch = require("node-fetch");
+const fetch = require('node-fetch');
 const imageSize = require('image-size');
 
 import { dhash_gen } from './dhash_gen';
@@ -19,7 +19,6 @@ require('dotenv').config();
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-
 export async function generateDHash(imagePath, logUrl) {
     try {
         return await dhashGet(imagePath);
@@ -32,13 +31,14 @@ export async function generateDHash(imagePath, logUrl) {
 export async function downloadImage(submissionUrl) {
     const options = {
         url: submissionUrl,
-        dest: './tmp'
-      }
+        dest: './tmp',
+    };
 
     try {
         const { filename, image } = await imageDownloader.image(options);
         return filename;
     } catch (err) {
+        log.warn("Error: Couldn't download image (probably deleted): ", submissionUrl);
         return null;
     }
 }
@@ -58,7 +58,7 @@ export async function getImageUrl(submission) {
         imageUrl = imageUrl.slice(0, imageUrl.length - 1);
     }
 
-    const suffix = imageUrl.split('.')[imageUrl.split('.').length-1].split('?')[0];  // http://imgur.com/a/liD3a.gif?horrible=true
+    const suffix = imageUrl.split('.')[imageUrl.split('.').length - 1].split('?')[0]; // http://imgur.com/a/liD3a.gif?horrible=true
     const images = ['png', 'jpg', 'jpeg', 'bmp'];
     if (images.includes(suffix)) {
         return { imageUrl: imageUrl, submissionType: 'image' };
@@ -68,7 +68,7 @@ export async function getImageUrl(submission) {
     const crossPostParent = await submission.crosspost_parent_list;
     const isCrosspostVid = crossPostParent && crossPostParent[0] && crossPostParent[0].is_video;
 
-    const isGfycat = imageUrl.includes('gfycat.com');
+    const isGfycat = imageUrl.includes('gfycat.com') || imageUrl.includes('redgifs.com');
     const animatedMedia = ['gif', 'gifv', 'mp4', 'webm'];
     if (animatedMedia.includes(suffix) || isVid || isGfycat || isCrosspostVid) {
         return animatedMediaUrl(thumbnail);
@@ -84,22 +84,22 @@ export async function getImageUrl(submission) {
         // http://imgur.com/gallery/HFoOCeg gallery, single image
         // https://imgur.com/gallery/5l71D gallery, multiple images (album)
 
-        // An alternative method for imgur gifs/videos is to use "_d.jpg?maxwidth=520&shape=thumb&fidelity=high", however to keep them consistent with 
+        // An alternative method for imgur gifs/videos is to use "_d.jpg?maxwidth=520&shape=thumb&fidelity=high", however to keep them consistent with
         // giphy etc, magic eye will use the reddit thumbnail
 
-        let imgurHash = imageUrl.split('/')[imageUrl.split('/').length-1];  // http://imgur.com/S1dZBPm.weird?horrible=true
+        let imgurHash = imageUrl.split('/')[imageUrl.split('/').length - 1]; // http://imgur.com/S1dZBPm.weird?horrible=true
         imgurHash = imgurHash.split('.')[0];
         imgurHash = imgurHash.split('?')[0];
         const imgurClientId = '1317612995a5ccf';
         const options = {
             headers: {
-                "Authorization": `Client-ID ${imgurClientId}`
-            }
+                Authorization: `Client-ID ${imgurClientId}`,
+            },
         };
 
         const isAlbum = imageUrl.includes('imgur.com/a/');
         const isGallery = imageUrl.includes('imgur.com/gallery/');
-        if (isGallery || isAlbum) { 
+        if (isGallery || isAlbum) {
             const albumFetchUrl = isGallery ? `https://api.imgur.com/3/gallery/album/${imgurHash}/images` : `https://api.imgur.com/3/album/${imgurHash}/images`;
             const albumResult = await fetch(albumFetchUrl, options); // gallery album
             const albumData = await albumResult.json();
@@ -108,22 +108,22 @@ export async function getImageUrl(submission) {
                 if (albumData.data[0].animated) {
                     return animatedMediaUrl(thumbnail);
                 }
-                return {imageUrl: albumData.data[0].link, submissionType: 'image'};
+                return { imageUrl: albumData.data[0].link, submissionType: 'image' };
             } else if (albumData.success && albumData.data && albumData.data.images && albumData.data.images[0]) {
                 // Not sure if case is valid - log for testing
-                log.warn('Abnormal gallery url for processing: ', imageUrl); 
+                log.warn('Abnormal gallery url for processing: ', imageUrl);
                 return null;
             } else {
                 // gallery but only one image
                 const albumImageFetchUrl = `https://api.imgur.com/3/gallery/image/${imgurHash}`;
-                const imageResult = await fetch(albumImageFetchUrl, options); 
-                const albumImage = await imageResult.json();             
+                const imageResult = await fetch(albumImageFetchUrl, options);
+                const albumImage = await imageResult.json();
                 if (albumImage.success && albumImage.data) {
                     if (albumImage.data.animated) {
                         return animatedMediaUrl(thumbnail);
                     }
 
-                    return {imageUrl: albumImage.data.link, submissionType: 'image'};
+                    return { imageUrl: albumImage.data.link, submissionType: 'image' };
                 } else {
                     log.warn('Tried to parse this imgur album/gallery url but failed: ', imageUrl);
                     return null;
@@ -131,26 +131,26 @@ export async function getImageUrl(submission) {
             }
         } else {
             // single image
-            const result = await fetch(`https://api.imgur.com/3/image/${imgurHash}`, options); 
+            const result = await fetch(`https://api.imgur.com/3/image/${imgurHash}`, options);
             const singleImage = await result.json();
             if (singleImage.success && singleImage.data) {
                 if (singleImage.data.animated) {
                     return animatedMediaUrl(thumbnail);
                 }
 
-                return {imageUrl: singleImage.data.link, submissionType: 'image'};
+                return { imageUrl: singleImage.data.link, submissionType: 'image' };
             } else {
                 log.warn('Tried to parse this imgur url but failed: ', imageUrl);
                 return null;
             }
-        }       
+        }
     }
-        
+
     return null;
 }
 
 function animatedMediaUrl(thumbnail) {
-    return thumbnail === "default" ? null : {imageUrl: thumbnail, submissionType: 'animated'};
+    return thumbnail === 'default' ? null : { imageUrl: thumbnail, submissionType: 'animated' };
 }
 
 export async function getImageDetails(submissionUrl, includeWords, blacklistedWords?): Promise<any> {
@@ -166,7 +166,7 @@ export async function getImageDetails(submissionUrl, includeWords, blacklistedWo
 
     const imageDetails = { dhash: null, height: null, width: null, trimmedHeight: null, trimmedWidth: null, words: null, tooLarge: false, ignore: false };
 
-    const imageSize = await getImageSize(imagePath, submissionUrl); 
+    const imageSize = await getImageSize(imagePath, submissionUrl);
     if (imageSize != null) {
         if (imageSize.height > 6000 || imageSize.width > 6000) {
             return { tooLarge: true };
@@ -211,15 +211,13 @@ export async function getImageDetails(submissionUrl, includeWords, blacklistedWo
     return imageDetails;
 }
 
-
-function isSolidColor(dhash){
+function isSolidColor(dhash) {
     // for some reason dhash_gen will produce the second hash for white.
     return dhash === '0000000000000000' || dhash === '5500000000000000';
 }
 
-
-export async function getImageSize(path, submissionUrl) {
-    try { 
+async function getImageSize(path, submissionUrl) {
+    try {
         return imageSize(path);
     } catch (e) {
         log.error(chalk.red('Could not get imageSize for submission:'), submissionUrl, e);
@@ -228,8 +226,8 @@ export async function getImageSize(path, submissionUrl) {
 }
 
 function getFilesizeInMegaBytes(filename) {
-    const stats = fs.statSync(filename)
-    const fileSizeInBytes = stats.size
+    const stats = fs.statSync(filename);
+    const fileSizeInBytes = stats.size;
     return fileSizeInBytes / 1000000.0;
 }
 
@@ -245,11 +243,11 @@ export async function getWordsInImage(originalImagePath, height, blacklistedWord
 
         const startTime = new Date().getTime();
         let result;
-        log.debug(chalk.blue("Begin text detection in image:", imagePath));
-        await tesseract.recognize(imagePath).then(data => result = data);
-        const detectedStrings = result.words.map(word => stripchar.RSExceptUnsAlpNum(word.text.toLowerCase()));
-        const detectedWords = detectedStrings.filter(item => (item.length > 3 && (blacklistedWords ? blacklistedWords.includes(item) : commonWords.has(item))));
-        log.debug(chalk.blue("Text detected in image:"), detectedWords, 'blacklisted:', blacklistedWords);
+        log.debug(chalk.blue('Begin text detection in image:', imagePath));
+        await tesseract.recognize(imagePath).then((data) => (result = data));
+        const detectedStrings = result.words.map((word) => stripchar.RSExceptUnsAlpNum(word.text.toLowerCase()));
+        const detectedWords = detectedStrings.filter((item) => item.length > 3 && (blacklistedWords ? blacklistedWords.includes(item) : commonWords.has(item)));
+        log.debug(chalk.blue('Text detected in image:'), detectedWords, 'blacklisted:', blacklistedWords);
         const endTime = new Date().getTime();
         const timeTaken = (endTime - startTime) / 1000;
         logDetectText(timeTaken);
@@ -263,7 +261,7 @@ export async function getWordsInImage(originalImagePath, height, blacklistedWord
 
         return detectedWords;
     } catch (e) {
-        log.error(chalk.red("Text detection error:"), e);
+        log.error(chalk.red('Text detection error:'), e);
     }
     return [];
 }

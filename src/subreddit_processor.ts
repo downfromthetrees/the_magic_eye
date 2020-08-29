@@ -50,13 +50,13 @@ export async function mainProcessor(threadCount: number) {
 
         const unprocessedSubmissions = await consumeQueue();
         for (const subredditName of moddedSubs) {
-            const unprocessedForSub = unprocessedSubmissions.filter(submission => submission.subreddit.display_name == subredditName);
+            const unprocessedForSub = unprocessedSubmissions.filter((submission) => submission.subreddit.display_name == subredditName);
             try {
                 await processSubreddit(subredditName, unprocessedForSub, reddit);
                 threadMonitor = new Date();
             } catch (e) {
-                const possibleErrorIds = unprocessedForSub.map(item => item.id);
-                log.error('Error processing subreddit: ', subredditName, ',', e, ', possible error threads:', possibleErrorIds);
+                const possibleErrorIds = unprocessedForSub.map((item) => item.id);
+                log.error('Error processing subreddit: ', subredditName, ',', e.message, ', possible error threads:', possibleErrorIds);
             }
         }
 
@@ -72,8 +72,9 @@ export async function mainProcessor(threadCount: number) {
                 chalk.blue(
                     `========= Processed ${
                         unprocessedSubmissions.length
-                    } new submissions, took ${cycleTimeTaken} seconds. databaseConnectionListSize: ${databaseConnectionListSize()}, memory usage is: ${Math.round(used * 100) /
-                        100} MB`
+                    } new submissions, took ${cycleTimeTaken} seconds. databaseConnectionListSize: ${databaseConnectionListSize()}, memory usage is: ${
+                        Math.round(used * 100) / 100
+                    } MB`
                 )
             );
         }
@@ -118,7 +119,7 @@ async function processSubreddit(subredditName: string, unprocessedSubmissions, r
                 () => {
                     log.info(`[${subredditName}]`, chalk.green('Initialisation processing exited for ', subredditName));
                 },
-                e => {
+                (e) => {
                     log.error(`[${subredditName}]`, chalk.red('First time init failed for:', subredditName, e));
                 }
             );

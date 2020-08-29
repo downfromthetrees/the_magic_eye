@@ -235,7 +235,7 @@ async function warnByModmailAsRepost(submission, lastSubmission, subredditName: 
         await reddit.composeMessage({
             to: await `/r/${subredditName}`,
             subject: `Repost detected`,
-            text: message
+            text: message,
         });
     } catch (e) {
         log.error('Tried to warn by modmail as repost but failed: ', printSubmission(submission), e);
@@ -264,17 +264,17 @@ async function removeAsRepost(
     // get removal text
     let removalReason = '';
     if (subSettings.reposts.sameAuthorRemovalMessage && author === lastAuthor) {
-        removalReason = await createFullCustomRemovalMessage(subSettings, lastSubmission, lastAuthor, submission, subSettings.reposts.sameAuthorRemovalMessage);
+        removalReason = await replacePlaceholders(subSettings, lastSubmission, lastAuthor, submission, subSettings.reposts.sameAuthorRemovalMessage);
     } else if (subSettings.reposts.fullRemovalMessage) {
-        removalReason = await createFullCustomRemovalMessage(subSettings, lastSubmission, lastAuthor, submission, subSettings.reposts.fullRemovalMessage);
+        removalReason = await replacePlaceholders(subSettings, lastSubmission, lastAuthor, submission, subSettings.reposts.fullRemovalMessage);
     } else {
-        removalReason = await createRemovalMessage(lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, allTimeTopRemoval);
+        removalReason = await createStandardRemovalMessage(lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, allTimeTopRemoval, lastAuthor, submission);
     }
 
     await removePost(submission, removalReason, subSettings, reddit);
 }
 
-async function createFullCustomRemovalMessage(subSettings, lastSubmission, lastAuthor, submission, inputRemovalText) {
+async function replacePlaceholders(subSettings, lastSubmission, lastAuthor, submission, inputRemovalText) {
     const permalink = 'https://www.reddit.com' + (await lastSubmission.permalink);
     let removalText = inputRemovalText;
     removalText = removalText.split('{{last_submission_link}}').join(permalink);
@@ -286,7 +286,7 @@ async function createFullCustomRemovalMessage(subSettings, lastSubmission, lastA
     return removalText;
 }
 
-async function createRemovalMessage(lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, allTimeTopRemoval) {
+async function createStandardRemovalMessage(lastSubmission, noOriginalSubmission, warnAboutDeletedReposts, subSettings, allTimeTopRemoval, lastAuthor, submission) {
     let headerText;
     if (allTimeTopRemoval) {
         headerText = subSettings.reposts.allTimeTopRemovalMessage
@@ -312,7 +312,7 @@ async function createRemovalMessage(lastSubmission, noOriginalSubmission, warnAb
     ${noDeletedRepostsWarning}
     `;
 
-    return removalText;
+    return await replacePlaceholders(subSettings, lastSubmission, lastAuthor, submission, removalText);
 }
 
 async function getTimeAgoString(submission) {

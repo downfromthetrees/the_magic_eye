@@ -41,7 +41,6 @@ import { mainEdHolding } from './holding_tasks/ed_tasks';
 import { mainSocial } from './holding_tasks/social';
 import { enableFilterMode } from './hmmm/automod_updater';
 import { printStats } from './master_stats';
-import { reddit } from './reddit';
 import { processModlog } from './hmmm/modlog_processor';
 
 // magic eye imports
@@ -53,6 +52,7 @@ import { mainSettingsProcessor } from './settings_processor';
 import { getModdedSubredditsMulti } from './modded_subreddits';
 import { mainUnmoderated } from './unmoderated_processor';
 import { mainHoldingInboxProcessor } from './holding_tasks/holding_inbox_processor';
+import { reddit } from './reddit';
 
 const garbageCollectSeconds = 60 * 10;
 async function manualGarbageCollect() {
@@ -89,7 +89,7 @@ async function startServer() {
         garbageCollectionHolding(true);
         mainSocial(reddit, true);
         scheduleFiltering();
-        processModlog();     
+        processModlog();
         mainHoldingInboxProcessor();
 
         // start loops
@@ -105,33 +105,31 @@ async function startServer() {
 
 startServer();
 
-app.get('/keepalive', async function(req, res) {
+app.get('/keepalive', async function (req, res) {
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify({ status: 'ok' }));
 });
 
-
-app.get('/holding/nuke', async function(req, res) {
+app.get('/holding/nuke', async function (req, res) {
     nukeHolding();
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify({ status: 'Holding has been nuked' }));
 });
 
-
-app.get('/filter/enable', async function(req, res) {
+app.get('/filter/enable', async function (req, res) {
     enableFilterMode(reddit, true);
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify({ status: 'Enabled!' }));
 });
 
-app.get('/filter/disable', async function(req, res) {
+app.get('/filter/disable', async function (req, res) {
     enableFilterMode(reddit, false);
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify({ status: 'Disabled!' }));
 });
 
 function scheduleFiltering() {
-    const nzTimeString = new Date().toLocaleString("en-NZ", {timeZone: "Pacific/Auckland"});
+    const nzTimeString = new Date().toLocaleString('en-NZ', { timeZone: 'Pacific/Auckland' });
     const nzTime = new Date(nzTimeString);
     var current_hour = nzTime.getHours();
     if (current_hour == 8) {
@@ -146,14 +144,13 @@ function scheduleFiltering() {
     setTimeout(scheduleFiltering, nextCheck);
 }
 
-app.get('/stats/print', async function(req, res) {
+app.get('/stats/print', async function (req, res) {
     printStats();
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify({ status: 'Printed!' }));
 });
 
-
-app.get('/shutdown', async function(req, res) {
+app.get('/shutdown', async function (req, res) {
     res.setHeader('Content-Type', 'application/json');
     let password = req.query ? req.query.password : null;
     if (password === process.env.SHUTDOWN_PASSWORD) {
@@ -164,16 +161,31 @@ app.get('/shutdown', async function(req, res) {
     }
 });
 
-app.get('/heapdump', async function(req, res) {
+app.get('/demod', async function (req, res) {
+    res.setHeader('Content-Type', 'application/json');
+    let password = req.query ? req.query.password : null;
+    let demodSub = req.query ? req.query.sub : null;
+    if (password === process.env.SHUTDOWN_PASSWORD && !!demodSub) {
+        if (demodSub) {
+            log.info('[DEMOD] Demodding from: ', demodSub);
+            await reddit.getSubreddit(demodSub).leaveModerator();
+            res.send(JSON.stringify({ status: 'ok' }));
+        }
+    } else {
+        res.send(JSON.stringify({ status: 'failed' }));
+    }
+});
+
+app.get('/heapdump', async function (req, res) {
     let name = req.query ? req.query.name : null;
     const fileName = `./tmp/${name}.heapsnapshot`;
-    heapdump.writeSnapshot(fileName, function(err, filename) {
+    heapdump.writeSnapshot(fileName, function (err, filename) {
         if (err) console.log('dump err: ', err);
         else console.log('dump written to', filename);
     });
 });
 
-app.get('/get-heapdump', async function(req, res) {
+app.get('/get-heapdump', async function (req, res) {
     let name = req.query ? req.query.name : null;
     const fileName = `./tmp/${name}.heapsnapshot`;
     res.download(fileName);
@@ -183,6 +195,6 @@ process.on('unhandledRejection', (reason: any, p: any) => {
     log.warn('ERROR: Unhandled promise Rejection at: Promise', p.message, 'reason:', reason.message);
 });
 
-process.on('uncaughtException', function(err) {
+process.on('uncaughtException', function (err) {
     log.warn('UNCAUGHT EXCEPTION - keeping process alive:', err);
 });
