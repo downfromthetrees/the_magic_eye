@@ -34,7 +34,7 @@ async function processRemovedPosts(unprocessedItems, reddit) {
                 const submission = await reddit.getSubmission(submissionId);
                 const submissionRemoved = await submission.removed; // confirm it's still removed
                 if (submissionRemoved) {
-                    await submission.assignFlair({ text: 'Removed - see removal wiki in sidebar for info' });
+                    await submission.assignFlair({ text: 'Removed - see removal faq in sidebar for info' });
                 }
             }
         } catch (e) {
