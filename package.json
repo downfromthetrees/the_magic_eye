@@ -42,7 +42,7 @@
         "loglevel": "^1.6.1",
         "moment": "^2.22.1",
         "mongodb": "^3.3.3",
-        "node-fetch": "^2.2.0",
+        "node-fetch": "^2.6.1",
         "object-sizeof": "^1.5.2",
         "outdent": "^0.5.0",
         "pg": "^7.4.1",
