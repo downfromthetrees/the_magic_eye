@@ -186,6 +186,8 @@ export async function initMasterDatabase() {
 
 export async function refreshAvailableDatabases() {
     try {
+        if (!process.env.EXTERNAL_DATABASES) return;
+
         const masterDatabaseUrls = process.env.EXTERNAL_DATABASES.split(',');
         let databaseList = await getMasterProperty('databases');
         if (!databaseList) {
