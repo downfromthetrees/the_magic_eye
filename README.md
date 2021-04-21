@@ -23,11 +23,10 @@ Check out [r/MAGIC_EYE_BOT](https://www.reddit.com/r/MAGIC_EYE_BOT/) for support
 
 ## Setup
 
-There are 2 steps to adding Magic Eye to your subreddit:
+There is just one step to adding Magic Eye to your subreddit:
 
 ---
 
--   Enable wikis for your subreddit (set wiki to ["mod editing"](https://i.imgur.com/EkeBfoA.png) in your subreddit settings)
 -   Invite [u/MAGIC_EYE_BOT](www.reddit.com/u/MAGIC_EYE_BOT) as a moderator with `flair`, `posts` and `wiki` permissions.
 
 ---
