@@ -53,7 +53,7 @@ export async function mainHolding() {
         const unprocessedTargetSubmissions = await consumeTargetSubmissions(submissions);
 
         // crosspost
-        await crossPostFromTargetSubreddit(unprocessedTargetSubmissions, holding_reddit);
+        // await crossPostFromTargetSubreddit(unprocessedTargetSubmissions, holding_reddit);
 
         // check for approved posts
         const holdingSubreddit = await holding_reddit.getSubreddit(process.env.HOLDING_SUBREDDIT);
