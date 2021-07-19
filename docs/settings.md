@@ -40,6 +40,8 @@ Individually turn on/off processing of images or animated media (i.e. gifs/video
 
 Note: NSFW animated media will only be processed in NSFW communities, as it relies on the un-censored thumbnail.
 
+Videos/gifs with a pure black/single colour starting frame will be ignored.
+
 ## Set the tolerance
 
     "similarityTolerance": 5,

@@ -44,13 +44,15 @@ _Please only add one subreddit at a time, and wait for it to complete._
 
 ### General info
 
+-   By default it will work on both images and animated media (videos/gifs)
+
 -   If users reply to [u/MAGIC_EYE_BOT](https://www.reddit.com/user/MAGIC_EYE_BOT), by default it will report the comment so you can check it out.
 
--   Magic Eye has sensible default repost settings (a 15-50 day repost limit depending on karma of last post) so is safe to add.
+-   Magic Eye has sensible default repost settings (a 15-50 day repost limit depending on karma of last post) so is safe to add to your subreddit without changing it further.
 
 -   You can safely demod/remod Magic Eye at any time without affecting your database of images.
 
--   Magic Eye checks for new submissions roughly every 30s, so avoid moderating posts under 1 minute old if you want Magic Eye to process them first. It will ignore posts that have already been approved.
+-   Magic Eye checks for new submissions roughly every minute, so avoid moderating posts that are very new if you want Magic Eye to process them first. It will ignore posts that have already been approved.
 
 -   On rare occasions Magic Eye can misdetect images and when it does the images may not look anything like each other. It isn't a bug, Magic Eye just doesn't see the image like our eyes and brain do. If an image is cropped in specific ways it also may no longer match. It's a trade off, and you can tweak the tolerance in the settings to fit your subreddit.
 
