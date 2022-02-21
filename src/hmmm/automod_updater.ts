@@ -20,39 +20,37 @@ export async function doEnableFilterMode(reddit, enable, subredditName) {
             log.info(`[${subredditName}]`, 'Failed to set filter mode, could not get automod page');
             await reddit.composeMessage({
                 to: process.env.MAINTAINER,
-                subject: "Failed to set filter mode",
-                text: `Setting the filter mode failed for ${subredditName}. Could not get automod page`
-              });            
+                subject: 'Failed to set filter mode',
+                text: `Setting the filter mode failed for ${subredditName}. Could not get automod page`,
+            });
             return;
         }
 
         const newAutoModeratorConfig = modifyFilteringConfig(autoModeratorConfig, enable);
-        await wikiPage.edit({text: newAutoModeratorConfig, reason: `Set filter mode ${enable}`});
+        await wikiPage.edit({ text: newAutoModeratorConfig, reason: `Set filter mode ${enable}` });
     } catch (e) {
         log.info(`[${subredditName}]`, 'Failed to set filter mode:', e);
         await reddit.composeMessage({
             to: process.env.MAINTAINER,
-            subject: "Failed to set filter mode",
-            text: `Setting the filter mode failed for ${subredditName}. ${e}`
-          });
+            subject: 'Failed to set filter mode',
+            text: `Setting the filter mode failed for ${subredditName}. ${e}`,
+        });
     }
 }
 
-const filterConfig =
-`---
+const filterConfig = `---
 # Magic Eye auto-filtering config
 type: submission
 action: filter`;
-
 
 function modifyFilteringConfig(currentConfig, enable) {
     if (enable) {
         if (currentConfig.includes(filterConfig)) {
             log.warn('Filtering already enabled for subreddit. Ignoring.');
             return currentConfig;
-        }    
+        }
 
-        return currentConfig + filterConfig;
+        return currentConfig + `\n${filterConfig}`;
     } else {
         if (!currentConfig.includes(filterConfig)) {
             log.warn('Filtering config does not exist for subreddit. Ignoring.');
