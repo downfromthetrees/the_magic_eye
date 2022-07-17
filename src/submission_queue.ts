@@ -42,12 +42,23 @@ export async function mainQueue() {
         for (let i = 0; i <= moddedSubs.length / count; i++) {
             const moddedSubredditsMultiString = moddedSubs
                 .slice(i * count, (i + 1) * count)
-                .map(sub => sub + '+')
+                .map((sub) => sub + '+')
                 .join('')
                 .slice(0, -1); // rarepuppers+pics+MEOW_IRL
             const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
             const newSubmissions = await subredditMulti.getNew({ limit: 100 });
             submissions = submissions.concat(newSubmissions);
+        }
+
+        // [MASTER] master only block - get the modqueue as well for selected subreddits
+        try {
+            if (process.env.MODQUEUE_SUBEDDITS && process.env.MODQUEUE_SUBREDDITS !== '') {
+                const modqueueMulti = await reddit.getSubreddit(process.env.MODQUEUE_SUBREDDITS);
+                const modqueueSubmissions = await modqueueMulti.getModqueue({ limit: 100, only: 'links' });
+                submissions = submissions.concat(modqueueSubmissions);
+            }
+        } catch (e) {
+            console.log('Error: Failed to get modqueue. Possibly not modded to subreddit.');
         }
 
         if (!submissions) {
@@ -99,19 +110,19 @@ async function consumeUnprocessedSubmissions(latestItems) {
 
     // don't process anything over 3 hours old for safeguard. created_utc is in seconds/getTime is in millis.
     const threeHoursAgo = new Date().getTime() - 1000 * 60 * 60 * 3;
-    latestItems = latestItems.filter(item => item.created_utc * 1000 > threeHoursAgo);
+    latestItems = latestItems.filter((item) => item.created_utc * 1000 > threeHoursAgo);
 
     const processedIds = await getMasterProperty('new_processed_ids');
     if (!processedIds) {
         log.warn(chalk.magenta('[QUEUE] Could not find the last processed id list when retrieving unprocessed submissions. Regenerating...'));
-        const intialProcessedIds = latestItems.map(submission => submission.id);
+        const intialProcessedIds = latestItems.map((submission) => submission.id);
         await setMasterProperty('new_processed_ids', intialProcessedIds);
         return [];
     }
 
     // update the processed list before processing so we don't retry any submissions that cause exceptions
-    const newItems = latestItems.filter(item => !processedIds.includes(item.id));
-    let updatedProcessedIds = processedIds.concat(newItems.map(submission => submission.id)); // [3,2,1] + [new] = [3,2,1,new]
+    const newItems = latestItems.filter((item) => !processedIds.includes(item.id));
+    let updatedProcessedIds = processedIds.concat(newItems.map((submission) => submission.id)); // [3,2,1] + [new] = [3,2,1,new]
     const processedCacheSize = 2500; // larger size for any weird/future edge-cases where a mod removes a lot of submissions
     if (updatedProcessedIds.length > processedCacheSize) {
         updatedProcessedIds = updatedProcessedIds.slice(updatedProcessedIds.length - processedCacheSize); // [3,2,1,new] => [2,1,new]
