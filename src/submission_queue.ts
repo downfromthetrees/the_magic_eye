@@ -48,17 +48,8 @@ export async function mainQueue() {
             const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
             const newSubmissions = await subredditMulti.getNew({ limit: 100 });
             submissions = submissions.concat(newSubmissions);
-        }
-
-        // [MASTER] master only block - get the modqueue as well for selected subreddits
-        try {
-            if (process.env.MODQUEUE_SUBEDDITS && process.env.MODQUEUE_SUBREDDITS !== '') {
-                const modqueueMulti = await reddit.getSubreddit(process.env.MODQUEUE_SUBREDDITS);
-                const modqueueSubmissions = await modqueueMulti.getModqueue({ limit: 100, only: 'links' });
-                submissions = submissions.concat(modqueueSubmissions);
-            }
-        } catch (e) {
-            console.log('Error: Failed to get modqueue. Possibly not modded to subreddit.');
+            const modqueueSubmissions = await subredditMulti.getModqueue({ limit: 100, only: 'links' });
+            submissions = submissions.concat(modqueueSubmissions);
         }
 
         if (!submissions) {
