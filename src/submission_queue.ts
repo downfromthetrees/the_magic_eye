@@ -53,6 +53,17 @@ export async function mainQueue() {
             submissions = newSubmissions.concat(modqueueSubmissions);
         }
 
+        // [MASTER] master only block - get the modqueue as well for selected subreddits
+        try {
+            if (process.env.MODQUEUE_SUBEDDITS && process.env.MODQUEUE_SUBREDDITS !== '') {
+                const modqueueMulti = await reddit.getSubreddit(process.env.MODQUEUE_SUBREDDITS);
+                const modqueueSubmissions = await modqueueMulti.getModqueue({ limit: 100, only: 'links' });
+                submissions = submissions.concat(modqueueSubmissions);
+            }
+        } catch (e) {
+            console.log('Error: Failed to get modqueue. Possibly not modded to subreddit.');
+        }
+
         if (!submissions) {
             log.error(chalk.red('[QUEUE] Cannot get new submissions to process - api is probably down for maintenance.'));
             setTimeout(mainQueue, 60 * 1000); // run again in 60 seconds

@@ -16,18 +16,18 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 
 <!-- TOC -->
 
--   [Magic Eye Configuration](#magic-eye-configuration)
-    -   [Media types](#media-types)
-    -   [Set the tolerance](#set-the-tolerance)
-    -   [On user reply](#on-user-reply)
-    -   [Remove reposts](#remove-reposts)
-    -   [Remove blacklisted images](#remove-blacklisted-images)
-    -   [Remove broken image links](#remove-broken-image-links)
-    -   [Remove small images](#remove-small-images)
-    -   [Remove uncropped images](#remove-uncropped-images)
-    -   [Custom footer](#custom-footer)
-    -   [Report unmoderated posts](#report-unmoderated-posts)
-    -   [Removal message type](#removal-message-type)
+- [Magic Eye Configuration](#magic-eye-configuration)
+    - [Media types](#media-types)
+    - [Set the tolerance](#set-the-tolerance)
+    - [On user reply](#on-user-reply)
+    - [Remove reposts](#remove-reposts)
+    - [Remove blacklisted images](#remove-blacklisted-images)
+    - [Remove broken image links](#remove-broken-image-links)
+    - [Remove small images](#remove-small-images)
+    - [Remove uncropped images](#remove-uncropped-images)
+    - [Custom footer](#custom-footer)
+    - [Report unmoderated posts](#report-unmoderated-posts)
+    - [Removal message type](#removal-message-type)
 
 <!-- /TOC -->
 ## Media types
@@ -38,6 +38,8 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 Individually turn on/off processing of images or animated media (i.e. gifs/videos). Both are enabled by default.
 
 Note: NSFW animated media will only be processed in NSFW communities, as it relies on the un-censored thumbnail.
+
+Videos/gifs with a pure black/single colour starting frame will be ignored.
 
 ## Set the tolerance
 
@@ -117,7 +119,7 @@ Like blacklisting, you can do this by adding the special `[](#repost)` tag to th
 
     "removeBlacklisted": {},
 
-Images can be blacklisted by removing a thread and making a **distinguished** comment in it with this format:
+Images can be blacklisted by removing a thread and making a **distinguished** comment in it with this  (NOTE to new reddit interface users: you must be in "Markdown mode", not "Fancy Pants Editor"):
 
     [](#start_removal)
 
