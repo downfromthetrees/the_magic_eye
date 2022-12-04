@@ -35,7 +35,6 @@
         "fs-extra": "^5.0.0",
         "gm": "^1.23.1",
         "hamming": "0.0.2",
-        "heapdump": "^0.3.15",
         "https": "^1.0.0",
         "image-downloader": "^3.3.0",
         "image-size": "^0.6.3",
