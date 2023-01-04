@@ -222,9 +222,10 @@ async function processNewSubmission(submission, imageDetails, database, activeMo
     }
 
     // HMMM ONLY BLOCK - ban spambots
+    log.info('USER COMMENT1: ');
     const submissionUser = await reddit.getUser(username);
     const comments = await submissionUser.getComments();
-    log.info('USER COMMENT: ', comments[0]);
+    log.info('USER COMMENT2: ', comments[0]);
     const isSpammer = comments.find((comment) => comments.subreddit === 'FreeKarma4You');
-    log.info('USER COMMENT 2 : ', isSpammer, comments[0]);
+    log.info('USER COMMENT3: ', isSpammer, comments[0]);
 }
