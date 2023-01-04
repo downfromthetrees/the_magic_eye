@@ -114,7 +114,7 @@ export async function processSubmission(submission, masterSettings, database, re
     // process submission as new or existing
     const existingMagicSubmission = await database.getMagicSubmission(imageDetails.dhash, masterSettings.settings.similarityTolerance);
     if (existingMagicSubmission == null) {
-        await processNewSubmission(submission, imageDetails, database, activeMode, subredditName, submissionType);
+        await processNewSubmission(submission, imageDetails, database, activeMode, subredditName, submissionType, reddit);
     } else if (activeMode) {
         await processExistingSubmission(submission, existingMagicSubmission, masterSettings, reddit, subredditName, submissionType);
         await database.saveMagicSubmission(existingMagicSubmission); // save here to cover all updates
@@ -204,7 +204,7 @@ async function processExistingSubmission(submission, existingMagicSubmission, ma
     }
 }
 
-async function processNewSubmission(submission, imageDetails, database, activeMode, subredditName, submissionType) {
+async function processNewSubmission(submission, imageDetails, database, activeMode, subredditName, submissionType, reddit) {
     if (activeMode) {
         log.info(`[${subredditName}]`, chalk.green('Processing new submission: ', await printSubmission(submission, submissionType)));
     } else {
@@ -220,4 +220,11 @@ async function processNewSubmission(submission, imageDetails, database, activeMo
         await submission.approve();
         return;
     }
+
+    // HMMM ONLY BLOCK - ban spambots
+    const submissionUser = await reddit.getUser(username);
+    const comments = await submissionUser.getComments();
+    log.info('USER COMMENT: ', comments[0]);
+    const isSpammer = comments.find((comment) => comments.subreddit === 'FreeKarma4You');
+    log.info('USER COMMENT 2 : ', isSpammer, comments[0]);
 }
