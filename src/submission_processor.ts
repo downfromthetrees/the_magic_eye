@@ -222,10 +222,12 @@ async function processNewSubmission(submission, imageDetails, database, activeMo
     }
 
     // HMMM ONLY BLOCK - ban spambots
-    log.info('USER COMMENT1: ');
     const submissionUser = await reddit.getUser(username);
     const comments = await submissionUser.getComments();
-    log.info('USER COMMENT2: ', comments[0]);
-    const isSpammer = comments.find((comment) => comments.subreddit === 'FreeKarma4You');
-    log.info('USER COMMENT3: ', isSpammer, comments[0]);
+    const isSpammer = comments.find((comment) => comments.subreddit.display_name === 'FreeKarma4You');
+    if (isSpammer) {
+        log.info('spambot detected, banning: ', submissionUser);
+        const subreddit = await reddit.getSubreddit(subredditName);
+        subreddit.banUser({ name: submissionUser, banMessage: 'Invalid submission. Please modmail us if you think this ban was a mistake.' });
+    }
 }
