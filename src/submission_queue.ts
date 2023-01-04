@@ -46,22 +46,10 @@ export async function mainQueue() {
                 .join('')
                 .slice(0, -1); // rarepuppers+pics+MEOW_IRL
             const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
-
-            // [HMMM] hmmm only block - get the modqueue as well
-            const modqueueSubmissions = await subredditMulti.getModqueue({ limit: 100, only: 'links' });
             const newSubmissions = await subredditMulti.getNew({ limit: 100 });
-            submissions = newSubmissions.concat(modqueueSubmissions);
-        }
-
-        // [MASTER] master only block - get the modqueue as well for selected subreddits
-        try {
-            if (process.env.MODQUEUE_SUBEDDITS && process.env.MODQUEUE_SUBREDDITS !== '') {
-                const modqueueMulti = await reddit.getSubreddit(process.env.MODQUEUE_SUBREDDITS);
-                const modqueueSubmissions = await modqueueMulti.getModqueue({ limit: 100, only: 'links' });
-                submissions = submissions.concat(modqueueSubmissions);
-            }
-        } catch (e) {
-            console.log('Error: Failed to get modqueue. Possibly not modded to subreddit.');
+            submissions = submissions.concat(newSubmissions);
+            const modqueueSubmissions = await subredditMulti.getModqueue({ limit: 100, only: 'links' });
+            submissions = submissions.concat(modqueueSubmissions);
         }
 
         if (!submissions) {
