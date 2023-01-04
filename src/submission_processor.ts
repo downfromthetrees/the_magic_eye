@@ -224,7 +224,7 @@ async function processNewSubmission(submission, imageDetails, database, activeMo
     // HMMM ONLY BLOCK - ban spambots
     const submissionUser = await reddit.getUser(username);
     const comments = await submissionUser.getComments();
-    const isSpammer = comments[0].subreddit.display_name === 'FreeKarma4You';
+    const isSpammer = (await comments[0]).permalink.includes('FreeKarma4You');
     if (isSpammer) {
         log.info('spambot detected, banning: ', submissionUser);
         const subreddit = await reddit.getSubreddit(subredditName);
