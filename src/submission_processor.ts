@@ -228,8 +228,7 @@ async function processNewSubmission(submission, imageDetails, database, activeMo
     if (isSpammer) {
         log.info('spambot detected, banning: ', submissionUser);
         const subreddit = await reddit.getSubreddit(subredditName);
-        await subreddit.banUser({ name: submissionUser });
-        log.info('Removing spambot submission...');
+        await subreddit.banUser({ name: username, banMessage: 'Invalid submission. Please modmail us if you think this ban was a mistake.' });
         await submission.remove();
     }
 }
