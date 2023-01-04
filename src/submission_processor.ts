@@ -218,7 +218,7 @@ async function processNewSubmission(submission, imageDetails, database, activeMo
     let username = author ? author.name : null;
     if ((activeMode && username == process.env.HOLDING_ACCOUNT_USERNAME) || username == 'CosmicKeys') {
         await submission.approve();
-        return;
+        // return;
     }
 
     // HMMM ONLY BLOCK - ban spambots
