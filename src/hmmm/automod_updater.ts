@@ -46,8 +46,7 @@ type: submission
 action: filter`;
 
 function modifyFilteringConfig(currentConfig, enable) {
-    console.log(currentConfig);
-    console.log(currentConfig.includes(filterConfig), currentConfig.includes(filterConfig2));
+    console.log(currentConfig.includes(filterConfig), currentConfig.includes(filterConfig2), currentConfig.includes('# Magic Eye auto-filtering config'));
     if (enable) {
         if (currentConfig.includes(filterConfig)) {
             log.warn('Filtering already enabled for subreddit. Ignoring.');
