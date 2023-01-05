@@ -38,10 +38,7 @@ export async function doEnableFilterMode(reddit, enable, subredditName) {
     }
 }
 
-const filterConfig = `---
-# Magic Eye auto-filtering config
-type: submission
-action: filter`;
+const filterConfig = '---\n# Magic Eye auto-filtering config\ntype: submission\naction: filter';
 
 function modifyFilteringConfig(currentConfig, enable) {
     if (enable) {
