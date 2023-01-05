@@ -80,7 +80,7 @@ export async function removeReposts(reddit, modComment, submission, lastSubmissi
     const lastIsRemovedAsRepost = await isRepostRemoval(modComment);
     const recentRepost = await isRecentRepost(submission, lastSubmission, processorSettings);
     if (recentRepost) {
-        log.info('Recent repost found, bannedBy is: ', bannedBy);
+        log.info('Recent repost found, modWhoRemoved is: ', modWhoRemoved, 'modWhoRemoved.name is: ', modWhoRemoved ? modWhoRemoved.name : 'n/a');
         actionAsRepost(
             submission,
             lastSubmission,
