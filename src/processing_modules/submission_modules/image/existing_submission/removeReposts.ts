@@ -49,8 +49,8 @@ export async function removeReposts(reddit, modComment, submission, lastSubmissi
     }
 
     // Last submission was removed by AutoModerator and we somehow saw it - ignore
-    const bannedBy = await lastSubmission.banned_by.name;
-    if (bannedBy === 'AutoModerator') {
+    const modWhoRemoved = await lastSubmission.banned_by;
+    if (modWhoRemoved === 'AutoModerator' || modWhoRemoved?.name === 'AutoModerator') {
         log.info(
             `[${subredditName}]`,
             'Found last submission removed by AutoModerator, ignoring ',
