@@ -38,15 +38,15 @@ export async function doEnableFilterMode(reddit, enable, subredditName) {
     }
 }
 
-const filterConfig = '---\n# Magic Eye auto-filtering config\ntype: submission\naction: filter';
+const breaker = `# NOTHING BELOW HERE`;
 
-const filterConfig2 = `---
+const filterConfig = `${breaker}
+---
 # Magic Eye auto-filtering config
 type: submission
 action: filter`;
 
 function modifyFilteringConfig(currentConfig, enable) {
-    console.log(currentConfig.includes(filterConfig), currentConfig.includes(filterConfig2), currentConfig.includes('# Magic Eye auto-filtering config'));
     if (enable) {
         if (currentConfig.includes(filterConfig)) {
             log.warn('Filtering already enabled for subreddit. Ignoring.');
@@ -55,11 +55,11 @@ function modifyFilteringConfig(currentConfig, enable) {
 
         return currentConfig + `\n${filterConfig}`;
     } else {
-        if (!currentConfig.includes(filterConfig)) {
+        if (!currentConfig.includes(breaker)) {
             log.warn('Filtering config does not exist for subreddit. Ignoring.');
             return currentConfig;
         }
 
-        return currentConfig.replace(filterConfig, '');
+        return currentConfig.split(breaker)[0];
     }
 }
