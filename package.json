@@ -39,7 +39,7 @@
         "javascript-time-ago": "^2.0.1",
         "jsonschema": "^1.2.4",
         "loglevel": "^1.6.1",
-        "moment": "^2.22.1",
+        "moment": "^2.29.4",
         "mongodb": "^3.3.3",
         "node-fetch": "^2.2.0",
         "object-sizeof": "^1.5.2",
