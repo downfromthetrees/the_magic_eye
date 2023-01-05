@@ -38,7 +38,7 @@ export async function doEnableFilterMode(reddit, enable, subredditName) {
     }
 }
 
-const breaker = `# NOTHING BELOW HERE`;
+const breaker = '# NOTHING BELOW HERE';
 
 const filterConfig = `${breaker}
 ---
