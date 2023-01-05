@@ -7,8 +7,6 @@ require('dotenv').config();
 const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-//var heapdump = require('heapdump');
-
 if (
     !process.env.ACCOUNT_USERNAME ||
     !process.env.PASSWORD ||
@@ -175,21 +173,6 @@ app.get('/demod', async function (req, res) {
         res.send(JSON.stringify({ status: 'failed' }));
     }
 });
-
-// app.get('/heapdump', async function (req, res) {
-//     let name = req.query ? req.query.name : null;
-//     const fileName = `./tmp/${name}.heapsnapshot`;
-//     heapdump.writeSnapshot(fileName, function (err, filename) {
-//         if (err) console.log('dump err: ', err);
-//         else console.log('dump written to', filename);
-//     });
-// });
-
-// app.get('/get-heapdump', async function (req, res) {
-//     let name = req.query ? req.query.name : null;
-//     const fileName = `./tmp/${name}.heapsnapshot`;
-//     res.download(fileName);
-// });
 
 process.on('unhandledRejection', (reason: any, p: any) => {
     log.warn('ERROR: Unhandled promise Rejection at: Promise', p.message, 'reason:', reason.message);

@@ -63,7 +63,6 @@
         "twitter": "^1.7.1"
     },
     "devDependencies": {
-        "@types/heapdump": "^0.3.1",
         "@types/mongodb": "^3.3.3",
         "@types/node": "^12.7.5",
         "ts-node": "^8.4.1",
