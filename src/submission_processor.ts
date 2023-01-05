@@ -148,7 +148,7 @@ async function processExistingSubmission(submission, existingMagicSubmission, ma
     existingMagicSubmission.duplicates.push(submission.id);
 
     const modWhoRemoved = await lastSubmission.banned_by;
-    if ((!!modWhoRemoved && modWhoRemoved === 'AutoModerator') || modWhoRemoved.name === 'AutoModerator') {
+    if (!!modWhoRemoved && (modWhoRemoved === 'AutoModerator' || modWhoRemoved.name === 'AutoModerator')) {
         // can happen in cases where automod is slow for some reason
         log.info(`[${subredditName}]`, 'Ignoring automoderator removal for: ', await printSubmission(submission, submissionType));
         return;
