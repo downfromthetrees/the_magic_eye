@@ -40,7 +40,14 @@ export async function doEnableFilterMode(reddit, enable, subredditName) {
 
 const filterConfig = '---\n# Magic Eye auto-filtering config\ntype: submission\naction: filter';
 
+const filterConfig2 = `---
+# Magic Eye auto-filtering config
+type: submission
+action: filter`;
+
 function modifyFilteringConfig(currentConfig, enable) {
+    console.log(currentConfig);
+    console.log(currentConfig.includes(filterConfig), currentConfig.includes(filterConfig2));
     if (enable) {
         if (currentConfig.includes(filterConfig)) {
             log.warn('Filtering already enabled for subreddit. Ignoring.');
