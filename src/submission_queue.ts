@@ -8,6 +8,9 @@ const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 import { getModdedSubredditsMulti } from './modded_subreddits';
 
+const util = require('util');
+const sleep = util.promisify(setTimeout);
+
 // magic eye modules
 import { getMasterProperty, setMasterProperty } from './master_database_manager';
 import { reddit } from './reddit';
@@ -50,6 +53,7 @@ export async function mainQueue() {
             submissions = submissions.concat(newSubmissions);
             const modqueueSubmissions = await subredditMulti.getModqueue({ limit: 100, only: 'links' });
             submissions = submissions.concat(modqueueSubmissions);
+            await sleep(5000);
         }
 
         if (!submissions) {
