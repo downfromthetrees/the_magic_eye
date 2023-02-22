@@ -41,7 +41,7 @@ export async function mainQueue() {
         }
 
         let submissions = [];
-        const count = 50;
+        const count = 500;
         for (let i = 0; i <= moddedSubs.length / count; i++) {
             const moddedSubredditsMultiString = moddedSubs
                 .slice(i * count, (i + 1) * count)
@@ -53,7 +53,7 @@ export async function mainQueue() {
             submissions = submissions.concat(newSubmissions);
             const modqueueSubmissions = await subredditMulti.getModqueue({ limit: 100, only: 'links' });
             submissions = submissions.concat(modqueueSubmissions);
-            await sleep(1000);
+            await sleep(5000);
         }
 
         if (!submissions) {
