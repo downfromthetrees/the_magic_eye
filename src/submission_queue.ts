@@ -48,6 +48,8 @@ export async function mainQueue() {
                 .map((sub) => sub + '+')
                 .join('')
                 .slice(0, -1); // rarepuppers+pics+MEOW_IRL
+
+            log.info(`Requesting for ${moddedSubredditsMultiString}`);
             const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
             const newSubmissions = await subredditMulti.getNew({ limit: 100 });
             submissions = submissions.concat(newSubmissions);
