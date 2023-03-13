@@ -53,8 +53,8 @@ export async function mainQueue() {
             const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
             const newSubmissions = await subredditMulti.getNew({ limit: 100 });
             submissions = submissions.concat(newSubmissions);
-            const modqueueSubmissions = await subredditMulti.getModqueue({ limit: 100, only: 'links' });
-            submissions = submissions.concat(modqueueSubmissions);
+            //const modqueueSubmissions = await subredditMulti.getModqueue({ limit: 100, only: 'links' });
+            //submissions = submissions.concat(modqueueSubmissions);
             await sleep(1000);
         }
 
