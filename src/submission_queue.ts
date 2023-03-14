@@ -41,7 +41,7 @@ export async function mainQueue() {
         }
 
         let submissions = [];
-        const count = 50;
+        const count = 300;
         for (let i = 0; i <= moddedSubs.length / count; i++) {
             const moddedSubredditsMultiString = moddedSubs
                 .slice(i * count, (i + 1) * count)
