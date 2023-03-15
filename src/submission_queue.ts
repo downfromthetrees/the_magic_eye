@@ -53,9 +53,13 @@ export async function mainQueue() {
             const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
             const newSubmissions = await subredditMulti.getNew({ limit: 100 });
             submissions = submissions.concat(newSubmissions);
-            //const modqueueSubmissions = await subredditMulti.getModqueue({ limit: 100, only: 'links' });
-            //submissions = submissions.concat(modqueueSubmissions);
             await sleep(1000);
+        }
+
+        if (process.env.modqueueProcessing) {
+            const modqueueSubredditMulti = await reddit.getSubreddit(process.env.modqueueProcessing);
+            const modqueueSubmissions = await modqueueSubredditMulti.getModqueue({ limit: 100, only: 'links' });
+            submissions = submissions.concat(modqueueSubmissions);
         }
 
         if (!submissions) {
