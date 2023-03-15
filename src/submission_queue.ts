@@ -56,8 +56,8 @@ export async function mainQueue() {
             await sleep(1000);
         }
 
-        if (process.env.modqueueProcessing) {
-            const modqueueSubredditMulti = await reddit.getSubreddit(process.env.modqueueProcessing);
+        if (process.env.MODQUEUE_SUBREDDITS) {
+            const modqueueSubredditMulti = await reddit.getSubreddit(process.env.MODQUEUE_SUBREDDITS);
             const modqueueSubmissions = await modqueueSubredditMulti.getModqueue({ limit: 100, only: 'links' });
             submissions = submissions.concat(modqueueSubmissions);
         }
