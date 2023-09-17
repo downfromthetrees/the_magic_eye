@@ -22,7 +22,7 @@ let submissionRequests = 1000; // request max on restart
 let haltProcessing = false;
 
 export async function mainQueue() {
-    const minimumTimeoutSeconds = 30; // default time between ingest requests
+    const minimumTimeoutSeconds = 10; // default time between ingest requests
     let timeoutTimeSeconds = minimumTimeoutSeconds;
 
     if (haltProcessing) {
@@ -41,7 +41,7 @@ export async function mainQueue() {
         }
 
         let submissions = [];
-        const count = 300;
+        const count = 50;
         for (let i = 0; i <= moddedSubs.length / count; i++) {
             const moddedSubredditsMultiString = moddedSubs
                 .slice(i * count, (i + 1) * count)
