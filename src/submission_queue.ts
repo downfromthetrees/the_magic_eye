@@ -21,6 +21,8 @@ let submissionRequests = 1000; // request max on restart
 
 let haltProcessing = false;
 
+let loopCount = 0;
+
 export async function mainQueue() {
     const minimumTimeoutSeconds = 10; // default time between ingest requests
     let timeoutTimeSeconds = minimumTimeoutSeconds;
@@ -41,25 +43,20 @@ export async function mainQueue() {
         }
 
         let submissions = [];
-        const count = 50;
-        for (let i = 0; i <= moddedSubs.length / count; i++) {
-            const moddedSubredditsMultiString = moddedSubs
-                .slice(i * count, (i + 1) * count)
-                .map((sub) => sub + '+')
-                .join('')
-                .slice(0, -1); // rarepuppers+pics+MEOW_IRL
 
-            log.info(`Requesting for ${moddedSubredditsMultiString}`);
-            const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
-            const newSubmissions = await subredditMulti.getNew({ limit: 40 });
-            submissions = submissions.concat(newSubmissions);
-            await sleep(1000);
-        }
+        const moddedSubredditsMultiString = getNextSubList(moddedSubs);
+        log.info(`Requesting for ${moddedSubredditsMultiString}`);
+        const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
+        const newSubmissions = await subredditMulti.getNew({ limit: 100 });
+        submissions = submissions.concat(newSubmissions);
+        await sleep(1000);
 
-        if (process.env.MODQUEUE_SUBREDDITS) {
+        if (process.env.MODQUEUE_SUBREDDITS && loopCount % 10 === 0) {
+            log.info(`[QUEUE] Requesting modqueue subreddits: `, process.env.MODQUEUE_SUBREDDITS);
             const modqueueSubredditMulti = await reddit.getSubreddit(process.env.MODQUEUE_SUBREDDITS);
-            const modqueueSubmissions = await modqueueSubredditMulti.getModqueue({ limit: 20, only: 'links' });
+            const modqueueSubmissions = await modqueueSubredditMulti.getModqueue({ limit: 100, only: 'links' });
             submissions = submissions.concat(modqueueSubmissions);
+            log.info(`[QUEUE] Modque subreddits request complete`);
         }
 
         if (!submissions) {
@@ -89,7 +86,19 @@ export async function mainQueue() {
         log.error(chalk.red('[QUEUE] Queue loop error: ', err));
     }
 
+    loopCount++;
     setTimeout(mainQueue, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
+}
+
+function getNextSubList(moddedSubs: string[]) {
+    const numSubsToRequest = 50;
+    const numBrackets = Math.ceil(moddedSubs.length / numSubsToRequest);
+    const currentBracket = loopCount % numBrackets;
+    return moddedSubs
+        .slice(currentBracket * numSubsToRequest, (currentBracket + 1) * numSubsToRequest)
+        .map((sub) => sub + '+')
+        .join('')
+        .slice(0, -1); // rarepuppers+pics+MEOW_IRL
 }
 
 export async function consumeQueue() {
