@@ -24,7 +24,7 @@ let haltProcessing = false;
 let loopCount = 0;
 
 export async function mainQueue() {
-    const minimumTimeoutSeconds = 10; // default time between ingest requests
+    const minimumTimeoutSeconds = 5; // default time between ingest requests
     let timeoutTimeSeconds = minimumTimeoutSeconds;
 
     if (haltProcessing) {
