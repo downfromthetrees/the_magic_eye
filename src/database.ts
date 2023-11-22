@@ -7,7 +7,7 @@ const log = require('loglevel');
 const sizeof = require('object-sizeof');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 
-import { getSubmissionCollection, getCacheName } from './database_manager';
+import { getSubmissionCollection, getCacheName, MagicSubmission } from './database_manager';
 
 export class MagicDatabase {
     subredditName;
@@ -97,13 +97,13 @@ export class MagicDatabase {
         }
     }
 
-    async getMagicSubmissionById(submission_id) {
+    async getMagicSubmissionById(submission_id): Promise<MagicSubmission | undefined | null> {
         try {
             const collection = await getSubmissionCollection(this);
             return await collection.findOne({ reddit_id: submission_id });
         } catch (err) {
             log.error(chalk.red('MongoDb error getting submission by id:'), submission_id, err);
-            return null;
+            return undefined;
         }
     }
 
