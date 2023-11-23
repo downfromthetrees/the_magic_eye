@@ -133,7 +133,7 @@ async function consumeUnprocessedSubmissions(latestItems) {
     // update the processed list before processing so we don't retry any submissions that cause exceptions
     const newItems = latestItems.filter((item) => !processedIds.includes(item.id));
     let updatedProcessedIds = processedIds.concat(newItems.map((submission) => submission.id)); // [3,2,1] + [new] = [3,2,1,new]
-    const processedCacheSize = 2500; // larger size for any weird/future edge-cases where a mod removes a lot of submissions
+    const processedCacheSize = 10000; // larger size for any weird/future edge-cases where a mod removes a lot of submissions
     if (updatedProcessedIds.length > processedCacheSize) {
         updatedProcessedIds = updatedProcessedIds.slice(updatedProcessedIds.length - processedCacheSize); // [3,2,1,new] => [2,1,new]
     }
