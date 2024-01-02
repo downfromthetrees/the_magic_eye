@@ -58,6 +58,8 @@ export async function getImageUrl(submission) {
         imageUrl = imageUrl.slice(0, imageUrl.length - 1);
     }
 
+    if (imageUrl.includes('catbox')) return null;
+
     const suffix = imageUrl.split('.')[imageUrl.split('.').length - 1].split('?')[0]; // http://imgur.com/a/liD3a.gif?horrible=true
     const images = ['png', 'jpg', 'jpeg', 'bmp'];
     if (images.includes(suffix)) {
