@@ -28,6 +28,9 @@ export async function processSubmission(submission, masterSettings, database, re
 
     // check if we have already processed submission
     const existingMagicSubmissionById = await database.getMagicSubmissionById(submission.id);
+
+    if (existingMagicSubmissionById === undefined) return; // error occurred
+
     if (existingMagicSubmissionById) {
         log.info(`[${subredditName}]`, 'Submission is already in database, - ignoring submission:', await printSubmission(submission));
         return;

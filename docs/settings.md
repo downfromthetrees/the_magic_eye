@@ -8,7 +8,7 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 
 -   MAGIC_EYE_BOT will let you know if your updates are successful, or give you help if there is a formatting issue. It keeps the actual settings in it's own database so if you mess up your wiki page it's not a concern, the bot will just keep using the last valid settings you had.
 
--   Because of the popularity of Magic Eye, it now takes 5-10 minutes to detect changes to the settings wiki page. Be patient and it will send you an notification eventually.
+-   NOTE: Because of the popularity of Magic Eye, it now takes 30 minutes to detect changes to the settings wiki page. Be patient and it will send you an notification eventually. To avoid waiting just to get a failure, please use a JSON validator on your settings before updating them: https://jsonlint.com/
 
 -   Magic Eye can't detect when you use the wiki page "revert" button. If you use it to revert to previous settings, just edit and save the wiki page (no changes needed) to get Magic Eye to pick up the change.
 
@@ -16,18 +16,18 @@ http://www.reddit.com/r/YOUR_SUB_NAME/wiki/magic_eye
 
 <!-- TOC -->
 
-- [Magic Eye Configuration](#magic-eye-configuration)
-    - [Media types](#media-types)
-    - [Set the tolerance](#set-the-tolerance)
-    - [On user reply](#on-user-reply)
-    - [Remove reposts](#remove-reposts)
-    - [Remove blacklisted images](#remove-blacklisted-images)
-    - [Remove broken image links](#remove-broken-image-links)
-    - [Remove small images](#remove-small-images)
-    - [Remove uncropped images](#remove-uncropped-images)
-    - [Custom footer](#custom-footer)
-    - [Report unmoderated posts](#report-unmoderated-posts)
-    - [Removal message type](#removal-message-type)
+-   [Magic Eye Configuration](#magic-eye-configuration)
+    -   [Media types](#media-types)
+    -   [Set the tolerance](#set-the-tolerance)
+    -   [On user reply](#on-user-reply)
+    -   [Remove reposts](#remove-reposts)
+    -   [Remove blacklisted images](#remove-blacklisted-images)
+    -   [Remove broken image links](#remove-broken-image-links)
+    -   [Remove small images](#remove-small-images)
+    -   [Remove uncropped images](#remove-uncropped-images)
+    -   [Custom footer](#custom-footer)
+    -   [Report unmoderated posts](#report-unmoderated-posts)
+    -   [Removal message type](#removal-message-type)
 
 <!-- /TOC -->
 ## Media types
@@ -119,7 +119,7 @@ Like blacklisting, you can do this by adding the special `[](#repost)` tag to th
 
     "removeBlacklisted": {},
 
-Images can be blacklisted by removing a thread and making a **distinguished** comment in it with this  (NOTE to new reddit interface users: you must be in "Markdown mode", not "Fancy Pants Editor"):
+Images can be blacklisted by removing a thread and making a **distinguished** comment in it with this (NOTE to new reddit interface users: you must be in "Markdown mode", not "Fancy Pants Editor"):
 
     [](#start_removal)
 

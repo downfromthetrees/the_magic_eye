@@ -8,6 +8,9 @@ const log = require('loglevel');
 log.setLevel(process.env.LOG_LEVEL ? process.env.LOG_LEVEL : 'info');
 import { getModdedSubredditsMulti } from './modded_subreddits';
 
+const util = require('util');
+const sleep = util.promisify(setTimeout);
+
 // magic eye modules
 import { getMasterProperty, setMasterProperty } from './master_database_manager';
 import { reddit } from './reddit';
@@ -18,8 +21,10 @@ let submissionRequests = 1000; // request max on restart
 
 let haltProcessing = false;
 
+let loopCount = 0;
+
 export async function mainQueue() {
-    const minimumTimeoutSeconds = 30; // default time between ingest requests
+    const minimumTimeoutSeconds = 5; // default time between ingest requests
     let timeoutTimeSeconds = minimumTimeoutSeconds;
 
     if (haltProcessing) {
@@ -38,18 +43,20 @@ export async function mainQueue() {
         }
 
         let submissions = [];
-        const count = 300;
-        for (let i = 0; i <= moddedSubs.length / count; i++) {
-            const moddedSubredditsMultiString = moddedSubs
-                .slice(i * count, (i + 1) * count)
-                .map((sub) => sub + '+')
-                .join('')
-                .slice(0, -1); // rarepuppers+pics+MEOW_IRL
-            const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
-            const newSubmissions = await subredditMulti.getNew({ limit: 100 });
-            submissions = submissions.concat(newSubmissions);
-            const modqueueSubmissions = await subredditMulti.getModqueue({ limit: 100, only: 'links' });
+
+        const moddedSubredditsMultiString = getNextSubList(moddedSubs);
+        log.info(`Requesting for ${moddedSubredditsMultiString}`);
+        const subredditMulti = await reddit.getSubreddit(moddedSubredditsMultiString);
+        const newSubmissions = await subredditMulti.getNew({ limit: 100 });
+        submissions = submissions.concat(newSubmissions);
+        await sleep(1000);
+
+        if (process.env.MODQUEUE_SUBREDDITS && loopCount % 10 === 0) {
+            log.info(`[QUEUE] Requesting modqueue subreddits: `, process.env.MODQUEUE_SUBREDDITS);
+            const modqueueSubredditMulti = await reddit.getSubreddit(process.env.MODQUEUE_SUBREDDITS);
+            const modqueueSubmissions = await modqueueSubredditMulti.getModqueue({ limit: 100, only: 'links' });
             submissions = submissions.concat(modqueueSubmissions);
+            log.info(`[QUEUE] Modque subreddits request complete`);
         }
 
         if (!submissions) {
@@ -79,7 +86,19 @@ export async function mainQueue() {
         log.error(chalk.red('[QUEUE] Queue loop error: ', err));
     }
 
+    loopCount++;
     setTimeout(mainQueue, timeoutTimeSeconds * 1000); // run again in timeoutTimeSeconds
+}
+
+function getNextSubList(moddedSubs: string[]) {
+    const numSubsToRequest = 50;
+    const numBrackets = Math.ceil(moddedSubs.length / numSubsToRequest);
+    const currentBracket = loopCount % numBrackets;
+    return moddedSubs
+        .slice(currentBracket * numSubsToRequest, (currentBracket + 1) * numSubsToRequest)
+        .map((sub) => sub + '+')
+        .join('')
+        .slice(0, -1); // rarepuppers+pics+MEOW_IRL
 }
 
 export async function consumeQueue() {
@@ -114,7 +133,7 @@ async function consumeUnprocessedSubmissions(latestItems) {
     // update the processed list before processing so we don't retry any submissions that cause exceptions
     const newItems = latestItems.filter((item) => !processedIds.includes(item.id));
     let updatedProcessedIds = processedIds.concat(newItems.map((submission) => submission.id)); // [3,2,1] + [new] = [3,2,1,new]
-    const processedCacheSize = 2500; // larger size for any weird/future edge-cases where a mod removes a lot of submissions
+    const processedCacheSize = 10000; // larger size for any weird/future edge-cases where a mod removes a lot of submissions
     if (updatedProcessedIds.length > processedCacheSize) {
         updatedProcessedIds = updatedProcessedIds.slice(updatedProcessedIds.length - processedCacheSize); // [3,2,1,new] => [2,1,new]
     }
