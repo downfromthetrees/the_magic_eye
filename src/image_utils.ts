@@ -32,7 +32,7 @@ export async function downloadImage(submissionUrl) {
     const options = {
         url: submissionUrl,
         dest: './tmp',
-        headers: { 'User-Agent': 'Mozilla/5.0 (platform; rv:geckoversion) Gecko/geckotrail Firefox/firefoxversion' },
+        headers: { 'User-Agent': 'MAGIC_EYE_BOT' },
     };
 
     try {
