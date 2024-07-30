@@ -18,7 +18,7 @@ export async function mainSettingsProcessor() {
             setTimeout(mainSettingsProcessor, 30 * 1000); // run again in 30 seconds
         }
 
-        const chunkSize = 30; // chunk the requests because it can strain reddit asking for 200+ subs mod actions
+        const chunkSize = 10; // chunk the requests because it can strain reddit asking for 200+ subs mod actions
         let remainingSubreddits = moddedSubs.slice();
         while (remainingSubreddits.length > 0) {
             let subredditsToProcess = remainingSubreddits.slice(0, chunkSize);

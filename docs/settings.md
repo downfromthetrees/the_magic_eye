@@ -175,7 +175,9 @@ You can [see it in action here](https://www.reddit.com/r/hmmm/comments/ah3d4t/hm
 ## Remove small images
 
     "removeSmallImages": {
-        "smallDimension": 330
+        "widthMinimum": 450
+        "heightMinimum": 600
+        "smallDimension": 330 // legacy
     },
 
 Optional fields:
@@ -185,11 +187,9 @@ Optional fields:
         "fullRemovalMessage": "Hey buckaroo, that's a tiny little horse. Post a bigger one."
     },
 
-Removes images under a certain size (pixel density). When added, the `height`\*`width` of the image must be larger than `smallDimension`\*`smallDimension`.
-
 Details:
 
--   `smallDimension`: Pixel dimention. Example of 330px\*330px image: https://i.imgur.com/7jTFozp.png
+-   `smallDimension`: Legacy pixel dimension. Example of 330px\*330px image: https://i.imgur.com/7jTFozp.png
 -   Does not work on animated media
 
 ## Remove uncropped images
