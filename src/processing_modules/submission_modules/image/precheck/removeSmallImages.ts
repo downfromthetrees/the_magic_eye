@@ -26,9 +26,16 @@ export async function removeSmallImages(reddit, submission, imageDetails, subSet
 
         let removalReason = '';
         if (subSettings.removeSmallImages.fullRemovalMessage) {
-            removalReason = subSettings.removeSmallImages.fullRemovalMessage.split('{{dimension}}').join(smallDimension);
+            removalReason = subSettings.removeSmallImages.fullRemovalMessage;
+            if (!!smallDimension) removalReason = removalReason.split('{{dimension}}').join(smallDimension).split('{{smallDimension}}').join(smallDimension);
+            if (!!widthMinimum) removalReason = removalReason.split('{{widthMinimum}}').join(widthMinimum);
+            if (!!heightMinimum) removalReason = removalReason.split('{{heightMinimum}}').join(heightMinimum);
         } else {
-            removalReason = `Your image has been removed because it is too small. Image submissions to this subreddit must be larger than ${smallDimension}px*${smallDimension}px.`;
+            const messageBase = `Your image has been removed because it is too small. Image submissions to this subreddit must be larger than`;
+            if (!!smallDimension) removalReason = `${messageBase} ${smallDimension}px*${smallDimension}px.`;
+            if (!!widthMinimum) removalReason = `${messageBase} ${widthMinimum}px wide.`;
+            if (!!heightMinimum) removalReason = `${messageBase} ${widthMinimum}px wide.`;
+            if (!!widthMinimum && !!heightMinimum) removalReason = `${messageBase} ${widthMinimum}px*${heightMinimum}px.`;
         }
 
         removePost(submission, removalReason, subSettings, reddit);

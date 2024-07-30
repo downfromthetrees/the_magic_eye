@@ -178,19 +178,20 @@ You can [see it in action here](https://www.reddit.com/r/hmmm/comments/ah3d4t/hm
     "removeSmallImages": {
         "widthMinimum": 450
         "heightMinimum": 600
-        "smallDimension": 330 // legacy
     },
 
 Optional fields:
 
     "removeSmallImages": {
         ...
-        "fullRemovalMessage": "Hey buckaroo, that's a tiny little horse. Post a bigger one."
+        "fullRemovalMessage": "Hey buckaroo, that's a tiny little horse. Post a bigger one. The width needs to be bigger than {{widthMinimum}}, and the height bigger than {{heightMinimum}}",
+        "smallDimension": 330 // legacy size*size setting
     },
 
 Details:
 
--   `smallDimension`: Legacy pixel dimension. Example of 330px\*330px image: https://i.imgur.com/7jTFozp.png
+-   There is a default message printed out if you don't add one
+-   Size is in pixels
 -   Does not work on animated media
 
 ## Remove uncropped images
