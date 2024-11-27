@@ -48,7 +48,7 @@
         "phash-imagemagick": "^1.0.1",
         "png-js": "^0.1.1",
         "request": "^2.85.0",
-        "shelljs": "^0.8.1",
+        "shelljs": "^0.8.5",
         "shx": "^0.2.2",
         "snoowrap": "^1.15.2",
         "stream-to-array": "^2.3.0",
